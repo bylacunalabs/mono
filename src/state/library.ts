@@ -57,23 +57,27 @@ class Library extends Store {
   /** First run only: adds the built-in guide. */
   private async seedSampleIfNeeded() {
     if (settings.value.didSeedSample) return
-    settings.set('didSeedSample', true)
-    if (this.books.length) return
-    await this.add(async () => ({
+    if (this.books.length) return settings.set('didSeedSample', true)
+    // Flag it only once added, so a failed first attempt is retried.
+    const added = await this.add(async () => ({
       document: plainText(SAMPLE_BODY, SAMPLE_TITLE),
       fallbackTitle: SAMPLE_TITLE,
       source: 'text' as Source,
     }))
+    if (added) settings.set('didSeedSample', true)
   }
 
-  private async add(work: () => Promise<{ document: ExtractedDocument; fallbackTitle: string; source: Source }>) {
+  /** Imports one document; false if it failed (the error is shown). */
+  private async add(
+    work: () => Promise<{ document: ExtractedDocument; fallbackTitle: string; source: Source }>,
+  ): Promise<boolean> {
     this.pendingImports++
     this.emit()
     try {
       const { document, fallbackTitle, source } = await work()
       const prepared = prepareText(document)
       const book: Book = {
-        id: crypto.randomUUID(),
+        id: newID(),
         title: prepared.title ?? fallbackTitle,
         wordCount: prepared.wordCount,
         currentIndex: 0,
@@ -84,8 +88,10 @@ class Library extends Store {
       }
       await db.addBook(book, prepared.text)
       this.books = [book, ...this.books]
+      return true
     } catch (error) {
       this.errorMessage = describe(error)
+      return false
     } finally {
       this.pendingImports--
       this.emit()
@@ -139,6 +145,20 @@ class Library extends Store {
     this.errorMessage = `Your library couldn't be saved: ${describe(error)}`
     this.emit()
   }
+}
+
+/**
+ * A random UUID. `crypto.randomUUID` exists only in secure contexts (HTTPS,
+ * localhost), so plain-HTTP access on the local network builds one from
+ * `getRandomValues`, which is always available.
+ */
+function newID(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  bytes[6] = (bytes[6] & 0x0f) | 0x40
+  bytes[8] = (bytes[8] & 0x3f) | 0x80
+  const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 
 const describe = (error: unknown) => (error instanceof Error ? error.message : String(error))
