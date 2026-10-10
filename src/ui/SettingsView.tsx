@@ -12,6 +12,7 @@ import { useObserve } from '../state/store'
 import { Alert, Toggle } from './components'
 import { GestureGuide } from './GestureGuide'
 import { manualInstallSteps } from './InstallPrompt'
+import { previewTicks } from './ticks'
 import {
   availableHalfWidth, BASE_FONT_SIZE, cssFont, FONT_NAMES, maxFontSize, MINIMUM_SCALE, READING_FONTS,
   referenceExtents, wordViewHeight,
@@ -177,6 +178,24 @@ export function SettingsView() {
           </div>
         </section>
         <p class="footnote">After every pause the first few words run slower, so you can pick up the thread.</p>
+
+        <section class="group">
+          <div class="row">
+            <span>Tick sound</span>
+            <Toggle
+              label="Tick sound"
+              checked={s.tickSound}
+              onChange={v => {
+                settings.set('tickSound', v)
+                if (v) previewTicks()
+              }}
+            />
+          </div>
+        </section>
+        <p class="footnote">
+          A soft tick as each word appears. It sounds lower before a comma, lower still at the end of a sentence and
+          lowest before a heading, so you can hear the rhythm of the text.
+        </p>
 
         <section class="group">
           <div class="row">

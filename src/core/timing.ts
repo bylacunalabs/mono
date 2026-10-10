@@ -88,21 +88,31 @@ export interface Pause {
 
 const NO_PAUSE: Pause = { factor: 1, ms: 0 }
 
+/** What follows a word: nothing, or the kind of punctuation pause (paragraph ends are separate). */
+export type PauseKind = 'none' | 'bracket' | 'comma' | 'strong' | 'sentence' | 'ellipsis' | 'heading'
+
 /**
- * The pause after `t`. `next` tells abbreviations from sentence ends;
- * `isHeading` marks a short paragraph without final punctuation.
+ * The kind of pause after `t`. `next` tells abbreviations from sentence
+ * ends; `isHeading` marks a short paragraph without final punctuation.
  */
+export function pauseKind(t: Token, next?: Token, isHeading = false): PauseKind {
+  if (isHeading) return 'heading'
+  const mark = trailingPunctuation(t.text)
+  if (mark === '…' || /\.\.\.["'»”’)\]]*$/u.test(t.text)) return 'ellipsis'
+  if (mark !== undefined && SENTENCE_ENDERS.has(mark)) return endsSentence(t, next) ? 'sentence' : 'none'
+  if (mark === ',') return 'comma'
+  if (mark !== undefined && CLAUSE_ENDERS.has(mark)) return 'strong'
+  if (/[)\]]/.test(t.text)) return 'bracket'
+  return 'none'
+}
+
+/** The pause after `t` (see pauseKind), lengthened at a paragraph end. */
 export function pauseAfter(t: Token, next?: Token, isHeading = false): Pause {
   const { pauses } = TIMING
-  if (isHeading) return pauses.heading
-  const mark = trailingPunctuation(t.text)
-  let pause = NO_PAUSE
-  if (mark === '…' || /\.\.\.["'»”’)\]]*$/u.test(t.text)) pause = pauses.ellipsis
-  else if (mark !== undefined && SENTENCE_ENDERS.has(mark)) pause = endsSentence(t, next) ? pauses.sentence : NO_PAUSE
-  else if (mark === ',') pause = pauses.comma
-  else if (mark !== undefined && CLAUSE_ENDERS.has(mark)) pause = pauses.strong
-  else if (/[)\]]/.test(t.text)) pause = pauses.bracket
-  if (t.endsParagraph) pause = { factor: pause.factor * pauses.paragraph.factor, ms: pause.ms + pauses.paragraph.ms }
+  const kind = pauseKind(t, next, isHeading)
+  if (kind === 'heading') return pauses.heading
+  const pause = kind === 'none' ? NO_PAUSE : pauses[kind]
+  if (t.endsParagraph) return { factor: pause.factor * pauses.paragraph.factor, ms: pause.ms + pauses.paragraph.ms }
   return pause
 }
 
@@ -112,6 +122,8 @@ export interface TextTiming {
   factors: number[]
   /** Fixed pause after each token, in milliseconds. */
   pausesMs: number[]
+  /** Kind of pause after each token. */
+  kinds: PauseKind[]
   meanFactor: number
   meanPauseMs: number
 }
@@ -119,18 +131,20 @@ export interface TextTiming {
 export function textTiming(tokens: Token[]): TextTiming {
   const factors: number[] = []
   const pausesMs: number[] = []
+  const kinds: PauseKind[] = []
   let paragraphStart = 0
   tokens.forEach((t, i) => {
     const isHeading =
       t.endsParagraph && i - paragraphStart + 1 <= TIMING.headingWords && !/[\p{P}]$/u.test(t.text)
     const pause = pauseAfter(t, tokens[i + 1], isHeading)
+    kinds.push(pauseKind(t, tokens[i + 1], isHeading))
     const recognition = Math.max(TIMING.minimumFactor, lengthFactor(t) * recognitionFactor(t))
     factors.push(recognition * pause.factor)
     pausesMs.push(pause.ms)
     if (t.endsParagraph) paragraphStart = i + 1
   })
   const mean = (values: number[]) => (values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0)
-  return { factors, pausesMs, meanFactor: mean(factors) || 1, meanPauseMs: mean(pausesMs) }
+  return { factors, pausesMs, kinds, meanFactor: mean(factors) || 1, meanPauseMs: mean(pausesMs) }
 }
 
 /** How a text's timing maps to milliseconds at one speed. */

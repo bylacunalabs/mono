@@ -20,6 +20,7 @@
 // Back (button or gesture) and Escape close the reader. The text is
 // tokenized in the import worker, so opening a long book doesn't freeze.
 // The screen is kept awake while the reader is open (Screen Wake Lock).
+// With the tick sound on, each word ticks as it appears (see ticks.ts).
 // The position is saved on every pause, every 100 words, when the page is
 // hidden and when the reader closes.
 
@@ -45,6 +46,7 @@ import { useBackButton } from './history'
 import { useSize } from './hooks'
 import { Icon } from './icons'
 import { haptic } from './platform'
+import { tick, unlockTicks } from './ticks'
 import { RSVPWord } from './RSVPWord'
 import { TextPanel } from './TextPanel'
 
@@ -148,6 +150,28 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
     const session = engine.takeSessionStats()
     library.recordReading(session.words, session.seconds)
   }
+
+  // Tick sound: one tick per word shown while playing.
+  useEffect(() => {
+    let wasPlaying = false
+    let lastIndex = -1
+    return engine.subscribe(() => {
+      const started = engine.isPlaying && !wasPlaying
+      wasPlaying = engine.isPlaying
+      if (!settings.value.tickSound || !engine.isPlaying) {
+        lastIndex = -1
+        return
+      }
+      // Playback starts from a tap or key press: the moment audio may start.
+      if (started) unlockTicks()
+      if (engine.currentIndex === lastIndex) return
+      lastIndex = engine.currentIndex
+      const token = engine.currentToken
+      if (!token) return
+      const letters = Array.from(token.text).filter(c => /[\p{L}\p{N}]/u.test(c)).length
+      tick(letters, engine.currentPause, token.endsParagraph)
+    })
+  }, [])
 
   useEffect(() => {
     let wasPlaying = false

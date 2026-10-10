@@ -6,7 +6,9 @@
 // against an absolute deadline so timer overhead doesn't accumulate as drift
 // at high speeds (1200 WPM = 50 ms per word on average).
 
-import { clampWPM, DEFAULT_WPM, delayMs, pace, rampUpFactor, textTiming, WPM_STEP, type Pace, type TextTiming } from './timing'
+import {
+  clampWPM, DEFAULT_WPM, delayMs, pace, rampUpFactor, textTiming, WPM_STEP, type Pace, type PauseKind, type TextTiming,
+} from './timing'
 import { endsSentence, type Token } from './tokenizer'
 
 /** Words the reader goes back on resuming after a pause, within the sentence. */
@@ -115,6 +117,11 @@ export class RSVPEngine {
 
   get currentToken(): Token | undefined {
     return this.tokens[this.currentIndex]
+  }
+
+  /** The kind of pause after the current word. */
+  get currentPause(): PauseKind {
+    return this.timing.kinds[this.currentIndex] ?? 'none'
   }
 
   get isFinished(): boolean {

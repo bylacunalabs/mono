@@ -17,6 +17,8 @@ export interface Settings {
   rewindOnResume: boolean
   /** Read only while a finger is on the screen. */
   holdToRead: boolean
+  /** A soft tick as each word appears, pitched by the pause after it. */
+  tickSound: boolean
   textScale: number
   readingFont: ReadingFont
   alwaysShowText: boolean
@@ -36,6 +38,7 @@ const DEFAULTS: Settings = {
   rampUp: true,
   rewindOnResume: true,
   holdToRead: false,
+  tickSound: false,
   textScale: 1,
   readingFont: 'mono',
   alwaysShowText: false,
