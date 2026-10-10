@@ -52,7 +52,10 @@ export function TextPanel(props: Props) {
     const container = scroller.current
     const word = container?.querySelector<HTMLElement>(`[data-i="${index}"]`)
     if (!container || !word) return
-    const top = Math.max(0, word.offsetTop - container.clientHeight * 0.3)
+    // Measured on screen: paragraphs are laid out with containment
+    // (content-visibility), so offsetTop is relative to the paragraph.
+    const offset = word.getBoundingClientRect().top - container.getBoundingClientRect().top
+    const top = Math.max(0, container.scrollTop + offset - container.clientHeight * 0.3)
     container.scrollTo({ top, behavior: smooth ? 'smooth' : 'instant' })
   }
 

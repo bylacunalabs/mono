@@ -7,7 +7,7 @@ type IconName =
   | 'text' | 'arrows' | 'sun' | 'flame' | 'search' | 'sort' | 'pencil' | 'trash' | 'restart'
   | 'doc' | 'clipboard' | 'check' | 'speed' | 'book' | 'ellipsis' | 'checkCircle' | 'smaller' | 'larger'
   | 'sparkles' | 'download' | 'upload' | 'install' | 'share' | 'moon' | 'contrast'
-  | 'tap' | 'hold' | 'swipeH' | 'swipeV' | 'pinch' | 'help' | 'undo' | 'rotate'
+  | 'tap' | 'hold' | 'swipeH' | 'swipeV' | 'pinch' | 'help' | 'undo' | 'rotate' | 'pause'
 
 const PATHS: Record<IconName, JSX.Element> = {
   tap: (
@@ -66,6 +66,7 @@ const PATHS: Record<IconName, JSX.Element> = {
     </>
   ),
   play: <path d="M7 4.5v15l12.5-7.5z" fill="currentColor" stroke="none" />,
+  pause: <path d="M6.5 4.5h3.5v15H6.5zM14 4.5h3.5v15H14z" fill="currentColor" stroke="none" />,
   backward: <path d="M11.5 6v12L3 12zM21 6v12l-8.5-6z" fill="currentColor" stroke="none" />,
   forward: <path d="M3 6v12l8.5-6zM12.5 6v12L21 12z" fill="currentColor" stroke="none" />,
   close: <path d="M6 6l12 12M18 6L6 18" />,

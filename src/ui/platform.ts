@@ -43,7 +43,15 @@ export function applyPlatform() {
   updateGlass()
   lessTransparency.addEventListener?.('change', updateGlass)
 
-  if (platform === 'ios') applyDynamicType(root)
+  if (platform === 'ios') {
+    applyDynamicType(root)
+    // Installed on an iPhone with a home indicator, iOS sometimes reports a
+    // zero bottom safe area on a cold start, leaving the tab bar on top of
+    // the indicator: keep at least the indicator's height clear.
+    const standalone = (navigator as { standalone?: boolean }).standalone === true
+    const homeIndicator = /iPhone/.test(navigator.userAgent) && Math.max(screen.width, screen.height) >= 812
+    if (standalone && homeIndicator) root.dataset.homeIndicator = ''
+  }
 }
 
 /** iOS: the body text size the user picked in Settings › Display & Brightness › Text Size, relative to the default 17 pt. */

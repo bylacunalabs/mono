@@ -12,10 +12,13 @@
 // • Pinch (or ctrl + scroll on a trackpad): text size, the same for every
 //   word. It can't grow past the size at which the widest word still fits.
 //
-// On a phone on its side the word moves left with the text in a column to
-// its right, the controls shrink to a low bar, the word size is kept apart
-// from the upright one, and on Android reading goes full screen, locked on
-// its side. Upright on a phone, a one-time hint suggests turning it.
+// On a phone on its side the reader becomes a two-handed layout: the word on
+// the right with the text below it, always visible and scrolling along, and
+// on the left a controller that stays on screen (dimmed while reading): a
+// touch pad for the gestures, with play, skip, speed and position under it.
+// The word size is kept apart from the upright one, and on Android reading
+// goes full screen, locked on its side. Upright on a phone, a one-time hint
+// suggests turning it.
 //
 // Swipes that start at the screen's edges are left to the system (Android's
 // back gesture, iOS's Notification Centre and home indicator). Scrubbing the
@@ -60,6 +63,10 @@ const NO_CHAPTERS: Chapter[] = []
 const EDGE = 24
 const EDGE_TOP = 40
 const EDGE_BOTTOM = 32
+/** Share of the width taken by the controller on the left, on its side. */
+const CONTROLLER_SHARE = 0.4
+/** On its side: where the word's centre sits, as a share of the height. */
+const LANDSCAPE_WORD_CENTRE = 0.3
 const UNIT_TITLES: Record<NavigationUnit, string> = { sentence: 'Sentence', paragraph: 'Paragraph', chapter: 'Chapter' }
 
 export function ReaderView({ book, onClose }: { book: Book; onClose: () => void }) {
@@ -85,8 +92,6 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   const [rootRef, size] = useSize<HTMLDivElement>()
   const badgeTimer = useRef<ReturnType<typeof setTimeout>>()
   const landscape = useMediaQuery(LANDSCAPE_PHONE)
-  /** Room taken by the top and bottom controls in the side-by-side layout, measured. */
-  const [bars, setBars] = useState({ top: 0, bottom: 0 })
 
   const { readingFont: font, boldWord: bold, alwaysShowText, navigationUnit, holdToRead } = settings.value
   const scaleKey = textScaleKey(landscape)
@@ -97,10 +102,13 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   const unit: NavigationUnit = navigationUnit === 'chapter' && !chapterStarts.length ? 'paragraph' : navigationUnit
 
   const isPaused = isLoaded && !engine.isPlaying
-  const showsText = isLoaded && (isPaused || alwaysShowText)
+  // On its side the text is always there, under the word.
+  const showsText = isLoaded && (isPaused || alwaysShowText || landscape)
+  /** Width of the word's area: the right-hand column on its side. */
+  const wordWidth = landscape ? size.width * (1 - CONTROLLER_SHARE) : size.width
 
   // Largest size at which every word of this text fits the reticle.
-  const maxSize = maxFontSize(textExtents ?? referenceExtents(font, bold), availableHalfWidth(size.width))
+  const maxSize = maxFontSize(textExtents ?? referenceExtents(font, bold), availableHalfWidth(wordWidth))
   const fontSize = Math.min(BASE_FONT_SIZE * textScale, maxSize)
   const maxScale = Math.max(MINIMUM_SCALE, maxSize / BASE_FONT_SIZE)
 
@@ -132,14 +140,14 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   // Words wider than the reticle at the current size are shown in syllable
   // pieces; everything else stays whole.
   useEffect(() => {
-    if (!size.width) return
-    const halfWidth = availableHalfWidth(size.width)
+    if (!wordWidth) return
+    const halfWidth = availableHalfWidth(wordWidth)
     engine.splitForDisplay = word =>
       pieces(word, piece => {
         const e = extents(piece, font, bold)
         return Math.max(e.left, e.right) * fontSize <= halfWidth
       })
-  }, [font, bold, fontSize, size.width])
+  }, [font, bold, fontSize, wordWidth])
 
   useEffect(() => {
     engine.rampUpEnabled = settings.value.rampUp
@@ -419,32 +427,24 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   }, [])
 
   // Layout. Upright: the word sits above the text, which fills the screen
-  // below it, and the controls float over the bottom. On its side: the word
-  // on the left, the text in a column on the right, both between the top
-  // controls and a low bar at the bottom.
+  // below it, and the controls float over the bottom while paused. On its
+  // side: the controller on the left; on the right the word, and the text
+  // below it.
 
-  const split = landscape && showsText
-  const top = landscape && isPaused ? bars.top : 0
-  const bottom = landscape && isPaused ? bars.bottom : 0
-  const wordShift = landscape ? (top - bottom) / 2 : showsText ? -size.height * 0.2 : 0
-  const wordBottom = size.height / 2 - size.height * 0.2 + wordViewHeight(fontSize) / 2
-  const panelHeight = landscape
-    ? Math.max(0, size.height - top - bottom - 24)
-    : Math.max(0, size.height - 8 - wordBottom - 12)
+  const wordHeight = wordViewHeight(fontSize)
+  let wordShift: number
+  let panelTop: number
+  if (landscape) {
+    const centre = Math.max(wordHeight / 2 + 8, size.height * LANDSCAPE_WORD_CENTRE)
+    wordShift = centre - size.height / 2
+    panelTop = centre + wordHeight / 2 + 4
+  } else {
+    wordShift = showsText ? -size.height * 0.2 : 0
+    panelTop = size.height / 2 - size.height * 0.2 + wordHeight / 2 + 12
+  }
+  const panelHeight = Math.max(0, size.height - panelTop - (landscape ? 12 : 8))
   const currentChapter = chapters.findLast(c => c.wordIndex <= engine.currentIndex)
   const total = engine.tokens.length
-
-  /** Measures how far the controls reach in from the top and bottom. */
-  const measureTop = (element: HTMLElement | null) => {
-    if (!element) return
-    const reach = Math.round(element.getBoundingClientRect().bottom)
-    if (reach !== bars.top) setBars(b => ({ ...b, top: reach }))
-  }
-  const measureBottom = (element: HTMLElement | null) => {
-    if (!element) return
-    const reach = Math.round(size.height - element.getBoundingClientRect().top)
-    if (size.height && reach !== bars.bottom) setBars(b => ({ ...b, bottom: reach }))
-  }
 
   const changeSpeed = (steps: number) => {
     engine.adjustWPM(steps)
@@ -478,51 +478,71 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   )
   const timeLeft = <span>{formatReadingTime(engine.secondsRemaining)}</span>
 
-  const transport = (
-    <>
+  const skipByMenu = (
+    <Menu
+      label="Skip by"
+      title="Skip by"
+      class="small-labeled"
+      align="left"
+      direction={landscape ? 'down' : 'up'}
+      items={(['sentence', 'paragraph', 'chapter'] as NavigationUnit[]).map(option => ({
+        label: UNIT_TITLES[option],
+        checked: option === unit,
+        disabled: option === 'chapter' && !chapterStarts.length,
+        onSelect: () => settings.set('navigationUnit', option),
+      }))}
+    >
+      <Icon name="arrows" size={22} />
+      <span>{UNIT_TITLES[unit]}</span>
+    </Menu>
+  )
+  const skipButton = (forward: boolean) => (
+    <button
+      type="button"
+      class="skip"
+      aria-label={`${forward ? 'Next' : 'Previous'} ${unit}`}
+      onClick={() => jump(forward)}
+    >
+      <Icon name={forward ? 'forward' : 'backward'} size={26} />
+    </button>
+  )
+  const chaptersMenu =
+    chapters.length > 0 ? (
       <Menu
-        label="Skip by"
-        title="Skip by"
-        class="small-labeled"
-        align="left"
-        direction="up"
-        items={(['sentence', 'paragraph', 'chapter'] as NavigationUnit[]).map(option => ({
-          label: UNIT_TITLES[option],
-          checked: option === unit,
-          disabled: option === 'chapter' && !chapterStarts.length,
-          onSelect: () => settings.set('navigationUnit', option),
+        label="Chapters"
+        class="glass-circle"
+        items={chapters.map(chapter => ({
+          label: chapter.title,
+          checked: chapter === currentChapter,
+          onSelect: () => engine.seek(chapter.wordIndex),
         }))}
       >
-        <Icon name="arrows" size={22} />
-        <span>{UNIT_TITLES[unit]}</span>
+        <Icon name="list" size={20} />
       </Menu>
-      <button type="button" class="skip" aria-label={`Previous ${unit}`} onClick={() => jump(false)}>
-        <Icon name="backward" size={26} />
-      </button>
-      <button type="button" class="play" aria-label="Play" onClick={() => engine.play()}>
-        <Icon name="play" size={landscape ? 26 : 34} />
-      </button>
-      <button type="button" class="skip" aria-label={`Next ${unit}`} onClick={() => jump(true)}>
-        <Icon name="forward" size={26} />
-      </button>
-      <button
-        type="button"
-        class={alwaysShowText ? 'small-labeled active' : 'small-labeled'}
-        aria-label="Keep text visible"
-        aria-pressed={alwaysShowText}
-        onClick={() => settings.set('alwaysShowText', !alwaysShowText)}
-      >
-        <Icon name="text" size={22} />
-        <span>Text</span>
-      </button>
-    </>
+    ) : (
+      <span class="glass-circle-placeholder" />
+    )
+  const closeButton = (
+    <button type="button" class="glass-circle" aria-label="Close" onClick={onClose}>
+      <Icon name="close" size={20} />
+    </button>
+  )
+  const title = (
+    <div class="reader-title">
+      <div class="title">{book.title}</div>
+      {currentChapter && <div class="chapter">{currentChapter.title}</div>}
+    </div>
   )
 
   return (
-    <div class={landscape ? 'reader landscape' : 'reader'} ref={rootRef}>
+    <div
+      class={`reader${landscape ? ' landscape' : ''}${engine.isPlaying ? ' playing' : ''}`}
+      ref={rootRef}
+      style={{ '--controller-share': `${CONTROLLER_SHARE * 100}%` }}
+    >
       <div class="reader-surface" ref={surface} aria-label={engine.currentWord ?? book.title} />
 
-      <div class={split ? 'reader-word side' : 'reader-word'} style={{ transform: `translateY(${wordShift}px)` }}>
+      <div class={landscape ? 'reader-word right' : 'reader-word'} style={{ transform: `translateY(${wordShift}px)` }}>
         {!isLoaded ? (
           <span class="spinner large" />
         ) : engine.currentWord !== undefined ? (
@@ -544,96 +564,117 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
           isPlaying={engine.isPlaying}
           font={font}
           onSelect={index => engine.seek(index)}
-          side={split}
-          style={
-            split
-              ? { top: top + 12, height: panelHeight, opacity: panelHeight > 60 ? 1 : 0 }
-              : { top: wordBottom + 12, height: panelHeight, opacity: panelHeight > 60 ? 1 : 0 }
-          }
+          side={landscape}
+          style={{ top: panelTop, height: panelHeight, opacity: panelHeight > 60 ? 1 : 0 }}
         />
       )}
 
-      {isPaused ? (
-        <div class="reader-controls">
-          <div class="reader-top" ref={measureTop}>
-            <button type="button" class="glass-circle" aria-label="Close" onClick={onClose}>
-              <Icon name="close" size={20} />
-            </button>
-            <div class="reader-title">
-              <div class="title">{book.title}</div>
-              {currentChapter && <div class="chapter">{currentChapter.title}</div>}
-            </div>
-            {chapters.length > 0 ? (
-              <Menu
-                label="Chapters"
-                class="glass-circle"
-                items={chapters.map(chapter => ({
-                  label: chapter.title,
-                  checked: chapter === currentChapter,
-                  onSelect: () => engine.seek(chapter.wordIndex),
-                }))}
-              >
-                <Icon name="list" size={20} />
-              </Menu>
-            ) : (
-              <span class="glass-circle-placeholder" />
-            )}
+      {landscape ? (
+        // The controller: always there on its side, dimmed while reading.
+        <div class="controller">
+          <div class="controller-top">
+            {closeButton}
+            {title}
+            {chaptersMenu}
           </div>
-
-          <div class="reader-bottom-scrim" />
-          {landscape ? (
-            <div class="reader-bottom compact glass" ref={measureBottom}>
+          <div class="controller-pad" aria-hidden="true">
+            <span class="pad-hint up">
+              <Icon name="swipeV" size={18} /> Faster · slower
+            </span>
+            <span class="pad-hint middle">
+              <Icon name={holdToRead ? 'hold' : 'tap'} size={22} />
+              {holdToRead ? 'Hold to read' : 'Tap to play or pause'}
+            </span>
+            <span class="pad-hint down">
+              <Icon name="swipeH" size={18} /> Back · ahead by {UNIT_TITLES[unit].toLowerCase()}
+            </span>
+          </div>
+          {isLoaded && (
+            <div class="controller-bar glass">
               <div class="position-row">
                 {positionCount}
                 <div class="position">{positionSlider}</div>
                 {timeLeft}
               </div>
               <div class="transport">
-                {transport}
+                {skipByMenu}
+                {skipButton(false)}
+                <button
+                  type="button"
+                  class="play"
+                  aria-label={engine.isPlaying ? 'Pause' : 'Play'}
+                  onClick={() => engine.toggle()}
+                >
+                  <Icon name={engine.isPlaying ? 'pause' : 'play'} size={24} />
+                </button>
+                {skipButton(true)}
                 <div class="speed-stepper" role="group" aria-label="Reading speed">
                   <button type="button" aria-label="Slower" disabled={engine.wpm <= MIN_WPM} onClick={() => changeSpeed(-1)}>
                     −
                   </button>
-                  <span class="speed-value">
-                    {engine.wpm}
-                    <small> WPM</small>
-                  </span>
+                  <span class="speed-value">{engine.wpm}</span>
                   <button type="button" aria-label="Faster" disabled={engine.wpm >= MAX_WPM} onClick={() => changeSpeed(1)}>
                     +
                   </button>
                 </div>
               </div>
             </div>
-          ) : (
-            <div class="reader-bottom glass">
-              <div class="position">
-                {positionSlider}
-                <div class="position-labels">
-                  {positionCount}
-                  {timeLeft}
-                </div>
-              </div>
+          )}
+        </div>
+      ) : isPaused ? (
+        <div class="reader-controls">
+          <div class="reader-top">
+            {closeButton}
+            {title}
+            {chaptersMenu}
+          </div>
 
-              <div class="transport">{transport}</div>
-
-              <div class="speed">
-                <div class="speed-labels">
-                  <span class="speed-title">Reading speed</span>
-                  <span class="speed-value">{engine.wpm} WPM</span>
-                </div>
-                <input
-                  type="range"
-                  class="slider"
-                  min={MIN_WPM}
-                  max={MAX_WPM}
-                  step={WPM_STEP}
-                  value={engine.wpm}
-                  aria-label="Reading speed"
-                  onInput={e => engine.setWPM(Number(e.currentTarget.value))}
-                />
+          <div class="reader-bottom-scrim" />
+          <div class="reader-bottom glass">
+            <div class="position">
+              {positionSlider}
+              <div class="position-labels">
+                {positionCount}
+                {timeLeft}
               </div>
             </div>
-          )}
+
+            <div class="transport">
+              {skipByMenu}
+              {skipButton(false)}
+              <button type="button" class="play" aria-label="Play" onClick={() => engine.play()}>
+                <Icon name="play" size={34} />
+              </button>
+              {skipButton(true)}
+              <button
+                type="button"
+                class={alwaysShowText ? 'small-labeled active' : 'small-labeled'}
+                aria-label="Keep text visible"
+                aria-pressed={alwaysShowText}
+                onClick={() => settings.set('alwaysShowText', !alwaysShowText)}
+              >
+                <Icon name="text" size={22} />
+                <span>Text</span>
+              </button>
+            </div>
+
+            <div class="speed">
+              <div class="speed-labels">
+                <span class="speed-title">Reading speed</span>
+                <span class="speed-value">{engine.wpm} WPM</span>
+              </div>
+              <input
+                type="range"
+                class="slider"
+                min={MIN_WPM}
+                max={MAX_WPM}
+                step={WPM_STEP}
+                value={engine.wpm}
+                aria-label="Reading speed"
+                onInput={e => engine.setWPM(Number(e.currentTarget.value))}
+              />
+            </div>
+          </div>
         </div>
       ) : (
         isLoaded && <div class="reader-progress" style={{ width: `${engine.progress * 100}%` }} />

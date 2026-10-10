@@ -30,7 +30,8 @@
   --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
   --rounded: ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
   --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* --min-safe-bottom: see platform.ts (iOS reports 0 on a cold start). */
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--min-safe-bottom, 0px));
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   /* Interface text scale: the system text size on iOS (see platform.ts). */
@@ -2029,6 +2030,17 @@ p {
   }
 }
 
+/* iOS home indicator, for when the system reports no safe area (see platform.ts). */
+[data-home-indicator] {
+  --min-safe-bottom: 34px;
+}
+
+@media (orientation: landscape) {
+  [data-home-indicator] {
+    --min-safe-bottom: 21px;
+  }
+}
+
 [data-glass='solid'] {
   --glass-bg: var(--group);
 }
@@ -2325,36 +2337,126 @@ p {
   padding: 0 0 4px;
 }
 
-/* Reader on a phone on its side: word left, text right, a low control bar */
+/* Reader on a phone on its side: the controller on the left; the word on
+   the right with the text below it. */
 
-.reader-word.side {
-  right: 42%;
-  left: var(--safe-left);
+.reader-word.right {
+  left: var(--controller-share);
+  right: var(--safe-right);
 }
 
 .text-panel.side {
-  left: auto;
+  left: calc(var(--controller-share) + 24px);
   right: calc(var(--safe-right) + 20px);
+  width: auto;
   transform: none;
-  width: calc(42% - var(--safe-right) - 28px);
 }
 
-.reader.landscape .reader-top {
-  top: calc(var(--safe-top) + 6px);
+.controller {
+  position: absolute;
   left: calc(var(--safe-left) + 12px);
-  right: calc(var(--safe-right) + 12px);
+  top: calc(var(--safe-top) + 8px);
+  bottom: calc(var(--safe-bottom) + 8px);
+  width: calc(var(--controller-share) - var(--safe-left) - 20px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
 }
 
-.reader.landscape .reader-bottom-scrim {
-  height: calc(160px + var(--safe-bottom));
+.controller > :not(.controller-pad) {
+  pointer-events: auto;
 }
 
-.reader-bottom.compact {
-  width: min(calc(100% - var(--safe-left) - var(--safe-right) - 24px), 760px);
-  bottom: calc(var(--safe-bottom) + 6px);
-  padding: 8px 16px 6px;
+.controller-top,
+.controller-bar,
+.controller-pad {
+  transition: opacity 0.3s;
+}
+
+/* Reading: the controller steps back. */
+.reader.playing .controller-top,
+.reader.playing .controller-bar {
+  opacity: 0.35;
+}
+
+.reader.playing .controller-pad {
+  opacity: 0.4;
+}
+
+.controller-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.controller-top .reader-title {
+  text-align: left;
+}
+
+/* The touch pad: touches fall through to the reading surface underneath. */
+.controller-pad {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border: 1px dashed rgba(var(--ink-rgb), 0.16);
+  border-radius: 22px;
+  color: rgba(var(--ink-rgb), 0.4);
+  font-size: calc(12px * var(--type));
+  font-weight: 500;
+  text-align: center;
+}
+
+.pad-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pad-hint.middle {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.controller-bar {
+  border-radius: 22px;
+  padding: 6px 12px 4px;
+}
+
+.controller-bar .transport {
   gap: 2px;
-  border-radius: 26px;
+}
+
+.controller-bar .play {
+  flex: none;
+  width: 50px;
+  height: 50px;
+  padding-left: 0;
+}
+
+.controller-bar .skip,
+.controller-bar .small-labeled {
+  min-width: 42px;
+  width: auto;
+  height: 46px;
+  min-height: 46px;
+}
+
+.controller-bar .speed-stepper button {
+  width: 36px;
+}
+
+.controller-bar .speed-stepper .speed-value {
+  min-width: 40px;
+}
+
+.controller .scrub-preview {
+  right: auto;
+  width: max(100%, 300px);
 }
 
 .position-row {
@@ -2369,24 +2471,6 @@ p {
 .position-row .position {
   flex: 1;
   min-width: 0;
-}
-
-.reader-bottom.compact .transport {
-  gap: 4px;
-}
-
-.reader-bottom.compact .play {
-  width: 52px;
-  height: 52px;
-  padding-left: 3px;
-}
-
-.reader-bottom.compact .skip,
-.reader-bottom.compact .small-labeled {
-  min-width: 48px;
-  width: auto;
-  height: 48px;
-  min-height: 48px;
 }
 
 .speed-stepper {
@@ -2408,11 +2492,6 @@ p {
   min-width: 74px;
   text-align: center;
   font-size: calc(17px * var(--type));
-}
-
-.speed-stepper small {
-  font-size: calc(11px * var(--type));
-  color: rgba(var(--ink-rgb), 0.5);
 }
 
 .rotate-hint {
