@@ -7,7 +7,9 @@ import { breakPositions, pieces } from './hyphenation'
 import { orpIndex, orpIndexForLength } from './orp'
 import { addDays, averageWPM, currentStreak, record, recentDays, totalWords, type Days } from './stats'
 import { lengthFactor, MAX_WPM, MIN_WPM, pauseFactor, RAMP_UP_WORDS, rampUpFactor, weights } from './timing'
-import { endsSentence, paragraphs, token, tokenCount, tokenize } from './tokenizer'
+import { endsSentence, paragraphs, sentenceAround, token, tokenCount, tokenize } from './tokenizer'
+import { booksToRestore, mergeStats, validateBackup } from './backup'
+import type { Book } from './book'
 import { titleFromText } from './book'
 
 describe('Tokenizer', () => {
@@ -289,5 +291,56 @@ describe('Reading stats', () => {
     expect(averageWPM(days)).toBe(400)
     expect(recentDays(days)).toHaveLength(7)
     expect(recentDays(days).at(-1)?.stats.words).toBe(300)
+  })
+})
+
+describe('Sentence around the bookmark', () => {
+  const tokens = tokenize('First one. The quick brown fox jumps. Last!')
+
+  it('returns the sentence split around the word', () => {
+    expect(sentenceAround(tokens, 4)).toEqual({ before: 'The quick', word: 'brown', after: 'fox jumps.' })
+    expect(sentenceAround(tokens, 2)).toEqual({ before: '', word: 'The', after: 'quick brown fox jumps.' })
+    expect(sentenceAround(tokens, 7)).toEqual({ before: '', word: 'Last!', after: '' })
+  })
+
+  it('trims long sentences with an ellipsis', () => {
+    const long = tokenize(Array.from({ length: 60 }, (_, i) => `w${i}`).join(' ') + '.')
+    const sentence = sentenceAround(long, 30, 3, 4)!
+    expect(sentence).toEqual({ before: '… w27 w28 w29', word: 'w30', after: 'w31 w32 w33 w34 …' })
+  })
+
+  it('is undefined past the end', () => {
+    expect(sentenceAround(tokens, 99)).toBeUndefined()
+  })
+})
+
+describe('Backup', () => {
+  const book = (id: string, lastOpened?: number): Book => ({
+    id, title: id, wordCount: 10, currentIndex: 0, dateAdded: 1, lastOpened,
+  })
+
+  it('restores new books and more recently read copies only', () => {
+    const local = [book('a', 100), book('b', 300)]
+    const incoming = [book('a', 200), book('b', 250), book('c')]
+    expect(booksToRestore(local, incoming).map(b => b.id)).toEqual(['a', 'c'])
+  })
+
+  it('keeps the larger total for each day', () => {
+    const merged = mergeStats(
+      { '2026-10-01': { words: 500, seconds: 120 }, '2026-10-02': { words: 50, seconds: 10 } },
+      { '2026-10-01': { words: 300, seconds: 60 }, '2026-10-02': { words: 80, seconds: 20 }, '2026-10-03': { words: 5, seconds: 1 } },
+    )
+    expect(merged).toEqual({
+      '2026-10-01': { words: 500, seconds: 120 },
+      '2026-10-02': { words: 80, seconds: 20 },
+      '2026-10-03': { words: 5, seconds: 1 },
+    })
+  })
+
+  it('rejects other files and drops books without text', () => {
+    expect(() => validateBackup({ hello: 'world' })).toThrow('not a Mono backup')
+    expect(() => validateBackup({ format: 'mono-backup', version: 99, books: [] })).toThrow('newer version')
+    const backup = validateBackup({ format: 'mono-backup', version: 1, books: [book('a'), book('b')], texts: { a: 'Text' } })
+    expect(backup.books.map(b => b.id)).toEqual(['a'])
   })
 })

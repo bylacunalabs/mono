@@ -6,8 +6,21 @@ type IconName =
   | 'plus' | 'books' | 'chart' | 'gear' | 'play' | 'backward' | 'forward' | 'close' | 'list'
   | 'text' | 'arrows' | 'sun' | 'flame' | 'search' | 'sort' | 'pencil' | 'trash' | 'restart'
   | 'doc' | 'clipboard' | 'check' | 'speed' | 'book' | 'ellipsis' | 'checkCircle' | 'smaller' | 'larger'
+  | 'sparkles' | 'download' | 'upload' | 'install' | 'share' | 'moon' | 'contrast'
 
 const PATHS: Record<IconName, JSX.Element> = {
+  sparkles: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z" />,
+  download: <path d="M12 4v11M7 10.5l5 5 5-5M5 20h14" />,
+  upload: <path d="M12 16V5M7 9.5l5-5 5 5M5 20h14" />,
+  install: <path d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM12 7v7M9 11l3 3 3-3M10.5 18h3" />,
+  share: <path d="M12 3v12M8 7l4-4 4 4M6 11H5v10h14V11h-1" />,
+  moon: <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />,
+  contrast: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor" stroke="none" />
+    </>
+  ),
   plus: <path d="M12 5v14M5 12h14" />,
   books: (
     <>

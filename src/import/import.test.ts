@@ -4,7 +4,7 @@
 import { strToU8, zipSync } from 'fflate'
 import { describe, expect, it } from 'vitest'
 import { tokenize } from '../core/tokenizer'
-import { isChapterHeading, plainText, prepareText } from './document'
+import { isChapterHeading, plainText, prepareText, yearFrom } from './document'
 import { parseEPUB } from './epub'
 import { decodeEntities, htmlArticle, htmlParagraphs } from './html'
 import { pdfParagraphs } from './pdfText'
@@ -160,5 +160,83 @@ describe('EPUB', () => {
 
   it('rejects damaged files', () => {
     expect(() => parseEPUB(new Uint8Array([1, 2, 3]))).toThrow()
+  })
+
+  const book = (metadata: string, manifest = '', extra: Record<string, string> = {}) =>
+    epub({
+      'META-INF/container.xml': container,
+      'OEBPS/content.opf': `<package><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${metadata}</metadata>
+<manifest><item id="a" href="a.html" media-type="application/xhtml+xml"/>${manifest}</manifest>
+<spine><itemref idref="a"/></spine></package>`,
+      'OEBPS/a.html': '<html><body><p>Contenuto.</p></body></html>',
+      ...extra,
+    })
+
+  it('reads the EPUB 3 main title, authors and year', () => {
+    const document = parseEPUB(book(`
+<dc:title id="t1">  Le città
+  invisibili </dc:title>
+<meta refines="#t1" property="title-type">main</meta>
+<dc:title id="t2">Una collana</dc:title>
+<meta refines="#t2" property="title-type">collection</meta>
+<dc:creator id="c1">Italo Calvino</dc:creator>
+<meta refines="#c1" property="role" scheme="marc:relators">aut</meta>
+<dc:creator id="c2">William Weaver</dc:creator>
+<meta refines="#c2" property="role" scheme="marc:relators">trl</meta>
+<meta name="cover" content="img"/>
+<dc:date>1972-11-01</dc:date>`))
+    expect(document.title).toBe('Le città invisibili')
+    expect(document.author).toBe('Italo Calvino')
+    expect(document.year).toBe('1972')
+  })
+
+  it('reads EPUB 2 roles, entities and the publication date', () => {
+    const document = parseEPUB(book(`
+<dc:title><![CDATA[Fear & Loathing]]></dc:title>
+<dc:creator opf:role="aut" opf:file-as="Orwell, George">George Orwell</dc:creator>
+<dc:creator opf:role="edt">Someone Else</dc:creator>
+<dc:date opf:event="modification">2015-01-01</dc:date>
+<dc:date opf:event="publication">1949</dc:date>`))
+    expect(document.title).toBe('Fear & Loathing')
+    expect(document.author).toBe('George Orwell')
+    expect(document.year).toBe('1949')
+  })
+
+  it('finds the cover image', () => {
+    const png = String.fromCharCode(0x89) + 'PNG'
+    const epub3 = parseEPUB(
+      book('<dc:title>T</dc:title>', '<item id="i" href="img/c.png" media-type="image/png" properties="cover-image"/>', {
+        'OEBPS/img/c.png': png,
+      }),
+    )
+    expect(epub3.cover?.type).toBe('image/png')
+    expect(epub3.cover?.data.length).toBe(strToU8(png).length)
+
+    const epub2 = parseEPUB(
+      book('<dc:title>T</dc:title><meta name="cover" content="pic"/>', '<item id="pic" href="front.jpg" media-type="image/jpeg"/>', {
+        'OEBPS/front.jpg': 'jpeg',
+      }),
+    )
+    expect(epub2.cover?.type).toBe('image/jpeg')
+
+    const coverPage = parseEPUB(
+      book(
+        '<dc:title>T</dc:title>',
+        '<item id="cp" href="cover.xhtml" media-type="application/xhtml+xml"/><item id="x" href="images/x1.jpeg" media-type="image/jpeg"/>',
+        { 'OEBPS/cover.xhtml': '<html><body><img src="images/x1.jpeg"/></body></html>', 'OEBPS/images/x1.jpeg': 'jpeg' },
+      ),
+    )
+    expect(coverPage.cover?.type).toBe('image/jpeg')
+
+    expect(parseEPUB(book('<dc:title>T</dc:title>')).cover).toBeUndefined()
+  })
+})
+
+describe('Years', () => {
+  it('finds the year in common date formats', () => {
+    expect(yearFrom('1979-03-01')).toBe('1979')
+    expect(yearFrom('March 1850')).toBe('1850')
+    expect(yearFrom('no date')).toBeUndefined()
+    expect(yearFrom(undefined)).toBeUndefined()
   })
 })

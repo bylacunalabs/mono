@@ -1,4 +1,5 @@
-// User preferences, kept in localStorage (per browser) and observable.
+// User preferences, kept in localStorage (per browser, shared by its tabs)
+// and observable.
 
 import { DEFAULT_WPM, clampWPM } from '../core/timing'
 import type { LibrarySort } from '../core/book'
@@ -7,6 +8,7 @@ import { Store } from './store'
 
 export type ORPHighlight = 'red' | 'subtle' | 'none'
 export type NavigationUnit = 'sentence' | 'paragraph' | 'chapter'
+export type Appearance = 'system' | 'light' | 'dark'
 
 export interface Settings {
   wpm: number
@@ -18,6 +20,7 @@ export interface Settings {
   orpHighlight: ORPHighlight
   boldWord: boolean
   librarySort: LibrarySort
+  appearance: Appearance
   didSeedSample: boolean
 }
 
@@ -31,6 +34,7 @@ const DEFAULTS: Settings = {
   orpHighlight: 'subtle',
   boldWord: true,
   librarySort: 'recent',
+  appearance: 'system',
   didSeedSample: false,
 }
 
@@ -49,11 +53,35 @@ class SettingsStore extends Store {
     }
     this.value = { ...DEFAULTS, ...stored }
     this.value.wpm = clampWPM(this.value.wpm)
+    // Changed in another tab.
+    window.addEventListener('storage', event => {
+      if (event.key !== KEY || !event.newValue) return
+      try {
+        this.value = { ...DEFAULTS, ...JSON.parse(event.newValue) }
+        this.emit()
+      } catch {
+        // ignore a corrupt value
+      }
+    })
   }
 
   set<K extends keyof Settings>(key: K, value: Settings[K]) {
     if (this.value[key] === value) return
     this.value = { ...this.value, [key]: value }
+    this.save()
+  }
+
+  /** Takes the known settings from e.g. a backup, ignoring anything else. */
+  assign(values: Record<string, unknown>) {
+    const known = Object.fromEntries(
+      Object.entries(values).filter(([key, value]) => key in DEFAULTS && typeof value === typeof DEFAULTS[key as keyof Settings]),
+    )
+    this.value = { ...this.value, ...known }
+    this.value.wpm = clampWPM(this.value.wpm)
+    this.save()
+  }
+
+  private save() {
     try {
       localStorage.setItem(KEY, JSON.stringify(this.value))
     } catch {

@@ -1,5 +1,9 @@
 /* Mono — styles modelled on the iOS app (Liquid Glass approximated with
-   backdrop blur). The reader is always dark; the rest follows the system. */
+   backdrop blur). Light and dark themes follow the system unless one is
+   chosen in Settings (data-theme on <html>); red is the accent in both.
+   Reading surfaces (reader, continue-reading card, covers) are drawn in
+   --ink on --paper: white on black in the dark theme, black on white in the
+   light one. */
 
 :root {
   --brand: #ff3b30;
@@ -15,6 +19,10 @@
   --glass-border: rgba(255, 255, 255, 0.7);
   --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
   --green: #34c759;
+  --paper-rgb: 255, 255, 255;
+  --ink-rgb: 0, 0, 0;
+  /* Red glows are softer on white. */
+  --glow: 0.45;
   --sans: system-ui, -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
   --rounded: ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
@@ -38,6 +46,9 @@
     --glass-border: rgba(255, 255, 255, 0.12);
     --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     --green: #30d158;
+    --paper-rgb: 0, 0, 0;
+    --ink-rgb: 255, 255, 255;
+    --glow: 1;
     color-scheme: dark;
   }
 }
@@ -54,6 +65,9 @@
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   --green: #30d158;
+  --paper-rgb: 0, 0, 0;
+  --ink-rgb: 255, 255, 255;
+  --glow: 1;
   color-scheme: dark;
 }
 
@@ -570,12 +584,12 @@ p {
   position: relative;
   isolation: isolate;
   overflow: visible;
-  background: #000;
-  color: #fff;
+  background: rgb(var(--paper-rgb));
+  color: rgb(var(--ink-rgb));
   border-radius: 24px;
   padding: 20px;
   margin-bottom: 18px;
-  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(var(--ink-rgb), 0.08);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 }
 
@@ -592,7 +606,7 @@ p {
   z-index: -1;
   pointer-events: none;
   border-radius: 24px;
-  background: radial-gradient(140px circle at 50% 90px, rgba(var(--brand-rgb), 0.22), transparent);
+  background: radial-gradient(140px circle at 50% 90px, rgba(var(--brand-rgb), calc(0.22 * var(--glow))), transparent);
 }
 
 .card-top {
@@ -604,7 +618,7 @@ p {
 }
 
 .card-top .muted {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--ink-rgb), 0.6);
   font-weight: 500;
 }
 
@@ -629,10 +643,75 @@ p {
 .card-chapter {
   margin-top: 3px;
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--ink-rgb), 0.6);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.card-sentence {
+  margin: 4px 0 6px;
+  color: rgba(var(--ink-rgb), 0.85);
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  /* Room for the ticks above the first line. */
+  padding-top: 8px;
+}
+
+.card-sentence .read {
+  color: rgba(var(--ink-rgb), 0.45);
+}
+
+.card-sentence .current {
+  color: rgb(var(--ink-rgb));
+}
+
+/* The resting letter, marked like the reader's reticle: a tick above and below. */
+.card-sentence .pointer {
+  position: relative;
+}
+
+.card-sentence .pointer.red {
+  color: var(--brand);
+}
+
+.card-sentence .pointer::before,
+.card-sentence .pointer::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 1.5px;
+  height: 5px;
+  margin-left: -0.75px;
+  background: var(--brand);
+  border-radius: 1px;
+}
+
+.card-sentence .pointer::before {
+  top: -4px;
+}
+
+.card-sentence .pointer::after {
+  bottom: -3px;
+}
+
+.card-book {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.card-book-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.card-book .card-title {
+  margin-top: 0;
 }
 
 .card-bottom {
@@ -650,7 +729,7 @@ p {
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(var(--ink-rgb), 0.7);
 }
 
 .play-dot {
@@ -660,6 +739,7 @@ p {
   display: grid;
   place-items: center;
   background: var(--brand);
+  color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -746,6 +826,15 @@ p {
   overflow: hidden;
 }
 
+.row-byline {
+  margin-top: 1px;
+  font-size: 14px;
+  color: var(--secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .row-details {
   font-size: 15px;
   color: var(--secondary);
@@ -787,7 +876,7 @@ p {
 }
 
 .row-more.dark {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(var(--ink-rgb), 0.7);
 }
 
 .progress {
@@ -809,10 +898,28 @@ p {
   height: 72px;
   border-radius: 10px;
   overflow: hidden;
-  background: #000;
-  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  background: rgb(var(--paper-rgb));
+  border: 0.5px solid rgba(var(--ink-rgb), 0.08);
   display: flex;
   justify-content: center;
+}
+
+.cover.image {
+  background: var(--fill);
+}
+
+.cover.image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cover.small {
+  width: 40px;
+  height: 56px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 .cover-mark {
@@ -830,7 +937,7 @@ p {
 .cover-tick {
   width: 1px;
   height: 6px;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(var(--ink-rgb), 0.25);
 }
 
 .cover-initial {
@@ -848,7 +955,7 @@ p {
   font-size: 8px;
   font-weight: 600;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(var(--ink-rgb), 0.45);
 }
 
 .cover-progress {
@@ -881,7 +988,7 @@ p {
 }
 
 .empty-preview {
-  background: #000;
+  background: rgb(var(--paper-rgb));
   border-radius: 24px;
   height: 170px;
   display: flex;
@@ -931,6 +1038,36 @@ p {
   font-weight: 500;
 }
 
+.update-banner {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--safe-bottom) + 90px);
+  z-index: 25;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 999px;
+  font-size: 15px;
+  animation: pop 0.2s ease-out;
+}
+
+.update-banner .text-button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+}
+
+/* Above the reader, e.g. an error while reading. */
+.top-layer {
+  position: relative;
+  z-index: 300;
+}
+
 .spinner {
   width: 18px;
   height: 18px;
@@ -944,9 +1081,9 @@ p {
 .spinner.large {
   width: 28px;
   height: 28px;
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.2);
-  border-top-color: #fff;
+  color: rgb(var(--ink-rgb));
+  border-color: rgba(var(--ink-rgb), 0.2);
+  border-top-color: currentColor;
 }
 
 @keyframes spin {
@@ -981,7 +1118,7 @@ p {
   width: 100%;
   overflow: visible;
   pointer-events: none;
-  color: #fff;
+  color: rgb(var(--ink-rgb));
 }
 
 .rsvp-tick {
@@ -989,7 +1126,7 @@ p {
   left: 50%;
   width: 1.5px;
   margin-left: -0.75px;
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(var(--ink-rgb), 0.22);
 }
 
 .rsvp-arm {
@@ -997,18 +1134,18 @@ p {
   top: 50%;
   height: 1.5px;
   margin-top: -0.75px;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(var(--ink-rgb), 0.18);
 }
 
 .rsvp-word {
   position: absolute;
   white-space: pre;
-  color: #fff;
+  color: rgb(var(--ink-rgb));
 }
 
 .rsvp-orp.red {
   color: var(--brand);
-  text-shadow: 0 0 10px rgba(var(--brand-rgb), 0.8);
+  text-shadow: 0 0 10px rgba(var(--brand-rgb), calc(0.8 * var(--glow)));
 }
 
 .rsvp-halo {
@@ -1016,7 +1153,7 @@ p {
   left: 50%;
   top: 50%;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(var(--brand-rgb), 0.3), rgba(var(--brand-rgb), 0));
+  background: radial-gradient(closest-side, rgba(var(--brand-rgb), calc(0.3 * var(--glow))), rgba(var(--brand-rgb), 0));
 }
 
 /* Statistics */
@@ -1205,7 +1342,7 @@ p {
 }
 
 .preview {
-  background: #000;
+  background: rgb(var(--paper-rgb));
   display: flex;
   align-items: center;
   position: relative;
@@ -1309,20 +1446,11 @@ p {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: #000;
-  color: #fff;
+  background: rgb(var(--paper-rgb));
+  color: rgb(var(--ink-rgb));
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
-  color-scheme: dark;
-  --glass-bg: rgba(44, 44, 48, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --text: #fff;
-  --secondary: rgba(235, 235, 245, 0.6);
-  --fill: rgba(120, 120, 128, 0.24);
-  --separator: rgba(84, 84, 88, 0.6);
-  --group: #1c1c1e;
   animation: fade 0.2s;
 }
 
@@ -1350,7 +1478,7 @@ p {
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(var(--ink-rgb), 0.35);
   font-weight: 600;
 }
 
@@ -1385,13 +1513,13 @@ p {
 
 .para-text {
   line-height: 1.55;
-  color: rgba(255, 255, 255, 0.68);
+  color: rgba(var(--ink-rgb), 0.68);
   overflow-wrap: break-word;
   cursor: pointer;
 }
 
 .para.read .para-text {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(var(--ink-rgb), 0.45);
 }
 
 .para.heading .para-text {
@@ -1418,7 +1546,7 @@ p {
 }
 
 .w.before {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(var(--ink-rgb), 0.45);
 }
 
 .para.heading .w.before {
@@ -1426,8 +1554,8 @@ p {
 }
 
 .w.current {
-  color: #fff;
-  background: rgba(var(--brand-rgb), 0.4);
+  color: rgb(var(--ink-rgb));
+  background: rgba(var(--brand-rgb), calc(0.4 * var(--glow) + 0.05));
   border-radius: 4px;
   padding: 0 3px;
   margin: 0 -3px;
@@ -1470,7 +1598,7 @@ p {
 
 .reader-title .chapter {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--ink-rgb), 0.6);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1482,7 +1610,7 @@ p {
   right: 0;
   bottom: 0;
   height: calc(350px + var(--safe-bottom));
-  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.85));
+  background: linear-gradient(to bottom, transparent, rgba(var(--paper-rgb), 0.85));
   pointer-events: none !important;
 }
 
@@ -1503,7 +1631,7 @@ p {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--ink-rgb), 0.5);
   margin-top: 4px;
 }
 
@@ -1515,7 +1643,7 @@ p {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(var(--ink-rgb), 0.55);
 }
 
 .small-labeled {
@@ -1526,7 +1654,7 @@ p {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(var(--ink-rgb), 0.55);
 }
 
 .small-labeled span {
@@ -1551,8 +1679,8 @@ p {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: #fff;
-  color: #000;
+  background: rgb(var(--ink-rgb));
+  color: rgb(var(--paper-rgb));
   display: grid;
   place-items: center;
   padding-left: 4px;
@@ -1577,7 +1705,7 @@ p {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.15em;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(var(--ink-rgb), 0.45);
 }
 
 .speed-value {

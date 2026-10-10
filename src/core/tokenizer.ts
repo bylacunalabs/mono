@@ -107,3 +107,29 @@ export function endsSentence(t: Token): boolean {
   const mark = trailingPunctuation(t.text)
   return mark !== undefined && SENTENCE_ENDERS.has(mark)
 }
+
+/**
+ * The sentence containing `tokens[index]`, split around that word and
+ * trimmed to at most `maxBefore` / `maxAfter` words on each side (with "…").
+ */
+export function sentenceAround(
+  tokens: Token[],
+  index: number,
+  maxBefore = 14,
+  maxAfter = 24,
+): { before: string; word: string; after: string } | undefined {
+  const t = tokens[index]
+  if (!t) return undefined
+  let start = index
+  while (start > 0 && index - start < maxBefore && !endsSentence(tokens[start - 1])) start--
+  let end = index
+  while (end < tokens.length - 1 && end - index < maxAfter && !endsSentence(tokens[end])) end++
+  const text = (from: number, to: number) => tokens.slice(from, to).map(t => t.text).join(' ')
+  const cutBefore = start > 0 && !endsSentence(tokens[start - 1])
+  const cutAfter = end < tokens.length - 1 && !endsSentence(tokens[end])
+  return {
+    before: (cutBefore ? '… ' : '') + text(start, index),
+    word: t.text,
+    after: text(index + 1, end + 1) + (cutAfter ? ' …' : ''),
+  }
+}

@@ -1,10 +1,16 @@
 // PDF import with pdf.js (loaded only when a PDF is picked): page text,
-// rebuilt into paragraphs, plus chapters from the document outline.
+// rebuilt into paragraphs, plus chapters from the document outline and the
+// title and author from the document information (its creation date is
+// when the file was made, not when the work was published, so no year).
 
 import { pdfParagraphs } from './pdfText'
 import { ImportError, UNREADABLE_ERROR, type ExtractedDocument } from './document'
 
-export async function parsePDF(data: Uint8Array): Promise<ExtractedDocument> {
+/** `onProgress` is called after each page with (pages done, total pages). */
+export async function parsePDF(
+  data: Uint8Array,
+  onProgress?: (done: number, total: number) => void,
+): Promise<ExtractedDocument> {
   const pdfjs = await import('pdfjs-dist')
   const workerURL = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default
   pdfjs.GlobalWorkerOptions.workerSrc = workerURL
@@ -29,6 +35,7 @@ export async function parsePDF(data: Uint8Array): Promise<ExtractedDocument> {
     }
     pages.push(text)
     page.cleanup()
+    onProgress?.(n, document.numPages)
   }
   const { paragraphs, pageStarts } = pdfParagraphs(pages)
 
@@ -54,13 +61,18 @@ export async function parsePDF(data: Uint8Array): Promise<ExtractedDocument> {
   }
 
   let title: string | undefined
+  let author: string | undefined
   try {
     const { info } = await document.getMetadata()
-    const value = (info as { Title?: unknown }).Title
-    if (typeof value === 'string' && value.trim()) title = value.trim()
+    const field = (name: string) => {
+      const value = (info as Record<string, unknown>)[name]
+      return typeof value === 'string' && value.trim() ? value.trim() : undefined
+    }
+    title = field('Title')
+    author = field('Author')
   } catch {
-    // no title
+    // no metadata
   }
   await task.destroy()
-  return { title, paragraphs, chapters }
+  return { title, author, paragraphs, chapters }
 }

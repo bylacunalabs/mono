@@ -1,10 +1,15 @@
-// Settings: text size with a live preview, focus letter, font, speed and
-// reading behaviour.
+// Settings: appearance, text size with a live preview, focus letter, font,
+// speed and reading behaviour, then the library's backup and installing the
+// app.
 
+import { useRef, useState } from 'preact/hooks'
 import { MAX_WPM, MIN_WPM, WPM_STEP } from '../core/timing'
-import { settings, type ORPHighlight } from '../state/settings'
+import { library } from '../state/library'
+import { pwa } from '../state/pwa'
+import { settings, type Appearance, type ORPHighlight } from '../state/settings'
+import { download } from '../storage/backup'
 import { useObserve } from '../state/store'
-import { Toggle } from './components'
+import { Alert, Toggle } from './components'
 import {
   availableHalfWidth, BASE_FONT_SIZE, cssFont, FONT_NAMES, maxFontSize, MINIMUM_SCALE, READING_FONTS,
   referenceExtents, wordViewHeight,
@@ -12,6 +17,12 @@ import {
 import { useWidth } from './hooks'
 import { Icon } from './icons'
 import { RSVPWord } from './RSVPWord'
+
+const APPEARANCES: { value: Appearance; title: string }[] = [
+  { value: 'system', title: 'Automatic' },
+  { value: 'light', title: 'Light' },
+  { value: 'dark', title: 'Dark' },
+]
 
 const HIGHLIGHTS: { value: ORPHighlight; title: string }[] = [
   { value: 'red', title: 'Red' },
@@ -21,6 +32,7 @@ const HIGHLIGHTS: { value: ORPHighlight; title: string }[] = [
 
 export function SettingsView() {
   useObserve(settings)
+  useObserve(pwa)
   const [ref, width] = useWidth<HTMLDivElement>()
   const s = settings.value
 
@@ -35,6 +47,28 @@ export function SettingsView() {
     <div class="screen">
       <div class="content">
         <h1 class="large-title">Settings</h1>
+
+        <h4 class="group-header">Appearance</h4>
+        <section class="group">
+          <div class="row">
+            <div class="segmented" role="radiogroup" aria-label="Appearance">
+              {APPEARANCES.map(option => (
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={s.appearance === option.value}
+                  class={s.appearance === option.value ? 'selected' : ''}
+                  onClick={() => settings.set('appearance', option.value)}
+                >
+                  {option.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+        <p class="footnote">Automatic follows your device. The reader uses the same theme.</p>
+
+        <h4 class="group-header">Text size</h4>
 
         <section class="group">
           <div class="preview" ref={ref} style={{ height: wordViewHeight(maxSize) + 24 }}>
@@ -155,7 +189,107 @@ export function SettingsView() {
           Shows the text under the word while reading too, following along. Scroll it freely to look ahead or jump to
           another paragraph or chapter.
         </p>
+
+        <BackupSection />
+        <InstallSection />
       </div>
     </div>
+  )
+}
+
+/** Export the library to a file and merge one back in. */
+function BackupSection() {
+  const fileInput = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+  const [restored, setRestored] = useState<number>()
+
+  const exportBackup = async () => {
+    setBusy(true)
+    try {
+      const blob = await library.backup()
+      const date = new Date().toISOString().slice(0, 10)
+      download(blob, `Mono backup ${date}.json`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const restore = async (file: File) => {
+    setBusy(true)
+    const count = await library.restore(file)
+    setBusy(false)
+    if (count !== undefined) setRestored(count)
+  }
+
+  return (
+    <>
+      <h4 class="group-header">Library</h4>
+      <section class="group">
+        <button type="button" class="row choice" disabled={busy} onClick={exportBackup}>
+          <span class="brand">Export Backup</span>
+          <Icon name="download" size={20} class="brand" />
+        </button>
+        <button type="button" class="row choice" disabled={busy} onClick={() => fileInput.current?.click()}>
+          <span class="brand">Restore Backup…</span>
+          <Icon name="upload" size={20} class="brand" />
+        </button>
+      </section>
+      <p class="footnote">
+        Your texts, progress and statistics are kept only in this browser. Export a backup to keep them safe or to move
+        them to another device; restoring adds what's missing and keeps the most recent progress.
+      </p>
+      <input
+        ref={fileInput}
+        type="file"
+        accept=".json,application/json"
+        hidden
+        onChange={event => {
+          const input = event.currentTarget
+          const file = input.files?.[0]
+          input.value = ''
+          if (file) restore(file)
+        }}
+      />
+      {restored !== undefined && (
+        <Alert
+          title="Backup restored"
+          message={
+            restored === 0
+              ? 'Your library was already up to date.'
+              : `${restored} ${restored === 1 ? 'text was' : 'texts were'} added or updated.`
+          }
+          onClose={() => setRestored(undefined)}
+          actions={[{ label: 'OK', role: 'cancel', onSelect: () => {} }]}
+        />
+      )}
+    </>
+  )
+}
+
+/** Installing Mono as an app: the browser's prompt, or instructions on iOS. */
+function InstallSection() {
+  if (pwa.isInstalled || (!pwa.canInstall && !pwa.isIOS)) return null
+  return (
+    <>
+      <h4 class="group-header">App</h4>
+      <section class="group">
+        {pwa.canInstall ? (
+          <button type="button" class="row choice" onClick={() => pwa.install()}>
+            <span class="brand">Install Mono</span>
+            <Icon name="install" size={20} class="brand" />
+          </button>
+        ) : (
+          <div class="row">
+            <span>Install Mono</span>
+            <Icon name="share" size={20} class="secondary" />
+          </div>
+        )}
+      </section>
+      <p class="footnote">
+        {pwa.canInstall
+          ? 'Installed, Mono opens in its own window, works offline and can open and receive files from other apps.'
+          : 'In Safari, tap Share, then “Add to Home Screen”. Installed, Mono opens full screen, works offline and keeps your library safe from automatic clean-up.'}
+      </p>
+    </>
   )
 }

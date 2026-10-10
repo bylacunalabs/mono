@@ -4,6 +4,7 @@ import { Fragment, type ComponentChildren } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { Icon } from './icons'
 import { useEscape } from './hooks'
+import { useBackButton } from './history'
 
 export interface MenuItem {
   label: string
@@ -94,6 +95,7 @@ export function Menu(props: {
 /** A bottom sheet / centred card with a scrim. */
 export function Sheet(props: { onClose: () => void; children: ComponentChildren; label: string }) {
   useEscape(props.onClose)
+  useBackButton(props.onClose)
   return (
     <div class="scrim" onClick={props.onClose}>
       <div class="sheet" role="dialog" aria-modal="true" aria-label={props.label} onClick={e => e.stopPropagation()}>
@@ -112,6 +114,7 @@ export function Alert(props: {
   onClose: () => void
 }) {
   useEscape(props.onClose)
+  useBackButton(props.onClose)
   return (
     <div class="scrim center" onClick={props.onClose}>
       <div class="alert glass" role="alertdialog" aria-modal="true" aria-label={props.title} onClick={e => e.stopPropagation()}>

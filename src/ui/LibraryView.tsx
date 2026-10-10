@@ -1,27 +1,38 @@
 // The home screen: the Mono wordmark with today's reading, a "continue
-// reading" card that previews the bookmarked word in the reader's reticle,
-// and the searchable, sortable list of texts. Each row's menu (or a long
+// reading" card showing the sentence at the bookmark with the eye's resting
+// letter marked as in the reader, and the searchable, sortable list of texts
+// with their covers, authors and years. Each row's menu (or a long
 // press / right click) renames, restarts or deletes it.
 
 import { useRef, useState } from 'preact/hooks'
 import {
-  continueReading, currentChapter, estimatedSecondsRemaining, isFinished, progress, SORT_TITLES, sortBooks,
-  SOURCE_LABEL, type Book, type LibrarySort,
+  byline, continueReading, currentChapter, estimatedSecondsRemaining, isFinished, progress, SORT_TITLES, sortBooks,
+  SOURCE_LABEL, type Book, type LibrarySort, type SentenceContext,
 } from '../core/book'
+import { orpParts } from '../core/orp'
 import { currentStreak, formatReadingTime, statsOn, totalWords } from '../core/stats'
 import { ACCEPTED_FILES } from '../import/extract'
+import { covers } from '../state/covers'
 import { library } from '../state/library'
 import { settings } from '../state/settings'
 import { useObserve } from '../state/store'
 import { Alert, formatNumber, formatPercent, Menu, ProgressBar, Sheet, type MenuItem } from './components'
+import { cssFont, type ReadingFont } from './fonts'
 import { Icon } from './icons'
 import { RSVPWord } from './RSVPWord'
 
-export function LibraryView(props: { onOpen: (book: Book) => void; onShowStats: () => void }) {
+export function LibraryView(props: {
+  onOpen: (book: Book) => void
+  onShowStats: () => void
+  /** The "new text" sheet is open (also opened by the Paste Text shortcut). */
+  pasting: boolean
+  onPastingChange: (pasting: boolean) => void
+}) {
   useObserve(library)
   useObserve(settings)
+  useObserve(covers)
   const fileInput = useRef<HTMLInputElement>(null)
-  const [showNewText, setShowNewText] = useState(false)
+  const setShowNewText = props.onPastingChange
   const [renaming, setRenaming] = useState<Book>()
   const [deleting, setDeleting] = useState<Book>()
   const [search, setSearch] = useState('')
@@ -146,12 +157,12 @@ export function LibraryView(props: { onOpen: (book: Book) => void; onShowStats: 
 
       {library.isImporting && (
         <div class="toast glass">
-          <span class="spinner" /> Importing…
+          <span class="spinner" /> {library.importProgress ? `Importing · ${library.importProgress}` : 'Importing…'}
         </div>
       )}
       {dragging && <div class="drop-hint">Drop files to import</div>}
 
-      {showNewText && <NewTextSheet onClose={() => setShowNewText(false)} />}
+      {props.pasting && <NewTextSheet onClose={() => setShowNewText(false)} />}
       {renaming && <RenameAlert book={renaming} onClose={() => setRenaming(undefined)} />}
       {deleting && (
         <Alert
@@ -162,14 +173,6 @@ export function LibraryView(props: { onOpen: (book: Book) => void; onShowStats: 
             { label: 'Cancel', role: 'cancel', onSelect: () => {} },
             { label: 'Delete', role: 'destructive', onSelect: () => library.delete(deleting.id) },
           ]}
-        />
-      )}
-      {library.errorMessage && (
-        <Alert
-          title="Import failed"
-          message={library.errorMessage}
-          onClose={() => library.dismissError()}
-          actions={[{ label: 'OK', role: 'cancel', onSelect: () => {} }]}
         />
       )}
     </div>
@@ -212,6 +215,7 @@ function ContinueReadingCard({ book, onOpen, actions }: { book: Book; onOpen: ()
   const { wpm, readingFont } = settings.value
   const word = book.currentWord ?? book.title.split(' ')[0] ?? book.title
   const chapter = currentChapter(book)
+  const details = [byline(book), chapter?.title].filter(Boolean).join(' — ')
   return (
     <div class="continue-card" onContextMenu={e => e.preventDefault()}>
       <button type="button" class="card-hit" onClick={onOpen} aria-label={`Resume reading ${book.title}`} />
@@ -220,11 +224,20 @@ function ContinueReadingCard({ book, onOpen, actions }: { book: Book; onOpen: ()
         <span class="eyebrow">Continue Reading</span>
         <span class="muted">{formatReadingTime(estimatedSecondsRemaining(book, wpm))} left</span>
       </div>
-      <RSVPWord word={word} font={readingFont} fontSize={30} />
-      <div class="card-title">{book.title}</div>
-      {chapter && <div class="card-chapter">{chapter.title}</div>}
+      {book.currentSentence ? (
+        <SentencePreview sentence={book.currentSentence} font={readingFont} />
+      ) : (
+        <RSVPWord word={word} font={readingFont} fontSize={30} />
+      )}
+      <div class="card-book">
+        {book.hasCover && <CoverTile book={book} small />}
+        <div class="card-book-text">
+          <div class="card-title">{book.title}</div>
+          {details && <div class="card-chapter">{details}</div>}
+        </div>
+      </div>
       <div class="card-bottom">
-        <ProgressBar progress={progress(book)} track="rgba(255,255,255,0.15)" />
+        <ProgressBar progress={progress(book)} track="rgba(var(--ink-rgb), 0.15)" />
         <span class="percent">{formatPercent(progress(book))}</span>
         <span class="play-dot">
           <Icon name="play" size={16} />
@@ -237,18 +250,41 @@ function ContinueReadingCard({ book, onOpen, actions }: { book: Book; onOpen: ()
   )
 }
 
+/**
+ * The sentence at the bookmark as running text, the words already read
+ * dimmed and the bookmarked word's resting letter marked by the reticle's
+ * ticks, as in the reader.
+ */
+function SentencePreview({ sentence, font }: { sentence: SentenceContext; font: ReadingFont }) {
+  const { orpHighlight, boldWord } = settings.value
+  const parts = orpParts(sentence.word)
+  return (
+    <p class="card-sentence" style={{ font: cssFont(font, 19, false), lineHeight: 1.8 }}>
+      {sentence.before && <span class="read">{sentence.before} </span>}
+      <span class="current" style={{ fontWeight: boldWord ? 700 : 600 }}>
+        {parts.prefix}
+        <span class={orpHighlight === 'red' ? 'pointer red' : 'pointer'}>{parts.orp}</span>
+        {parts.suffix}
+      </span>
+      {sentence.after && <span> {sentence.after}</span>}
+    </p>
+  )
+}
+
 // Rows
 
 function BookRow({ book, onOpen, actions }: { book: Book; onOpen: () => void; actions: MenuItem[] }) {
   const wpm = settings.value.wpm
   const timeLeft = formatReadingTime(estimatedSecondsRemaining(book, wpm))
   const finished = isFinished(book)
+  const by = byline(book)
   return (
     <li class="book-row">
       <button type="button" class="row-hit" onClick={onOpen}>
         <CoverTile book={book} />
         <div class="row-text">
           <div class="row-title">{book.title}</div>
+          {by && <div class="row-byline">{by}</div>}
           <div class="row-details">
             {finished ? (
               <span class="finished">
@@ -275,8 +311,19 @@ function BookRow({ book, onOpen, actions }: { book: Book; onOpen: () => void; ac
   )
 }
 
-/** A miniature reading surface: the title's first letter as the ORP glyph. */
-function CoverTile({ book }: { book: Book }) {
+/** The book's cover, or a miniature reading surface with the title's first letter as the ORP glyph. */
+function CoverTile({ book, small }: { book: Book; small?: boolean }) {
+  const url = covers.url(book)
+  const size = small ? ' small' : ''
+  if (url) {
+    return (
+      <div class={`cover image${size}`} aria-hidden="true">
+        <img src={url} alt="" decoding="async" />
+        {!small && <span class="cover-progress" style={{ width: `${progress(book) * 100}%` }} />}
+      </div>
+    )
+  }
+  if (small) return null
   const initial = Array.from(book.title).find(c => /[\p{L}\p{N}]/u.test(c))?.toUpperCase() ?? '·'
   return (
     <div class={book.source ? 'cover has-source' : 'cover'} aria-hidden="true">

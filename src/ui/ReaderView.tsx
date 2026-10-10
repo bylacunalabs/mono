@@ -11,6 +11,8 @@
 // • Pinch (or ctrl + scroll on a trackpad): text size, the same for every
 //   word. It can't grow past the size at which the widest word still fits.
 //
+// Back (button or gesture) and Escape close the reader. The text is
+// tokenized in the import worker, so opening a long book doesn't freeze.
 // The screen is kept awake while the reader is open (Screen Wake Lock).
 // The position is saved on every pause, every 100 words, when the page is
 // hidden and when the reader closes.
@@ -21,7 +23,8 @@ import { RSVPEngine } from '../core/engine'
 import { pieces } from '../core/hyphenation'
 import { formatReadingTime } from '../core/stats'
 import { MAX_WPM, MIN_WPM, WPM_STEP } from '../core/timing'
-import { tokenize } from '../core/tokenizer'
+import { sentenceAround, tokenize } from '../core/tokenizer'
+import { tokenizeText } from '../import/importer'
 import { library } from '../state/library'
 import { settings, type NavigationUnit } from '../state/settings'
 import { useObserve } from '../state/store'
@@ -31,6 +34,7 @@ import {
   availableHalfWidth, BASE_FONT_SIZE, extents, maxExtents, maxFontSize, MINIMUM_SCALE, referenceExtents,
   wordViewHeight, type Extents,
 } from './fonts'
+import { useBackButton } from './history'
 import { useSize } from './hooks'
 import { Icon } from './icons'
 import { RSVPWord } from './RSVPWord'
@@ -51,6 +55,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
     [],
   )
   useObserve(engine)
+  useBackButton(onClose)
 
   const [isLoaded, setLoaded] = useState(false)
   const [textExtents, setTextExtents] = useState<Extents>()
@@ -80,11 +85,14 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
 
   useEffect(() => {
     let cancelled = false
-    loadText(book.id).then(text => {
-      if (cancelled) return
-      engine.load(tokenize(text), book.currentIndex)
-      setLoaded(true)
-    })
+    loadText(book.id)
+      .then(text => tokenizeText(text).catch(() => tokenize(text)))
+      .catch(() => [])
+      .then(tokens => {
+        if (cancelled) return
+        engine.load(tokens, book.currentIndex)
+        setLoaded(true)
+      })
     return () => {
       cancelled = true
     }
@@ -114,7 +122,8 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
 
   const saveProgress = () => {
     if (!engine.tokens.length) return
-    library.updateProgress(book.id, engine.currentIndex, engine.tokens.length, engine.currentToken?.text)
+    const index = engine.currentIndex
+    library.updateProgress(book.id, index, engine.tokens.length, engine.currentToken?.text, sentenceAround(engine.tokens, index))
   }
 
   /** Saves the position and books the words read since the last checkpoint. */

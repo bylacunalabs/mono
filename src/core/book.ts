@@ -21,7 +21,24 @@ export interface Book {
   source?: Source
   /** Word at the bookmark, shown in the "continue reading" card. */
   currentWord?: string
+  /** The sentence around the bookmark, for the "continue reading" card. */
+  currentSentence?: SentenceContext
+  author?: string
+  /** Publication year, e.g. "1947". */
+  year?: string
+  /** A cover image is stored under the book's id (see storage/db.ts). */
+  hasCover?: boolean
 }
+
+/** A sentence split around one of its words. */
+export interface SentenceContext {
+  before: string
+  word: string
+  after: string
+}
+
+/** "Italo Calvino · 1979", or undefined when neither is known. */
+export const byline = (b: Book) => [b.author, b.year].filter(Boolean).join(' · ') || undefined
 
 export const SOURCE_LABEL: Record<Source, string> = { text: 'TXT', pdf: 'PDF', epub: 'EPUB', web: 'WEB' }
 

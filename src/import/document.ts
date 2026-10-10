@@ -7,9 +7,24 @@ import type { Chapter } from '../core/book'
 
 export interface ExtractedDocument {
   title?: string
+  author?: string
+  /** Publication year, e.g. "1947". */
+  year?: string
+  cover?: CoverImage
   paragraphs: string[]
   /** Chapter titles with the index of their first paragraph. */
   chapters: { title: string; paragraphIndex: number }[]
+}
+
+export interface CoverImage {
+  data: Uint8Array
+  /** Media type, e.g. "image/jpeg". */
+  type: string
+}
+
+/** The four-digit year in a date such as "1979-03-01" or "March 1979". */
+export function yearFrom(date: string | undefined): string | undefined {
+  return date?.match(/(?:^|\D)(1[0-9]{3}|20[0-9]{2})(?!\d)/)?.[1]
 }
 
 export class ImportError extends Error {}
