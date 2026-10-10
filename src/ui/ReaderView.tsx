@@ -12,13 +12,14 @@
 // • Pinch (or ctrl + scroll on a trackpad): text size, the same for every
 //   word. It can't grow past the size at which the widest word still fits.
 //
-// On a phone on its side the reader becomes a two-handed layout: the word on
-// the right with the text below it, always visible and scrolling along, and
-// on the left a controller that stays on screen (dimmed while reading): a
-// touch pad for the gestures, with play, skip, speed and position under it.
-// The word size is kept apart from the upright one, and on Android reading
-// goes full screen, locked on its side. Upright on a phone, a one-time hint
-// suggests turning it.
+// On a phone on its side, while paused the screen splits in two: on the left
+// the text with the player (position, skip, play, speed) and on the right
+// the word in its reticle. Reading, the word takes the whole screen, unless
+// the text is kept beside it ("Text" in the player): then the left half
+// keeps only the text, scrolling along with the word. The word size is kept
+// apart from the upright one, and on Android reading goes full screen,
+// locked on its side. Upright on a phone, a one-time hint suggests turning
+// it.
 //
 // Swipes that start at the screen's edges are left to the system (Android's
 // back gesture, iOS's Notification Centre and home indicator). Scrubbing the
@@ -63,10 +64,8 @@ const NO_CHAPTERS: Chapter[] = []
 const EDGE = 24
 const EDGE_TOP = 40
 const EDGE_BOTTOM = 32
-/** Share of the width taken by the controller on the left, on its side. */
-const CONTROLLER_SHARE = 0.4
-/** On its side: where the word's centre sits, as a share of the height. */
-const LANDSCAPE_WORD_CENTRE = 0.3
+/** On its side, split in two: the share of the width left to the word. */
+const WORD_SHARE = 0.5
 const UNIT_TITLES: Record<NavigationUnit, string> = { sentence: 'Sentence', paragraph: 'Paragraph', chapter: 'Chapter' }
 
 export function ReaderView({ book, onClose }: { book: Book; onClose: () => void }) {
@@ -102,10 +101,11 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   const unit: NavigationUnit = navigationUnit === 'chapter' && !chapterStarts.length ? 'paragraph' : navigationUnit
 
   const isPaused = isLoaded && !engine.isPlaying
-  // On its side the text is always there, under the word.
-  const showsText = isLoaded && (isPaused || alwaysShowText || landscape)
-  /** Width of the word's area: the right-hand column on its side. */
-  const wordWidth = landscape ? size.width * (1 - CONTROLLER_SHARE) : size.width
+  const showsText = isLoaded && (isPaused || alwaysShowText)
+  /** On its side, the text (and the player while paused) on the left, the word on the right. */
+  const split = landscape && showsText
+  /** Width of the word's area: the right half when split. */
+  const wordWidth = split ? size.width * WORD_SHARE : size.width
 
   // Largest size at which every word of this text fits the reticle.
   const maxSize = maxFontSize(textExtents ?? referenceExtents(font, bold), availableHalfWidth(wordWidth))
@@ -428,21 +428,12 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
 
   // Layout. Upright: the word sits above the text, which fills the screen
   // below it, and the controls float over the bottom while paused. On its
-  // side: the controller on the left; on the right the word, and the text
-  // below it.
+  // side: the word stays centred, in the right half when split.
 
   const wordHeight = wordViewHeight(fontSize)
-  let wordShift: number
-  let panelTop: number
-  if (landscape) {
-    const centre = Math.max(wordHeight / 2 + 8, size.height * LANDSCAPE_WORD_CENTRE)
-    wordShift = centre - size.height / 2
-    panelTop = centre + wordHeight / 2 + 4
-  } else {
-    wordShift = showsText ? -size.height * 0.2 : 0
-    panelTop = size.height / 2 - size.height * 0.2 + wordHeight / 2 + 12
-  }
-  const panelHeight = Math.max(0, size.height - panelTop - (landscape ? 12 : 8))
+  const wordShift = showsText && !landscape ? -size.height * 0.2 : 0
+  const panelTop = size.height / 2 - size.height * 0.2 + wordHeight / 2 + 12
+  const panelHeight = Math.max(0, size.height - panelTop - 8)
   const currentChapter = chapters.findLast(c => c.wordIndex <= engine.currentIndex)
   const total = engine.tokens.length
 
@@ -484,7 +475,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
       title="Skip by"
       class="small-labeled"
       align="left"
-      direction={landscape ? 'down' : 'up'}
+      direction="up"
       items={(['sentence', 'paragraph', 'chapter'] as NavigationUnit[]).map(option => ({
         label: UNIT_TITLES[option],
         checked: option === unit,
@@ -534,15 +525,24 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
     </div>
   )
 
-  return (
-    <div
-      class={`reader${landscape ? ' landscape' : ''}${engine.isPlaying ? ' playing' : ''}`}
-      ref={rootRef}
-      style={{ '--controller-share': `${CONTROLLER_SHARE * 100}%` }}
+  const textToggle = (
+    <button
+      type="button"
+      class={alwaysShowText ? 'small-labeled active' : 'small-labeled'}
+      aria-label={landscape ? 'Keep text beside the word' : 'Keep text visible'}
+      aria-pressed={alwaysShowText}
+      onClick={() => settings.set('alwaysShowText', !alwaysShowText)}
     >
+      <Icon name="text" size={22} />
+      <span>Text</span>
+    </button>
+  )
+
+  return (
+    <div class={`reader${landscape ? ' landscape' : ''}${split ? ' split' : ''}`} ref={rootRef}>
       <div class="reader-surface" ref={surface} aria-label={engine.currentWord ?? book.title} />
 
-      <div class={landscape ? 'reader-word right' : 'reader-word'} style={{ transform: `translateY(${wordShift}px)` }}>
+      <div class="reader-word" style={{ transform: `translateY(${wordShift}px)` }}>
         {!isLoaded ? (
           <span class="spinner large" />
         ) : engine.currentWord !== undefined ? (
@@ -555,42 +555,29 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
         )}
       </div>
 
-      {showsText && (
-        <TextPanel
-          tokens={engine.tokens}
-          paragraphs={engine.paragraphRanges}
-          chapters={chapters}
-          currentIndex={engine.currentIndex}
-          isPlaying={engine.isPlaying}
-          font={font}
-          onSelect={index => engine.seek(index)}
-          side={landscape}
-          style={{ top: panelTop, height: panelHeight, opacity: panelHeight > 60 ? 1 : 0 }}
-        />
-      )}
-
-      {landscape ? (
-        // The controller: always there on its side, dimmed while reading.
-        <div class="controller">
-          <div class="controller-top">
-            {closeButton}
-            {title}
-            {chaptersMenu}
-          </div>
-          <div class="controller-pad" aria-hidden="true">
-            <span class="pad-hint up">
-              <Icon name="swipeV" size={18} /> Faster · slower
-            </span>
-            <span class="pad-hint middle">
-              <Icon name={holdToRead ? 'hold' : 'tap'} size={22} />
-              {holdToRead ? 'Hold to read' : 'Tap to play or pause'}
-            </span>
-            <span class="pad-hint down">
-              <Icon name="swipeH" size={18} /> Back · ahead by {UNIT_TITLES[unit].toLowerCase()}
-            </span>
-          </div>
-          {isLoaded && (
-            <div class="controller-bar glass">
+      {split ? (
+        // On its side: the left half. Paused, the player around the text;
+        // reading with the text kept, the text alone.
+        <div class="side-column">
+          {isPaused && (
+            <div class="side-top">
+              {closeButton}
+              {title}
+              {chaptersMenu}
+            </div>
+          )}
+          <TextPanel
+            tokens={engine.tokens}
+            paragraphs={engine.paragraphRanges}
+            chapters={chapters}
+            currentIndex={engine.currentIndex}
+            isPlaying={engine.isPlaying}
+            font={font}
+            onSelect={index => engine.seek(index)}
+            side
+          />
+          {isPaused && (
+            <div class="side-player glass">
               <div class="position-row">
                 {positionCount}
                 <div class="position">{positionSlider}</div>
@@ -599,20 +586,21 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
               <div class="transport">
                 {skipByMenu}
                 {skipButton(false)}
-                <button
-                  type="button"
-                  class="play"
-                  aria-label={engine.isPlaying ? 'Pause' : 'Play'}
-                  onClick={() => engine.toggle()}
-                >
-                  <Icon name={engine.isPlaying ? 'pause' : 'play'} size={24} />
+                <button type="button" class="play" aria-label="Play" onClick={() => engine.play()}>
+                  <Icon name="play" size={28} />
                 </button>
                 {skipButton(true)}
+                {textToggle}
+              </div>
+              <div class="speed-row">
+                <span class="speed-title">Speed</span>
                 <div class="speed-stepper" role="group" aria-label="Reading speed">
                   <button type="button" aria-label="Slower" disabled={engine.wpm <= MIN_WPM} onClick={() => changeSpeed(-1)}>
                     −
                   </button>
-                  <span class="speed-value">{engine.wpm}</span>
+                  <span class="speed-value">
+                    {engine.wpm} <small>WPM</small>
+                  </span>
                   <button type="button" aria-label="Faster" disabled={engine.wpm >= MAX_WPM} onClick={() => changeSpeed(1)}>
                     +
                   </button>
@@ -621,7 +609,22 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
             </div>
           )}
         </div>
-      ) : isPaused ? (
+      ) : (
+        showsText && !landscape && (
+          <TextPanel
+              tokens={engine.tokens}
+              paragraphs={engine.paragraphRanges}
+              chapters={chapters}
+              currentIndex={engine.currentIndex}
+              isPlaying={engine.isPlaying}
+              font={font}
+              onSelect={index => engine.seek(index)}
+              style={{ top: panelTop, height: panelHeight, opacity: panelHeight > 60 ? 1 : 0 }}
+            />
+        )
+      )}
+
+      {isPaused && !landscape ? (
         <div class="reader-controls">
           <div class="reader-top">
             {closeButton}
@@ -646,16 +649,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
                 <Icon name="play" size={34} />
               </button>
               {skipButton(true)}
-              <button
-                type="button"
-                class={alwaysShowText ? 'small-labeled active' : 'small-labeled'}
-                aria-label="Keep text visible"
-                aria-pressed={alwaysShowText}
-                onClick={() => settings.set('alwaysShowText', !alwaysShowText)}
-              >
-                <Icon name="text" size={22} />
-                <span>Text</span>
-              </button>
+              {textToggle}
             </div>
 
             <div class="speed">
@@ -677,7 +671,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
           </div>
         </div>
       ) : (
-        isLoaded && <div class="reader-progress" style={{ width: `${engine.progress * 100}%` }} />
+        isLoaded && engine.isPlaying && <div class="reader-progress" style={{ width: `${engine.progress * 100}%` }} />
       )}
 
       {isLoaded && settings.value.didShowGestures && !settings.value.didShowRotateHint && isTouch && !landscape && Math.min(screen.width, screen.height) < 500 && (
