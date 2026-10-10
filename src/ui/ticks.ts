@@ -1,4 +1,4 @@
-// The optional audio tick: a short, soft click as each word appears, like a
+// The optional audio tick: a drumstick click as each word appears, like a
 // metronome for reading. Its pitch tells what comes next: the plain tick for
 // a word running on, a little lower before a bracket, comma or semicolon,
 // lower still at a sentence end, lowest before a heading's pause, and a
@@ -12,8 +12,8 @@
 
 import type { PauseKind } from '../core/timing'
 
-/** Pitch of the plain tick. */
-const BASE_HZ = 1320
+/** Pitch of the plain tick: two hickory drumsticks struck together. */
+const BASE_HZ = 850
 /** Semitones below the plain tick for each kind of pause after the word. */
 const PAUSE_SEMITONES: Record<PauseKind, number> = {
   none: 0,
@@ -25,9 +25,10 @@ const PAUSE_SEMITONES: Record<PauseKind, number> = {
   heading: -10,
 }
 const PARAGRAPH_SEMITONES = -2
-const VOLUME = 0.07
+const VOLUME = 0.6
 
 let audio: AudioContext | undefined
+let noise: AudioBuffer | undefined
 
 /** Creates or resumes the audio context; call from a user gesture. */
 export function unlockTicks() {
@@ -47,31 +48,69 @@ export function unlockTicks() {
 /** Ticks for a word of `letters` letters followed by a `pause`. */
 export function tick(letters: number, pause: PauseKind, endsParagraph: boolean) {
   if (!audio || audio.state !== 'running') return
-  // ±1 semitone with the word's length: short words higher.
-  const lengthSemitones = Math.max(-1, Math.min(1, (5 - letters) / 4))
-  const semitones = PAUSE_SEMITONES[pause] + (endsParagraph ? PARAGRAPH_SEMITONES : 0) + lengthSemitones
-  const frequency = BASE_HZ * 2 ** (semitones / 12)
-  // Lower ticks ring slightly longer, as a resting point.
-  const decay = 0.025 + Math.max(0, -semitones) * 0.004
-
-  const now = audio.currentTime
-  const oscillator = audio.createOscillator()
-  const gain = audio.createGain()
-  oscillator.type = 'triangle'
-  oscillator.frequency.setValueAtTime(frequency, now)
-  gain.gain.setValueAtTime(0, now)
-  gain.gain.linearRampToValueAtTime(VOLUME, now + 0.002)
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + decay)
-  oscillator.connect(gain).connect(audio.destination)
-  oscillator.start(now)
-  oscillator.stop(now + decay + 0.01)
+  woodTick(audio, audio.currentTime, tickPitch(letters, pause, endsParagraph))
 }
 
-/** A short sample phrase, for when the tick is switched on in Settings. */
+/** Semitones from the plain tick. */
+export function tickPitch(letters: number, pause: PauseKind, endsParagraph: boolean): number {
+  // ±1 semitone with the word's length: short words higher.
+  const lengthSemitones = Math.max(-1, Math.min(1, (5 - letters) / 4))
+  return PAUSE_SEMITONES[pause] + (endsParagraph ? PARAGRAPH_SEMITONES : 0) + lengthSemitones
+}
+
+/**
+ * Two drumsticks struck together: a click of a few milliseconds rung
+ * through the sticks' first three bending modes (a free bar's 1 : 2.76 :
+ * 5.40, inharmonic, which is what makes it sound like wood rather than a
+ * bell), damped hard so it's over in about 20 ms, plus a little of the raw
+ * click on top for the "crack" of the hit.
+ */
+export function woodTick(context: BaseAudioContext, when: number, semitones: number) {
+  const frequency = BASE_HZ * 2 ** (semitones / 12)
+
+  if (!noise || noise.sampleRate !== context.sampleRate) {
+    const length = Math.round(context.sampleRate * 0.003)
+    noise = context.createBuffer(1, length, context.sampleRate)
+    const data = noise.getChannelData(0)
+    for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** 3
+  }
+
+  const out = context.createGain()
+  out.gain.value = VOLUME
+  out.connect(context.destination)
+
+  const click = context.createBufferSource()
+  click.buffer = noise
+
+  // The sticks' modes: frequency ratio, sharpness (how long it rings), level.
+  for (const [ratio, q, level] of [[1, 38, 7], [2.76, 30, 3.5], [5.4, 24, 1.2]]) {
+    const mode = context.createBiquadFilter()
+    mode.type = 'bandpass'
+    mode.frequency.value = frequency * ratio
+    mode.Q.value = q
+    const gain = context.createGain()
+    gain.gain.value = level
+    click.connect(mode).connect(gain).connect(out)
+  }
+
+  // The crack: the bare click, highs only.
+  const crack = context.createBiquadFilter()
+  crack.type = 'highpass'
+  crack.frequency.value = 2500
+  const crackGain = context.createGain()
+  crackGain.gain.value = 0.35
+  click.connect(crack).connect(crackGain).connect(out)
+
+  click.start(when)
+}
+
+/** A short sample phrase: plain words, a comma, a sentence end and a paragraph end. */
+export const SAMPLE_PHRASE: [number, PauseKind, boolean][] = [
+  [3, 'none', false], [6, 'none', false], [4, 'comma', false], [2, 'none', false], [7, 'none', false], [5, 'sentence', true],
+]
+
+/** Plays the sample phrase, for when the tick is switched on in Settings. */
 export function previewTicks() {
   unlockTicks()
-  const phrase: [number, PauseKind, boolean][] = [
-    [3, 'none', false], [6, 'none', false], [4, 'comma', false], [2, 'none', false], [7, 'none', false], [5, 'sentence', true],
-  ]
-  phrase.forEach(([letters, pause, paragraph], i) => setTimeout(() => tick(letters, pause, paragraph), 120 + i * 260))
+  SAMPLE_PHRASE.forEach(([letters, pause, paragraph], i) => setTimeout(() => tick(letters, pause, paragraph), 120 + i * 260))
 }
