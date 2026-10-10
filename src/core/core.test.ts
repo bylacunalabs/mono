@@ -6,8 +6,10 @@ import { RSVPEngine } from './engine'
 import { breakPositions, pieces } from './hyphenation'
 import { orpIndex, orpIndexForLength } from './orp'
 import { addDays, averageWPM, currentStreak, record, recentDays, totalWords, type Days } from './stats'
-import { lengthFactor, MAX_WPM, MIN_WPM, pauseFactor, RAMP_UP_WORDS, rampUpFactor, weights } from './timing'
-import { endsSentence, paragraphs, sentenceAround, token, tokenCount, tokenize } from './tokenizer'
+import {
+  delayMs, lengthFactor, MAX_WPM, MIN_WPM, pace, pauseAfter, RAMP_UP_WORDS, rampUpFactor, recognitionFactor, textTiming, TIMING,
+} from './timing'
+import { endsSentence, isAbbreviation, paragraphs, sentenceAround, token, tokenCount, tokenize } from './tokenizer'
 import { booksToRestore, mergeStats, validateBackup } from './backup'
 import type { Book } from './book'
 import { titleFromText } from './book'
@@ -142,23 +144,75 @@ describe('Timing', () => {
     expect(lengthFactor(token('ciao'))).toBe(lengthFactor(token('«ciao.»')))
   })
 
-  it('bounds the length factor', () => {
+  it('keeps growing, more slowly, past ten letters', () => {
     expect(lengthFactor(token('e'))).toBe(0.7)
-    expect(lengthFactor(token('precipitevolissimevolmente'))).toBe(1.5)
+    expect(lengthFactor(token('importante'))).toBeCloseTo(1.4, 9)
+    expect(lengthFactor(token('comprensione'))).toBeCloseTo(1.46, 9)
+    expect(lengthFactor(token('precipitevolissimevolmente'))).toBe(TIMING.longestFactor)
+    expect(lengthFactor(token('precipitevolissimevolmente'))).toBeGreaterThan(lengthFactor(token('importante')))
   })
 
-  it('multiplies pauses', () => {
-    expect(pauseFactor(token('ciao'))).toBe(1)
-    expect(pauseFactor(token('ciao,'))).toBe(1.5)
-    expect(pauseFactor(token('ciao.»'))).toBe(2)
-    expect(pauseFactor(token('fine.', true))).toBe(2.5)
-    expect(pauseFactor(token('1984'))).toBeCloseTo(1.15, 9)
+  it('speeds up frequent words and slows down long numbers', () => {
+    expect(recognitionFactor(token('della,'))).toBe(TIMING.frequentFactor)
+    expect(recognitionFactor(token('The'))).toBe(TIMING.frequentFactor)
+    expect(recognitionFactor(token('gatto'))).toBe(1)
+    expect(recognitionFactor(token('3'))).toBeCloseTo(1.05, 9)
+    expect(recognitionFactor(token('1984'))).toBeCloseTo(1.2, 9)
+    expect(recognitionFactor(token('1.234.567'))).toBeCloseTo(1.35, 9)
   })
 
-  it('normalises weights to a mean of one', () => {
-    const w = weights(tokenize('Il gatto dorme profondamente, sul divano di casa.'))
-    expect(w.reduce((a, b) => a + b, 0) / w.length).toBeCloseTo(1, 9)
-    expect(w[3]).toBeGreaterThan(w[1])
+  it('pauses by punctuation, with a fixed part', () => {
+    const { pauses } = TIMING
+    expect(pauseAfter(token('ciao'))).toEqual({ factor: 1, ms: 0 })
+    expect(pauseAfter(token('ciao,'))).toEqual(pauses.comma)
+    expect(pauseAfter(token('ciao;'))).toEqual(pauses.strong)
+    expect(pauseAfter(token('ciao.»'))).toEqual(pauses.sentence)
+    expect(pauseAfter(token('ciao…'))).toEqual(pauses.ellipsis)
+    expect(pauseAfter(token('ciao...'))).toEqual(pauses.ellipsis)
+    expect(pauseAfter(token('casa)'))).toEqual(pauses.bracket)
+    expect(pauseAfter(token('fine.', true))).toEqual({
+      factor: pauses.sentence.factor * pauses.paragraph.factor,
+      ms: pauses.sentence.ms + pauses.paragraph.ms,
+    })
+  })
+
+  it("doesn't pause after abbreviations", () => {
+    expect(pauseAfter(token('Sig.'), token('Rossi'))).toEqual({ factor: 1, ms: 0 })
+    expect(pauseAfter(token('fine.'), token('Poi'))).toEqual(TIMING.pauses.sentence)
+  })
+
+  it('pauses longer after a heading', () => {
+    const timing = textTiming(tokenize('Capitolo primo\n\nEra una notte buia.'))
+    expect(timing.pausesMs[1]).toBe(TIMING.pauses.heading.ms)
+    expect(timing.pausesMs[5]).toBe(TIMING.pauses.sentence.ms + TIMING.pauses.paragraph.ms)
+  })
+
+  it('keeps the average word at 60 / WPM, pauses included', () => {
+    const timing = textTiming(tokenize('Il gatto dorme profondamente, sul divano di casa. Poi si sveglia!'))
+    for (const wpm of [100, 300, 1200]) {
+      const p = pace(timing, wpm)
+      const total = timing.factors.reduce((sum, _, i) => sum + delayMs(timing, p, i), 0)
+      expect(total / timing.factors.length).toBeCloseTo(60_000 / wpm, 6)
+      expect(p.base).toBeGreaterThan(0)
+    }
+  })
+
+  it('keeps fixed pauses fixed until they would take too much time', () => {
+    const timing = textTiming(tokenize('Uno due tre. Quattro cinque sei. Sette otto nove.'))
+    expect(pace(timing, 150).pauseScale).toBe(1)
+    expect(pace(timing, 300).pauseScale).toBe(1)
+    const fast = pace(timing, 1200)
+    expect(fast.pauseScale).toBeLessThan(1)
+    expect(fast.pauseScale * timing.meanPauseMs).toBeCloseTo(TIMING.maxPauseShare * 50, 6)
+  })
+
+  it('makes sentence pauses relatively longer at higher speeds', () => {
+    const timing = textTiming(tokenize('Il gatto dorme sul divano. Poi si sveglia e mangia.'))
+    const ratio = (wpm: number) => {
+      const p = pace(timing, wpm)
+      return delayMs(timing, p, 4) / delayMs(timing, p, 1)
+    }
+    expect(ratio(600)).toBeGreaterThan(ratio(150))
   })
 
   it('ramps up from double to normal', () => {
@@ -166,6 +220,36 @@ describe('Timing', () => {
     expect(rampUpFactor(RAMP_UP_WORDS / 2)).toBe(1.5)
     expect(rampUpFactor(RAMP_UP_WORDS)).toBe(1)
     expect(rampUpFactor(100)).toBe(1)
+  })
+})
+
+describe('Abbreviations', () => {
+  it('recognises titles, initials and lower-case continuations', () => {
+    expect(isAbbreviation('Sig.', 'Rossi')).toBe(true)
+    expect(isAbbreviation('Dott.', 'Bianchi')).toBe(true)
+    expect(isAbbreviation('J.', 'R.')).toBe(true)
+    expect(isAbbreviation('ecc.', 'e')).toBe(true)
+    expect(isAbbreviation('pag.', '12')).toBe(true)
+    expect(isAbbreviation('(Mr.', 'Smith')).toBe(true)
+  })
+
+  it('keeps real sentence ends', () => {
+    expect(isAbbreviation('casa.', 'Poi')).toBe(false)
+    expect(isAbbreviation('ecc.', 'Poi')).toBe(false)
+    expect(isAbbreviation('fine.»', 'e')).toBe(false)
+    expect(isAbbreviation('così...', 'e')).toBe(false)
+    expect(isAbbreviation('Io.', '«Ciao')).toBe(false)
+  })
+
+  it('navigates sentences across abbreviations', () => {
+    // Indices:              0      1     2      3     4    5    6     7
+    const engine = new RSVPEngine()
+    engine.load(tokenize('Ho visto il Dott. Rossi ieri. Poi basta.'), 1)
+    engine.nextSentence()
+    expect(engine.currentIndex).toBe(6)
+    const tokens = tokenize('Ho visto il Dott. Rossi ieri.')
+    expect(endsSentence(tokens[3], tokens[4])).toBe(false)
+    expect(endsSentence(tokens[3])).toBe(true)
   })
 })
 

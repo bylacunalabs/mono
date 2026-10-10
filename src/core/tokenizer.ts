@@ -5,7 +5,7 @@
 // or font. A word too wide for the reticle is split into syllables only at
 // display time (see hyphenation.ts).
 
-import { chars, isLetter, isLowercase, words } from './text'
+import { chars, isLetter, isLetterOrNumber, isLowercase, words } from './text'
 
 export interface Token {
   text: string
@@ -102,10 +102,39 @@ export function trailingPunctuation(word: string): string | undefined {
   return undefined
 }
 
-export function endsSentence(t: Token): boolean {
+/**
+ * Whether `t` ends a sentence. With the following token, a full stop that
+ * belongs to an abbreviation ("Sig. Rossi", "p. es.", "J. R. R. Tolkien")
+ * doesn't count.
+ */
+export function endsSentence(t: Token, next?: Token): boolean {
   if (t.endsParagraph) return true
   const mark = trailingPunctuation(t.text)
-  return mark !== undefined && SENTENCE_ENDERS.has(mark)
+  if (mark === undefined || !SENTENCE_ENDERS.has(mark)) return false
+  return !(mark === '.' && next && isAbbreviation(t.text, next.text))
+}
+
+/** Titles usually followed by a capitalised name. */
+const TITLES = new Set([
+  'sig', 'sigg', 'dott', 'dr', 'prof', 'ing', 'avv', 'arch', 'geom',
+  'on', 'sen', 'gen', 'mons', 'mr', 'mrs', 'ms', 'mx', 'st', 'rev', 'capt', 'lt', 'sgt', 'vs', 'cfr',
+])
+
+/**
+ * A word ending in a full stop that isn't a sentence end: one followed by a
+ * lower-case word or a number ("ecc. e così via", "pag. 12"), an initial
+ * ("J. Tolkien") or a title ("Dott. Rossi").
+ */
+export function isAbbreviation(word: string, next: string): boolean {
+  const c = chars(word)
+  // "fine.»" closes a quotation and "..." is an ellipsis: real ends.
+  if (c[c.length - 1] !== '.' || c[c.length - 2] === '.') return false
+  const following = chars(next).find(isLetterOrNumber)
+  if (following === undefined) return false
+  if (isLowercase(following) || /\p{N}/u.test(following)) return true
+  const core = c.slice(0, -1).join('').replace(/^[«"“‘'(\[]+/u, '')
+  if (chars(core).length === 1 && isLetter(core) && !isLowercase(core)) return true
+  return TITLES.has(core.toLowerCase())
 }
 
 /**
@@ -121,12 +150,12 @@ export function sentenceAround(
   const t = tokens[index]
   if (!t) return undefined
   let start = index
-  while (start > 0 && index - start < maxBefore && !endsSentence(tokens[start - 1])) start--
+  while (start > 0 && index - start < maxBefore && !endsSentence(tokens[start - 1], tokens[start])) start--
   let end = index
-  while (end < tokens.length - 1 && end - index < maxAfter && !endsSentence(tokens[end])) end++
+  while (end < tokens.length - 1 && end - index < maxAfter && !endsSentence(tokens[end], tokens[end + 1])) end++
   const text = (from: number, to: number) => tokens.slice(from, to).map(t => t.text).join(' ')
-  const cutBefore = start > 0 && !endsSentence(tokens[start - 1])
-  const cutAfter = end < tokens.length - 1 && !endsSentence(tokens[end])
+  const cutBefore = start > 0 && !endsSentence(tokens[start - 1], tokens[start])
+  const cutAfter = end < tokens.length - 1 && !endsSentence(tokens[end], tokens[end + 1])
   return {
     before: (cutBefore ? '… ' : '') + text(start, index),
     word: t.text,

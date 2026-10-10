@@ -2,10 +2,11 @@
 // advances through it on a dynamic timer, and exposes what the reader needs
 // to render the word, navigate and show the text while paused.
 //
-// Each word is scheduled against an absolute deadline so timer overhead
-// doesn't accumulate as drift at high speeds (1200 WPM = 50 ms per word).
+// Word times come from the timing model (timing.ts). Each word is scheduled
+// against an absolute deadline so timer overhead doesn't accumulate as drift
+// at high speeds (1200 WPM = 50 ms per word on average).
 
-import { clampWPM, DEFAULT_WPM, rampUpFactor, WPM_STEP, weights as computeWeights } from './timing'
+import { clampWPM, DEFAULT_WPM, delayMs, pace, rampUpFactor, textTiming, WPM_STEP, type Pace, type TextTiming } from './timing'
 import { endsSentence, type Token } from './tokenizer'
 
 export class RSVPEngine {
@@ -24,9 +25,11 @@ export class RSVPEngine {
 
   /** Splits a word too wide for the screen into display pieces. */
   private split: (word: string) => string[] = w => [w]
-  private weights: number[] = []
-  /** `remainingWeight[i]` is the total weight of tokens `i...`. */
-  private remainingWeight: number[] = [0]
+  private timing: TextTiming = textTiming([])
+  private pace: Pace = { base: 0, pauseScale: 1 }
+  /** Totals of factors and fixed pauses from token `i` to the end. */
+  private remainingFactor: number[] = [0]
+  private remainingPauseMs: number[] = [0]
   private timer: ReturnType<typeof setTimeout> | undefined
   private deadline = 0
   private wordsSinceResume = 0
@@ -61,13 +64,19 @@ export class RSVPEngine {
   load(tokens: Token[], startIndex: number) {
     this.pause()
     this.tokens = tokens
-    this.weights = computeWeights(tokens)
+    this.timing = textTiming(tokens)
     this.paragraphStarts = tokens.length ? [0] : []
     for (let i = 0; i < tokens.length - 1; i++) if (tokens[i].endsParagraph) this.paragraphStarts.push(i + 1)
     this.paragraphRanges = this.paragraphStarts.map((start, i) => [start, this.paragraphStarts[i + 1] ?? tokens.length])
-    const sums = new Array<number>(tokens.length + 1).fill(0)
-    for (let i = tokens.length - 1; i >= 0; i--) sums[i] = sums[i + 1] + this.weights[i]
-    this.remainingWeight = sums
+    const factors = new Array<number>(tokens.length + 1).fill(0)
+    const pauses = new Array<number>(tokens.length + 1).fill(0)
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      factors[i] = factors[i + 1] + this.timing.factors[i]
+      pauses[i] = pauses[i + 1] + this.timing.pausesMs[i]
+    }
+    this.remainingFactor = factors
+    this.remainingPauseMs = pauses
+    this.pace = pace(this.timing, this.wpm)
     this.setIndex(this.clampIndex(startIndex))
   }
 
@@ -99,8 +108,9 @@ export class RSVPEngine {
 
   /** Exact reading time left at the current speed, pauses included. */
   get secondsRemaining(): number {
-    if (this.currentIndex >= this.tokens.length) return 0
-    return (this.remainingWeight[this.currentIndex] * 60) / this.wpm
+    const i = this.currentIndex
+    if (i >= this.tokens.length) return 0
+    return (this.pace.base * this.remainingFactor[i] + this.pace.pauseScale * this.remainingPauseMs[i]) / 1000
   }
 
   private refreshPieces() {
@@ -177,13 +187,13 @@ export class RSVPEngine {
 
   sentenceStart(index: number): number {
     let i = this.clampIndex(index)
-    while (i > 0 && !endsSentence(this.tokens[i - 1])) i--
+    while (i > 0 && !endsSentence(this.tokens[i - 1], this.tokens[i])) i--
     return i
   }
 
   sentenceEnd(index: number): number {
     let i = this.clampIndex(index)
-    while (i < this.tokens.length - 1 && !endsSentence(this.tokens[i])) i++
+    while (i < this.tokens.length - 1 && !endsSentence(this.tokens[i], this.tokens[i + 1])) i++
     return i
   }
 
@@ -220,6 +230,7 @@ export class RSVPEngine {
     const wpm = clampWPM(value)
     if (wpm === this.wpm) return
     this.wpm = wpm
+    this.pace = pace(this.timing, wpm)
     this.onWPMChange?.(wpm)
     this.emit()
   }
@@ -227,17 +238,24 @@ export class RSVPEngine {
   // Run loop
 
   private schedule() {
-    if (!this.isPlaying || this.currentIndex >= this.tokens.length) return
-    let multiplier = this.weights[this.currentIndex]
-    if (this.rampUpEnabled) multiplier *= rampUpFactor(this.wordsSinceResume)
-    // A split word shares its time among its pieces by length, plus a little
-    // extra per piece for carrying the word over.
+    const i = this.currentIndex
+    if (!this.isPlaying || i >= this.tokens.length) return
+    const ramp = this.rampUpEnabled ? rampUpFactor(this.wordsSinceResume) : 1
+    let delay = delayMs(this.timing, this.pace, i) * ramp
+    // A split word shares its reading time among its pieces by length, plus
+    // a little extra per piece for carrying the word over; the pause after
+    // it comes with the last piece.
     if (this.pieces.length > 1) {
       const letters = this.pieces.map(p => Math.max(1, Array.from(p).length))
-      multiplier = (multiplier * letters[this.pieceIndex]) / letters.reduce((a, b) => a + b, 0) + 0.15
+      const reading = this.pace.base * this.timing.factors[i] * ramp
+      const isLast = this.pieceIndex === this.pieces.length - 1
+      delay =
+        (reading * letters[this.pieceIndex]) / letters.reduce((a, b) => a + b, 0) +
+        0.15 * this.pace.base +
+        (isLast ? this.pace.pauseScale * this.timing.pausesMs[i] * ramp : 0)
     }
     const now = performance.now()
-    this.deadline += (60_000 / this.wpm) * multiplier
+    this.deadline += delay
     // After a stall (tab hidden, seek) don't race to catch up.
     if (this.deadline < now - 250) this.deadline = now
     this.timer = setTimeout(() => this.tick(), Math.max(0, this.deadline - now))
