@@ -63,6 +63,38 @@ export function textWidth(text: string, font: ReadingFont, size: number, bold: b
   return (measure(text, font, bold) * size) / REFERENCE_SIZE
 }
 
+/** Vertical ink bounds of a glyph, in ems from the top of a line box `lineHeight` ems tall. */
+export interface GlyphBounds {
+  top: number
+  bottom: number
+}
+
+const glyphCache = new Map<string, GlyphBounds>()
+
+export function glyphBounds(text: string, font: ReadingFont, bold: boolean, lineHeight: number): GlyphBounds {
+  const key = `${font}|${bold}|${lineHeight}|${text}`
+  const cached = glyphCache.get(key)
+  if (cached) return cached
+  context ??= document.createElement('canvas').getContext('2d')
+  // Without measurements: roughly a lower-case letter.
+  let bounds: GlyphBounds = { top: lineHeight / 2 - 0.3, bottom: lineHeight / 2 + 0.25 }
+  if (context && text.trim()) {
+    context.font = cssFont(font, REFERENCE_SIZE, bold)
+    context.textBaseline = 'alphabetic'
+    const m = context.measureText(text)
+    const ascent = (m.fontBoundingBoxAscent ?? REFERENCE_SIZE * 0.8) / REFERENCE_SIZE
+    const descent = (m.fontBoundingBoxDescent ?? REFERENCE_SIZE * 0.2) / REFERENCE_SIZE
+    // CSS centres the font's ascent + descent in the line box.
+    const baseline = (lineHeight - ascent - descent) / 2 + ascent
+    bounds = {
+      top: baseline - m.actualBoundingBoxAscent / REFERENCE_SIZE,
+      bottom: baseline + Math.max(0, m.actualBoundingBoxDescent / REFERENCE_SIZE),
+    }
+  }
+  glyphCache.set(key, bounds)
+  return bounds
+}
+
 export interface Extents {
   left: number
   right: number
@@ -138,6 +170,9 @@ const ARM_GAP = 8
 const MINIMUM_ARM = 12
 export const TICK_LENGTH = 26
 export const TICK_GAP = 22
+/** Space between a tick's end and the focus letter's ink, in ems (at least TICK_MIN_CLEARANCE px). */
+export const TICK_CLEARANCE = 0.1
+export const TICK_MIN_CLEARANCE = 3
 
 /** Half the reticle's width: the screen on phones, capped on wide screens. */
 export const reticleHalfWidth = (width: number) => Math.min(width / 2, 360)
