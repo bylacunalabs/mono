@@ -1,10 +1,12 @@
 // The home screen: the Mono wordmark with today's reading, a "continue
 // reading" card showing the sentence at the bookmark with the eye's resting
-// letter marked as in the reader, and the searchable, sortable list of texts
-// with their covers, authors and years. Each row's menu (or a long
-// press / right click) renames, restarts or deletes it.
+// letter marked as in the reader, and the searchable (by title or author),
+// sortable list of texts with their covers, authors and years. Each row's
+// menu renames, restarts or deletes it; swiping a row left shows Start Over
+// and Delete, and a long swipe deletes straight away. Deleting can be undone
+// from the snackbar that follows. On Android, adding is a floating button.
 
-import { useRef, useState } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'preact/hooks'
 import {
   byline, continueReading, currentChapter, estimatedSecondsRemaining, isFinished, progress, SORT_TITLES, sortBooks,
   SOURCE_LABEL, type Book, type LibrarySort, type SentenceContext,
@@ -13,16 +15,18 @@ import { orpParts } from '../core/orp'
 import { currentStreak, formatReadingTime, statsOn, totalWords } from '../core/stats'
 import { ACCEPTED_FILES } from '../import/extract'
 import { covers } from '../state/covers'
-import { library } from '../state/library'
+import { library, UNDO_SECONDS } from '../state/library'
 import { settings } from '../state/settings'
 import { useObserve } from '../state/store'
 import { Alert, formatNumber, formatPercent, Menu, ProgressBar, Sheet, type MenuItem } from './components'
 import { cssFont, type ReadingFont } from './fonts'
 import { Icon } from './icons'
+import { haptic, platform } from './platform'
 import { RSVPWord } from './RSVPWord'
 
 export function LibraryView(props: {
-  onOpen: (book: Book) => void
+  /** `from`: the element the reader grows out of. */
+  onOpen: (book: Book, from?: HTMLElement | null) => void
   onShowStats: () => void
   /** The "new text" sheet is open (also opened by the Paste Text shortcut). */
   pasting: boolean
@@ -34,16 +38,14 @@ export function LibraryView(props: {
   const fileInput = useRef<HTMLInputElement>(null)
   const setShowNewText = props.onPastingChange
   const [renaming, setRenaming] = useState<Book>()
-  const [deleting, setDeleting] = useState<Book>()
   const [search, setSearch] = useState('')
   const [dragging, setDragging] = useState(false)
 
   const sort = settings.value.librarySort
   const query = search.trim().toLocaleLowerCase()
-  const visible = sortBooks(
-    query ? library.books.filter(b => b.title.toLocaleLowerCase().includes(query)) : library.books,
-    sort,
-  )
+  const matches = (b: Book) =>
+    b.title.toLocaleLowerCase().includes(query) || !!b.author?.toLocaleLowerCase().includes(query)
+  const visible = sortBooks(query ? library.books.filter(matches) : library.books, sort)
   const resume = query ? undefined : continueReading(library.books)
 
   const pickFiles = () => fileInput.current?.click()
@@ -53,7 +55,7 @@ export function LibraryView(props: {
     ...(book.currentIndex > 0
       ? [{ label: 'Start Over', icon: 'restart' as const, onSelect: () => library.resetProgress(book.id) }]
       : []),
-    { label: 'Delete', icon: 'trash', destructive: true, divider: true, onSelect: () => setDeleting(book) },
+    { label: 'Delete', icon: 'trash', destructive: true, divider: true, onSelect: () => library.delete(book.id) },
   ]
 
   const addMenu: MenuItem[] = [
@@ -94,11 +96,19 @@ export function LibraryView(props: {
         }}
       />
 
-      <header class="toolbar">
-        <Menu label="Add" items={addMenu} class="glass-circle">
-          <Icon name="plus" />
-        </Menu>
-      </header>
+      {platform === 'android' ? (
+        <div class="fab-wrapper">
+          <Menu label="Add" items={addMenu} class="fab" direction="up">
+            <Icon name="plus" size={26} />
+          </Menu>
+        </div>
+      ) : (
+        <header class="toolbar">
+          <Menu label="Add" items={addMenu} class="glass-circle">
+            <Icon name="plus" />
+          </Menu>
+        </header>
+      )}
 
       <div class="content">
         <LibraryHeader onTapStats={props.onShowStats} />
@@ -111,14 +121,16 @@ export function LibraryView(props: {
               <Icon name="search" size={18} />
               <input
                 type="search"
-                placeholder="Search your library"
+                placeholder="Titles and authors"
                 value={search}
                 onInput={e => setSearch(e.currentTarget.value)}
                 enterKeyHint="search"
               />
             </label>
 
-            {resume && <ContinueReadingCard book={resume} onOpen={() => props.onOpen(resume)} actions={actions(resume)} />}
+            {resume && (
+              <ContinueReadingCard book={resume} onOpen={from => props.onOpen(resume, from)} actions={actions(resume)} />
+            )}
 
             <div class="section-header">
               <h2>Library</h2>
@@ -141,7 +153,14 @@ export function LibraryView(props: {
 
             <ul class="book-list">
               {visible.map(book => (
-                <BookRow key={book.id} book={book} onOpen={() => props.onOpen(book)} actions={actions(book)} />
+                <BookRow
+                  key={book.id}
+                  book={book}
+                  onOpen={from => props.onOpen(book, from)}
+                  actions={actions(book)}
+                  onStartOver={() => library.resetProgress(book.id)}
+                  onDelete={() => library.delete(book.id)}
+                />
               ))}
             </ul>
             {query && !visible.length && (
@@ -155,26 +174,18 @@ export function LibraryView(props: {
         )}
       </div>
 
-      {library.isImporting && (
-        <div class="toast glass">
-          <span class="spinner" /> {library.importProgress ? `Importing · ${library.importProgress}` : 'Importing…'}
-        </div>
-      )}
+      <div class="toasts">
+        {library.isImporting && (
+          <div class="toast glass">
+            <span class="spinner" /> {library.importProgress ? `Importing · ${library.importProgress}` : 'Importing…'}
+          </div>
+        )}
+        {library.pendingDeletion && <UndoToast key={library.pendingDeletion.id} book={library.pendingDeletion} />}
+      </div>
       {dragging && <div class="drop-hint">Drop files to import</div>}
 
       {props.pasting && <NewTextSheet onClose={() => setShowNewText(false)} />}
       {renaming && <RenameAlert book={renaming} onClose={() => setRenaming(undefined)} />}
-      {deleting && (
-        <Alert
-          title={`Delete “${deleting.title}”?`}
-          message="Your reading progress will be lost."
-          onClose={() => setDeleting(undefined)}
-          actions={[
-            { label: 'Cancel', role: 'cancel', onSelect: () => {} },
-            { label: 'Delete', role: 'destructive', onSelect: () => library.delete(deleting.id) },
-          ]}
-        />
-      )}
     </div>
   )
 }
@@ -211,14 +222,20 @@ function LibraryHeader({ onTapStats }: { onTapStats?: () => void }) {
 // Continue reading
 
 /** A dark card that looks like the reader itself. */
-function ContinueReadingCard({ book, onOpen, actions }: { book: Book; onOpen: () => void; actions: MenuItem[] }) {
+function ContinueReadingCard(props: { book: Book; onOpen: (from: HTMLElement | null) => void; actions: MenuItem[] }) {
+  const { book, onOpen, actions } = props
   const { wpm, readingFont } = settings.value
   const word = book.currentWord ?? book.title.split(' ')[0] ?? book.title
   const chapter = currentChapter(book)
   const details = [byline(book), chapter?.title].filter(Boolean).join(' — ')
   return (
-    <div class="continue-card" onContextMenu={e => e.preventDefault()}>
-      <button type="button" class="card-hit" onClick={onOpen} aria-label={`Resume reading ${book.title}`} />
+    <div class="continue-card" data-book-id={book.id} onContextMenu={e => e.preventDefault()}>
+      <button
+        type="button"
+        class="card-hit no-ripple"
+        onClick={e => onOpen(e.currentTarget.parentElement)}
+        aria-label={`Resume reading ${book.title}`}
+      />
       <div class="card-glow" />
       <div class="card-top">
         <span class="eyebrow">Continue Reading</span>
@@ -273,41 +290,206 @@ function SentencePreview({ sentence, font }: { sentence: SentenceContext; font: 
 
 // Rows
 
-function BookRow({ book, onOpen, actions }: { book: Book; onOpen: () => void; actions: MenuItem[] }) {
+function BookRow(props: {
+  book: Book
+  onOpen: (from: HTMLElement | null) => void
+  actions: MenuItem[]
+  onStartOver: () => void
+  onDelete: () => void
+}) {
+  const { book, onOpen, actions } = props
   const wpm = settings.value.wpm
   const timeLeft = formatReadingTime(estimatedSecondsRemaining(book, wpm))
   const finished = isFinished(book)
   const by = byline(book)
+  const canStartOver = book.currentIndex > 0
+  const swipe = useSwipeActions((canStartOver ? 2 : 1) * SWIPE_ACTION_WIDTH, props.onDelete)
   return (
-    <li class="book-row">
-      <button type="button" class="row-hit" onClick={onOpen}>
-        <CoverTile book={book} />
-        <div class="row-text">
-          <div class="row-title">{book.title}</div>
-          {by && <div class="row-byline">{by}</div>}
-          <div class="row-details">
-            {finished ? (
-              <span class="finished">
-                <Icon name="checkCircle" size={16} /> Finished
-              </span>
-            ) : book.currentIndex > 0 ? (
-              `${timeLeft} left`
-            ) : (
-              `${formatNumber(book.wordCount)} words · ${timeLeft}`
+    <li class={swipe.isOpen ? 'book-row swiped' : 'book-row'}>
+      <div class="row-actions" aria-hidden={!swipe.isOpen}>
+        {canStartOver && (
+          <button
+            type="button"
+            class="row-action start-over"
+            tabIndex={swipe.isOpen ? 0 : -1}
+            onClick={() => {
+              swipe.close()
+              props.onStartOver()
+            }}
+          >
+            <Icon name="restart" size={20} />
+            <span>Start Over</span>
+          </button>
+        )}
+        <button type="button" class="row-action delete" tabIndex={swipe.isOpen ? 0 : -1} onClick={props.onDelete}>
+          <Icon name="trash" size={20} />
+          <span>Delete</span>
+        </button>
+      </div>
+      <div class="row-front" ref={swipe.ref}>
+        <button
+          type="button"
+          class="row-hit"
+          onClick={e => (swipe.isOpen ? swipe.close() : onOpen(e.currentTarget.querySelector('.cover')))}
+        >
+          <CoverTile book={book} />
+          <div class="row-text">
+            <div class="row-title">{book.title}</div>
+            {by && <div class="row-byline">{by}</div>}
+            <div class="row-details">
+              {finished ? (
+                <span class="finished">
+                  <Icon name="checkCircle" size={16} /> Finished
+                </span>
+              ) : book.currentIndex > 0 ? (
+                `${timeLeft} left`
+              ) : (
+                `${formatNumber(book.wordCount)} words · ${timeLeft}`
+              )}
+            </div>
+            {book.currentIndex > 0 && !finished && (
+              <div class="row-progress">
+                <ProgressBar progress={progress(book)} />
+                <span>{formatPercent(progress(book))}</span>
+              </div>
             )}
           </div>
-          {book.currentIndex > 0 && !finished && (
-            <div class="row-progress">
-              <ProgressBar progress={progress(book)} />
-              <span>{formatPercent(progress(book))}</span>
-            </div>
-          )}
-        </div>
-      </button>
-      <Menu label={`More actions for ${book.title}`} items={actions} class="row-more">
-        <Icon name="ellipsis" size={18} />
-      </Menu>
+        </button>
+        <Menu label={`More actions for ${book.title}`} items={actions} class="row-more">
+          <Icon name="ellipsis" size={18} />
+        </Menu>
+      </div>
     </li>
+  )
+}
+
+const SWIPE_ACTION_WIDTH = 84
+/** Swiped past this share of the row's width, it's deleted on release. */
+const FULL_SWIPE = 0.6
+
+/** The row that's swiped open: opening another closes it. */
+let closeOpenRow: (() => void) | undefined
+
+/**
+ * Swiping a row sideways: it follows the finger, opens to show its actions
+ * (`actionsWidth` px), or calls `onFullSwipe` past FULL_SWIPE. Vertical
+ * movement is left to scrolling (touch-action: pan-y).
+ */
+function useSwipeActions(actionsWidth: number, onFullSwipe: () => void) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [isOpen, setOpen] = useState(false)
+  const latest = useRef({ actionsWidth, onFullSwipe, isOpen })
+  latest.current = { actionsWidth, onFullSwipe, isOpen }
+
+  /** Moves the row to `offset` and reveals as much of the actions behind it. */
+  const place = (offset: number, animated: boolean) => {
+    const element = ref.current
+    const actions = element?.previousElementSibling as HTMLElement | null
+    if (!element || !actions) return
+    const transition = animated ? '0.25s cubic-bezier(0.2, 0.9, 0.3, 1)' : '0s'
+    element.style.transition = `transform ${transition}`
+    element.style.transform = offset ? `translateX(${offset}px)` : ''
+    actions.style.transition = `width ${transition}`
+    actions.style.width = `${Math.max(0, -offset)}px`
+  }
+
+  const close = () => {
+    place(0, true)
+    setOpen(false)
+    if (closeOpenRow === close) closeOpenRow = undefined
+  }
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    let start: { x: number; y: number; offset: number; id: number } | undefined
+    let axis: 'h' | 'v' | undefined
+    let offset = 0
+    let armed = false
+
+    const down = (event: PointerEvent) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return
+      start = { x: event.clientX, y: event.clientY, offset: latest.current.isOpen ? -latest.current.actionsWidth : 0, id: event.pointerId }
+      axis = undefined
+    }
+    const move = (event: PointerEvent) => {
+      if (!start || event.pointerId !== start.id) return
+      const dx = event.clientX - start.x
+      const dy = event.clientY - start.y
+      if (!axis && Math.hypot(dx, dy) > 8) {
+        axis = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
+        if (axis === 'h') {
+          element.setPointerCapture(event.pointerId)
+          if (closeOpenRow && closeOpenRow !== close) closeOpenRow()
+        }
+      }
+      if (axis !== 'h') return
+      const width = element.clientWidth
+      // Rubber band past the open position and to the right.
+      let next = start.offset + dx
+      if (next > 0) next = next / 4
+      offset = Math.max(-width, next)
+      place(offset, false)
+      const shouldArm = -offset > width * FULL_SWIPE
+      if (shouldArm !== armed) {
+        armed = shouldArm
+        haptic('medium')
+        element.parentElement?.classList.toggle('armed', armed)
+      }
+    }
+    const up = (event: PointerEvent) => {
+      if (!start || event.pointerId !== start.id) return
+      start = undefined
+      if (axis !== 'h') return
+      element.parentElement?.classList.remove('armed')
+      const { actionsWidth: open, onFullSwipe } = latest.current
+      if (armed && event.type !== 'pointercancel') {
+        armed = false
+        place(-element.clientWidth, true)
+        setTimeout(onFullSwipe, 200)
+      } else if (-offset > open / 2) {
+        place(-open, true)
+        setOpen(true)
+        closeOpenRow = close
+      } else {
+        close()
+      }
+    }
+    // A swipe isn't a tap: swallow the click that follows it.
+    const click = (event: MouseEvent) => {
+      if (axis === 'h') {
+        event.stopPropagation()
+        event.preventDefault()
+        axis = undefined
+      }
+    }
+    element.addEventListener('pointerdown', down)
+    element.addEventListener('pointermove', move)
+    element.addEventListener('pointerup', up)
+    element.addEventListener('pointercancel', up)
+    element.addEventListener('click', click, true)
+    return () => {
+      element.removeEventListener('pointerdown', down)
+      element.removeEventListener('pointermove', move)
+      element.removeEventListener('pointerup', up)
+      element.removeEventListener('pointercancel', up)
+      element.removeEventListener('click', click, true)
+      if (closeOpenRow === close) closeOpenRow = undefined
+    }
+  }, [])
+
+  return { ref, isOpen, close }
+}
+
+/** "Deleted …" with Undo, until the deletion becomes final. */
+function UndoToast({ book }: { book: Book }) {
+  return (
+    <div class="toast snackbar glass" role="status" style={{ '--undo-seconds': `${UNDO_SECONDS}s` }}>
+      <span class="snackbar-text">Deleted “{book.title}”</span>
+      <button type="button" class="text-button bold" onClick={() => library.undoDelete()}>
+        Undo
+      </button>
+    </div>
   )
 }
 
@@ -317,7 +499,7 @@ function CoverTile({ book, small }: { book: Book; small?: boolean }) {
   const size = small ? ' small' : ''
   if (url) {
     return (
-      <div class={`cover image${size}`} aria-hidden="true">
+      <div class={`cover image${size}`} aria-hidden="true" data-book-id={small ? undefined : book.id}>
         <img src={url} alt="" decoding="async" />
         {!small && <span class="cover-progress" style={{ width: `${progress(book) * 100}%` }} />}
       </div>
@@ -326,7 +508,7 @@ function CoverTile({ book, small }: { book: Book; small?: boolean }) {
   if (small) return null
   const initial = Array.from(book.title).find(c => /[\p{L}\p{N}]/u.test(c))?.toUpperCase() ?? '·'
   return (
-    <div class={book.source ? 'cover has-source' : 'cover'} aria-hidden="true">
+    <div class={book.source ? 'cover has-source' : 'cover'} aria-hidden="true" data-book-id={book.id}>
       <div class="cover-mark">
         <span class="cover-tick" />
         <span class="cover-initial">{initial}</span>

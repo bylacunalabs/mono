@@ -2,6 +2,7 @@
 // while reading), the install prompt, and messages from the service worker.
 
 import { registerSW } from 'virtual:pwa-register'
+import { platform } from '../ui/platform'
 import { Store } from './store'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -21,8 +22,7 @@ class PWA extends Store {
   private applyUpdate: ((reload?: boolean) => Promise<void>) | undefined
 
   /** iOS / iPadOS Safari, where installing goes through the Share menu. */
-  readonly isIOS =
-    /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  readonly isIOS = platform === 'ios'
 
   start(onShared: () => void) {
     if ('serviceWorker' in navigator) {

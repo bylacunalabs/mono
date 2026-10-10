@@ -37,7 +37,10 @@ export function useEscape(handler: () => void) {
   latest.current = handler
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') latest.current()
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      // Handled: whatever is underneath (e.g. the reader) stays open.
+      event.preventDefault()
+      latest.current()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)

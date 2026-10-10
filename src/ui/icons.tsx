@@ -7,8 +7,31 @@ type IconName =
   | 'text' | 'arrows' | 'sun' | 'flame' | 'search' | 'sort' | 'pencil' | 'trash' | 'restart'
   | 'doc' | 'clipboard' | 'check' | 'speed' | 'book' | 'ellipsis' | 'checkCircle' | 'smaller' | 'larger'
   | 'sparkles' | 'download' | 'upload' | 'install' | 'share' | 'moon' | 'contrast'
+  | 'tap' | 'hold' | 'swipeH' | 'swipeV' | 'pinch' | 'help' | 'undo'
 
 const PATHS: Record<IconName, JSX.Element> = {
+  tap: (
+    <>
+      <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="7" />
+    </>
+  ),
+  hold: (
+    <>
+      <circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="8.5" stroke-dasharray="2 3" />
+    </>
+  ),
+  swipeH: <path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4" />,
+  swipeV: <path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4" />,
+  pinch: <path d="M4 4l6 6M4 4h4M4 4v4M20 20l-6-6M20 20h-4M20 20v-4" />,
+  help: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.4M12 17h.01" />
+    </>
+  ),
+  undo: <path d="M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />,
   sparkles: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z" />,
   download: <path d="M12 4v11M7 10.5l5 5 5-5M5 20h14" />,
   upload: <path d="M12 16V5M7 9.5l5-5 5 5M5 20h14" />,

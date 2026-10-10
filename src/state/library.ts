@@ -1,7 +1,8 @@
 // App-wide list of books and every way of adding to it: file picker, drag
 // and drop, "Open with" (file handling), sharing to Mono (share target),
 // pasted text and restoring a backup. Other open tabs are told about every
-// change so they show the same library.
+// change so they show the same library. Deleting can be undone for a few
+// seconds: the text leaves the list at once and the disk only afterwards.
 
 import { booksToRestore, mergeStats } from '../core/backup'
 import { titleFromText, type Book, type SentenceContext, type Source } from '../core/book'
@@ -16,6 +17,9 @@ import { covers, coverThumbnail } from './covers'
 import { settings } from './settings'
 import { Store } from './store'
 
+/** How long a deletion can be undone. */
+export const UNDO_SECONDS = 6
+
 export interface LibraryError {
   title: string
   message: string
@@ -29,12 +33,19 @@ class Library extends Store {
   /** E.g. "Page 12 of 300" while a long PDF is read. */
   importProgress: string | undefined
   error: LibraryError | undefined
+  /** Deleted, but still within its undo window. */
+  pendingDeletion: Book | undefined
+  private deletionTimer: ReturnType<typeof setTimeout> | undefined
 
   private channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('mono-library') : undefined
 
   constructor() {
     super()
     this.channel?.addEventListener('message', () => this.reload())
+    // Leaving the app ends the undo window: don't lose a deletion.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') void this.commitDeletion()
+    })
   }
 
   async load() {
@@ -50,7 +61,7 @@ class Library extends Store {
   private async reload() {
     try {
       const [books, days] = await Promise.all([db.loadBooks(), db.loadStats()])
-      this.books = books.sort((a, b) => b.dateAdded - a.dateAdded)
+      this.books = books.filter(b => b.id !== this.pendingDeletion?.id).sort((a, b) => b.dateAdded - a.dateAdded)
       this.days = days
     } catch (error) {
       this.error = { title: 'Library unavailable', message: `Your library couldn't be opened: ${describe(error)}` }
@@ -180,11 +191,35 @@ class Library extends Store {
     this.update(id, { currentIndex: 0, currentWord: undefined, currentSentence: undefined })
   }
 
-  async delete(id: string) {
+  /** Removes a text from the list; it's deleted from disk once the undo window closes. */
+  delete(id: string) {
+    void this.commitDeletion()
+    const book = this.books.find(b => b.id === id)
+    if (!book) return
     this.books = this.books.filter(b => b.id !== id)
-    covers.forget(id)
+    this.pendingDeletion = book
+    this.deletionTimer = setTimeout(() => void this.commitDeletion(), UNDO_SECONDS * 1000)
     this.emit()
-    await db.deleteBook(id).then(() => this.broadcast(), error => this.saveFailed(error))
+  }
+
+  undoDelete() {
+    const book = this.pendingDeletion
+    if (!book) return
+    clearTimeout(this.deletionTimer)
+    this.pendingDeletion = undefined
+    this.books = [...this.books, book].sort((a, b) => b.dateAdded - a.dateAdded)
+    this.emit()
+  }
+
+  /** Deletes the pending text for good. */
+  async commitDeletion() {
+    const book = this.pendingDeletion
+    if (!book) return
+    clearTimeout(this.deletionTimer)
+    this.pendingDeletion = undefined
+    this.emit()
+    covers.forget(book.id)
+    await db.deleteBook(book.id).then(() => this.broadcast(), error => this.saveFailed(error))
   }
 
   recordReading(words: number, seconds: number) {
@@ -197,13 +232,15 @@ class Library extends Store {
   // Backup
 
   /** The whole library, statistics and settings as a backup file. */
-  backup(): Promise<Blob> {
+  async backup(): Promise<Blob> {
+    await this.commitDeletion()
     return createBackup({ ...settings.value })
   }
 
   /** Merges a backup file into the library; resolves to the number of texts added or updated. */
   async restore(file: File): Promise<number | undefined> {
     try {
+      await this.commitDeletion()
       const backup = await readBackup(file)
       // On a fresh install, bring the preferences along too.
       if (!this.books.some(b => b.title !== SAMPLE_TITLE)) settings.assign({ ...backup.settings, didSeedSample: true })

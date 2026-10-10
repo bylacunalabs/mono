@@ -13,6 +13,10 @@ export type Appearance = 'system' | 'light' | 'dark'
 export interface Settings {
   wpm: number
   rampUp: boolean
+  /** On resuming after a pause, go back a few words for context. */
+  rewindOnResume: boolean
+  /** Read only while a finger is on the screen. */
+  holdToRead: boolean
   textScale: number
   readingFont: ReadingFont
   alwaysShowText: boolean
@@ -22,11 +26,14 @@ export interface Settings {
   librarySort: LibrarySort
   appearance: Appearance
   didSeedSample: boolean
+  didShowGestures: boolean
 }
 
 const DEFAULTS: Settings = {
   wpm: DEFAULT_WPM,
   rampUp: true,
+  rewindOnResume: true,
+  holdToRead: false,
   textScale: 1,
   readingFont: 'mono',
   alwaysShowText: false,
@@ -36,6 +43,7 @@ const DEFAULTS: Settings = {
   librarySort: 'recent',
   appearance: 'system',
   didSeedSample: false,
+  didShowGestures: false,
 }
 
 const KEY = 'mono.settings'

@@ -43,6 +43,24 @@ BASE=/mono-web/ npm run build
 - **Backup**: Settings → Library exports everything to a JSON file and
   merges one back in.
 - **Theme**: Automatic, Light or Dark in Settings; the reader follows it.
+- **Launch screen** on iOS: `public/splash/` holds one image per iPhone and
+  iPad screen size and theme (linked by a plugin in `vite.config.ts`).
+
+## iOS and Android
+
+One design, adapted where each system has its own conventions
+(`src/ui/platform.ts` sets `data-platform` on `<html>`):
+
+- **Android**: Material dialogs, menus, bottom sheets with a handle,
+  snackbars and switches; a floating add button; ripples on press. Low-end
+  devices get opaque surfaces instead of backdrop blur.
+- **iOS**: alerts and sheets as in the iOS app; interface text follows the
+  system text size (Dynamic Type); haptic ticks through Safari's switch
+  control (iOS 18+), as there's no Vibration API.
+- **Both**: reader swipes that start at the screen's edges are left to the
+  system (back gesture, Notification Centre, home indicator); rows swipe to
+  reveal Start Over and Delete; deleting can be undone; opening a text grows
+  its cover into the reader (View Transitions).
 
 ## Differences from the iOS app
 

@@ -1,6 +1,9 @@
 /* Mono — styles modelled on the iOS app (Liquid Glass approximated with
    backdrop blur). Light and dark themes follow the system unless one is
    chosen in Settings (data-theme on <html>); red is the accent in both.
+   On Android (data-platform="android") dialogs, menus, snackbars, sheets and
+   the add button follow Material instead, and buttons ripple; see the end of
+   the file. data-glass="solid" replaces the blur with opaque surfaces.
    Reading surfaces (reader, continue-reading card, covers) are drawn in
    --ink on --paper: white on black in the dark theme, black on white in the
    light one. */
@@ -30,6 +33,8 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
+  /* Interface text scale: the system text size on iOS (see platform.ts). */
+  --type: 1;
   color-scheme: light;
 }
 
@@ -82,7 +87,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
-  font-size: 17px;
+  font-size: calc(17px * var(--type));
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   overscroll-behavior-y: none;
@@ -205,7 +210,7 @@ p {
 }
 
 .large-title {
-  font-size: 34px;
+  font-size: calc(34px * var(--type));
   font-weight: 700;
   letter-spacing: 0.01em;
   margin: 44px 4px 16px;
@@ -234,7 +239,7 @@ p {
   gap: 1px;
   padding: 6px 4px 5px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: calc(11px * var(--type));
   font-weight: 600;
   color: var(--text);
   transition: background 0.2s, color 0.2s;
@@ -294,7 +299,7 @@ p {
 }
 
 .menu-title {
-  font-size: 13px;
+  font-size: calc(13px * var(--type));
   color: var(--secondary);
   padding: 6px 12px 4px 34px;
 }
@@ -307,7 +312,7 @@ p {
   padding: 10px 12px 10px 8px;
   border-radius: 12px;
   text-align: left;
-  font-size: 16px;
+  font-size: calc(16px * var(--type));
 }
 
 .menu-item:hover:not(:disabled) {
@@ -396,7 +401,7 @@ p {
 }
 
 .sheet-bar h2 {
-  font-size: 17px;
+  font-size: calc(17px * var(--type));
   font-weight: 600;
 }
 
@@ -410,7 +415,7 @@ p {
 
 .text-button {
   color: var(--brand);
-  font-size: 17px;
+  font-size: calc(17px * var(--type));
   padding: 8px 4px;
 }
 
@@ -431,7 +436,7 @@ p {
   background: transparent;
   padding: 12px 16px;
   outline: none;
-  font-size: 17px;
+  font-size: calc(17px * var(--type));
 }
 
 .field::placeholder {
@@ -469,13 +474,13 @@ p {
 }
 
 .alert-body h2 {
-  font-size: 17px;
+  font-size: calc(17px * var(--type));
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .alert-body p {
-  font-size: 13px;
+  font-size: calc(13px * var(--type));
   margin-top: 4px;
   color: var(--secondary);
 }
@@ -485,7 +490,7 @@ p {
   background: var(--bg);
   border-radius: 8px;
   padding: 8px 10px;
-  font-size: 15px;
+  font-size: calc(15px * var(--type));
   border: 0.5px solid var(--separator);
 }
 
@@ -504,7 +509,7 @@ p {
   padding: 11px 8px;
   border-radius: 999px;
   background: var(--fill);
-  font-size: 17px;
+  font-size: calc(17px * var(--type));
   font-weight: 500;
 }
 
@@ -527,7 +532,7 @@ p {
 
 .wordmark {
   font-family: var(--mono);
-  font-size: 40px;
+  font-size: calc(40px * var(--type));
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.15;
@@ -548,7 +553,7 @@ p {
   gap: 5px;
   padding: 7px 12px;
   border-radius: 999px;
-  font-size: 15px;
+  font-size: calc(15px * var(--type));
   font-weight: 500;
   color: var(--secondary);
 }
@@ -571,7 +576,7 @@ p {
   outline: none;
   background: transparent;
   color: var(--text);
-  font-size: 17px;
+  font-size: calc(17px * var(--type));
   -webkit-appearance: none;
   appearance: none;
 }
@@ -614,7 +619,7 @@ p {
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 10px;
-  font-size: 12px;
+  font-size: calc(12px * var(--type));
 }
 
 .card-top .muted {
@@ -625,14 +630,14 @@ p {
 .eyebrow {
   color: var(--brand);
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: calc(12px * var(--type));
   font-weight: 700;
   letter-spacing: 0.1em;
 }
 
 .card-title {
   margin-top: 10px;
-  font-size: 20px;
+  font-size: calc(20px * var(--type));
   font-weight: 700;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -642,7 +647,7 @@ p {
 
 .card-chapter {
   margin-top: 3px;
-  font-size: 15px;
+  font-size: calc(15px * var(--type));
   color: rgba(var(--ink-rgb), 0.6);
   white-space: nowrap;
   overflow: hidden;
@@ -726,7 +731,7 @@ p {
 }
 
 .percent {
-  font-size: 12px;
+  font-size: calc(12px * var(--type));
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: rgba(var(--ink-rgb), 0.7);
@@ -755,13 +760,13 @@ p {
 }
 
 .section-header h2 {
-  font-size: 20px;
+  font-size: calc(20px * var(--type));
   font-weight: 700;
 }
 
 .section-header .count {
   color: var(--secondary);
-  font-size: 15px;
+  font-size: calc(15px * var(--type));
   font-weight: 500;
 }
 
@@ -775,7 +780,7 @@ p {
   gap: 6px;
   padding: 7px 12px;
   border-radius: 999px;
-  font-size: 15px;
+  font-size: calc(15px * var(--type));
   font-weight: 500;
 }
 
@@ -786,9 +791,58 @@ p {
 }
 
 .book-row {
+  position: relative;
+}
+
+/* The row's content, which swipes sideways over its actions. */
+.row-front {
   display: flex;
   align-items: center;
   position: relative;
+  touch-action: pan-y;
+}
+
+.row-actions {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  display: flex;
+  justify-content: flex-end;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.row-action {
+  flex: none;
+  width: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #fff;
+  font-size: calc(12px * var(--type));
+  font-weight: 600;
+  transition: flex-basis 0.2s;
+}
+
+.row-action.start-over {
+  background: #8e8e93;
+}
+
+.row-action.delete {
+  background: var(--brand);
+}
+
+/* Swiped far enough to delete on release: Delete takes the whole width. */
+.book-row.armed .row-action.delete {
+  flex: 1;
+}
+
+.book-row.armed .row-action.start-over {
+  display: none;
 }
 
 .book-row + .book-row::before {
@@ -801,6 +855,7 @@ p {
 }
 
 .row-hit {
+  border-radius: 12px;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -828,7 +883,7 @@ p {
 
 .row-byline {
   margin-top: 1px;
-  font-size: 14px;
+  font-size: calc(14px * var(--type));
   color: var(--secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -836,7 +891,7 @@ p {
 }
 
 .row-details {
-  font-size: 15px;
+  font-size: calc(15px * var(--type));
   color: var(--secondary);
 }
 
@@ -851,7 +906,7 @@ p {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: calc(11px * var(--type));
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--secondary);
@@ -974,7 +1029,7 @@ p {
 
 .unavailable h3 {
   color: var(--text);
-  font-size: 20px;
+  font-size: calc(20px * var(--type));
   margin: 10px 0 4px;
 }
 
@@ -998,7 +1053,7 @@ p {
 }
 
 .empty h2 {
-  font-size: 22px;
+  font-size: calc(22px * var(--type));
   font-weight: 700;
 }
 
@@ -1023,18 +1078,31 @@ p {
   box-shadow: 0 6px 18px rgba(var(--brand-rgb), 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-.toast {
+.toasts {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
   bottom: calc(var(--safe-bottom) + 90px);
   z-index: 20;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  max-width: 100%;
+  animation: pop 0.2s ease-out;
+  display: flex;
   align-items: center;
   gap: 10px;
   padding: 12px 18px;
   border-radius: 999px;
-  font-size: 15px;
+  font-size: calc(15px * var(--type));
   font-weight: 500;
 }
 
@@ -1051,7 +1119,7 @@ p {
   gap: 10px;
   padding: 8px 8px 8px 16px;
   border-radius: 999px;
-  font-size: 15px;
+  font-size: calc(15px * var(--type));
   animation: pop 0.2s ease-out;
 }
 
@@ -1104,7 +1172,7 @@ p {
   border-radius: 24px;
   display: grid;
   place-items: center;
-  font-size: 20px;
+  font-size: calc(20px * var(--type));
   font-weight: 600;
   color: var(--brand);
   pointer-events: none;
@@ -1179,13 +1247,13 @@ p {
   align-items: center;
   gap: 5px;
   color: var(--brand);
-  font-size: 12px;
+  font-size: calc(12px * var(--type));
   font-weight: 600;
 }
 
 .tile-value {
   font-family: var(--rounded);
-  font-size: 28px;
+  font-size: calc(28px * var(--type));
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -1194,7 +1262,7 @@ p {
 }
 
 .tile-unit {
-  font-size: 12px;
+  font-size: calc(12px * var(--type));
   color: var(--secondary);
 }
 
@@ -1204,7 +1272,7 @@ p {
 }
 
 .chart-card h3 {
-  font-size: 17px;
+  font-size: calc(17px * var(--type));
   font-weight: 600;
   margin-bottom: 12px;
 }
@@ -1231,7 +1299,7 @@ p {
   position: absolute;
   right: 0;
   top: -8px;
-  font-size: 10px;
+  font-size: calc(11px * var(--type));
   color: var(--secondary);
 }
 
@@ -1265,12 +1333,12 @@ p {
 .chart-label {
   height: 22px;
   line-height: 22px;
-  font-size: 11px;
+  font-size: calc(11px * var(--type));
   color: var(--secondary);
 }
 
 .footnote {
-  font-size: 13px;
+  font-size: calc(13px * var(--type));
   color: var(--secondary);
   padding: 6px 16px 22px;
   line-height: 1.35;
@@ -1284,7 +1352,7 @@ p {
 /* Settings */
 
 .group-header {
-  font-size: 13px;
+  font-size: calc(13px * var(--type));
   font-weight: 400;
   text-transform: uppercase;
   color: var(--secondary);
@@ -1375,7 +1443,7 @@ p {
   flex: 1;
   padding: 7px 8px;
   border-radius: 999px;
-  font-size: 15px;
+  font-size: calc(15px * var(--type));
   font-weight: 500;
   transition: background 0.15s;
 }
@@ -1432,7 +1500,7 @@ p {
 .stepper button {
   width: 46px;
   height: 32px;
-  font-size: 20px;
+  font-size: calc(20px * var(--type));
   font-weight: 500;
 }
 
@@ -1443,6 +1511,7 @@ p {
 /* Reader */
 
 .reader {
+  view-transition-name: reader;
   position: fixed;
   inset: 0;
   z-index: 200;
@@ -1538,7 +1607,7 @@ p {
   color: var(--brand);
   text-transform: uppercase;
   font-family: var(--sans);
-  font-size: 12px;
+  font-size: calc(12px * var(--type));
   font-weight: 700;
   letter-spacing: 0.1em;
   padding-top: 12px;
@@ -1589,7 +1658,7 @@ p {
 }
 
 .reader-title .title {
-  font-size: 15px;
+  font-size: calc(15px * var(--type));
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -1597,7 +1666,7 @@ p {
 }
 
 .reader-title .chapter {
-  font-size: 12px;
+  font-size: calc(12px * var(--type));
   color: rgba(var(--ink-rgb), 0.6);
   white-space: nowrap;
   overflow: hidden;
@@ -1630,7 +1699,7 @@ p {
 .position-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: calc(12px * var(--type));
   color: rgba(var(--ink-rgb), 0.5);
   margin-top: 4px;
 }
@@ -1658,7 +1727,7 @@ p {
 }
 
 .small-labeled span {
-  font-size: 9px;
+  font-size: calc(10px * var(--type));
   font-weight: 900;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1702,7 +1771,7 @@ p {
 
 .speed-title {
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: calc(11px * var(--type));
   font-weight: 700;
   letter-spacing: 0.15em;
   color: rgba(var(--ink-rgb), 0.45);
@@ -1710,7 +1779,7 @@ p {
 
 .speed-value {
   font-family: var(--mono);
-  font-size: 20px;
+  font-size: calc(20px * var(--type));
   font-weight: 700;
   color: var(--brand);
 }
@@ -1744,12 +1813,434 @@ p {
 
 .wpm-badge strong {
   font-family: var(--rounded);
-  font-size: 22px;
+  font-size: calc(22px * var(--type));
 }
 
 .wpm-badge span {
-  font-size: 15px;
+  font-size: calc(15px * var(--type));
   font-weight: 500;
+}
+
+
+/* Press feedback (iOS dims what's pressed; Android ripples, below) */
+
+.row-hit:active,
+.choice:active,
+.menu-item:active:not(:disabled) {
+  background: var(--fill);
+}
+
+.chips:active .chip,
+.sort-button:active,
+.text-button:active,
+.button:active,
+.alert-button:active {
+  opacity: 0.7;
+}
+
+/* Snackbar: "Deleted …" with Undo; the line underneath runs out with the undo window. */
+
+.snackbar {
+  position: relative;
+  overflow: hidden;
+  gap: 14px;
+  padding: 8px 8px 8px 18px;
+}
+
+.snackbar-text {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.snackbar .text-button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(var(--brand-rgb), 0.12);
+}
+
+.snackbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: rgba(var(--brand-rgb), 0.5);
+  transform-origin: left;
+  animation: run-out var(--undo-seconds, 6s) linear forwards;
+}
+
+@keyframes run-out {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Reading gestures guide */
+
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+}
+
+.guide h2 {
+  font-size: calc(22px * var(--type));
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.guide-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.guide-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.guide-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--brand);
+  background: rgba(var(--brand-rgb), 0.12);
+}
+
+.guide-title {
+  font-weight: 600;
+}
+
+.guide-detail {
+  font-size: calc(15px * var(--type));
+  color: var(--secondary);
+  line-height: 1.35;
+}
+
+.guide .footnote {
+  padding: 8px 0 8px;
+}
+
+/* Position slider preview */
+
+.position {
+  position: relative;
+}
+
+.scrub-preview {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 28px);
+  padding: 12px 14px;
+  border-radius: 18px;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--group) 92%, transparent);
+  color: var(--text);
+  animation: pop 0.15s ease-out;
+}
+
+.scrub-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: calc(13px * var(--type));
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.scrub-chapter {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scrub-sentence {
+  margin-top: 4px;
+  font-size: calc(15px * var(--type));
+  line-height: 1.4;
+  color: var(--secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.scrub-sentence strong {
+  color: var(--text);
+}
+
+/* Cover → reader */
+
+.morphing .reader {
+  animation: none;
+}
+
+::view-transition-group(reader) {
+  animation-duration: 0.38s;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+  overflow: clip;
+}
+
+::view-transition-old(reader),
+::view-transition-new(reader) {
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Fewer, opaque surfaces: less transparency asked for, or a low-end device */
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-bg: var(--group);
+  }
+}
+
+[data-glass='solid'] {
+  --glass-bg: var(--group);
+}
+
+[data-glass='solid'] .glass,
+[data-glass='solid'] .glass-circle,
+[data-glass='solid'] .group {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: var(--group);
+}
+
+/* Android: Material conventions */
+
+[data-platform='android'] {
+  --sans: Roboto, 'Google Sans', system-ui, sans-serif;
+  --rounded: 'Google Sans', Roboto, system-ui, sans-serif;
+}
+
+/* Ripples, started by enableRipples() in platform.ts. :where keeps the
+   positioning weaker than any class, so absolutely placed buttons stay put. */
+:where([data-platform='android']) :where(button, [role='menuitem']) {
+  position: relative;
+  overflow: hidden;
+}
+
+[data-platform='android'] .rippling::after {
+  content: '';
+  position: absolute;
+  left: var(--ripple-x);
+  top: var(--ripple-y);
+  width: var(--ripple-size);
+  height: var(--ripple-size);
+  margin: calc(var(--ripple-size) / -2) 0 0 calc(var(--ripple-size) / -2);
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  animation: ripple 0.5s ease-out;
+}
+
+@keyframes ripple {
+  from {
+    transform: scale(0);
+    opacity: 0.16;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+[data-platform='android'] .glass-circle:active,
+[data-platform='android'] .play:active,
+[data-platform='android'] .skip:active {
+  transform: none;
+}
+
+/* Dialogs: left-aligned, title then text, text buttons at the bottom right. */
+[data-platform='android'] .alert {
+  width: min(340px, 100%);
+  border-radius: 28px;
+  background: var(--group);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+[data-platform='android'] .alert-body {
+  text-align: left;
+  padding: 24px 24px 16px;
+}
+
+[data-platform='android'] .alert-body h2 {
+  font-size: calc(24px * var(--type));
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+[data-platform='android'] .alert-body p {
+  font-size: calc(14px * var(--type));
+  line-height: 1.45;
+  margin-top: 16px;
+}
+
+[data-platform='android'] .alert-actions {
+  justify-content: flex-end;
+  padding: 8px 16px 20px;
+}
+
+[data-platform='android'] .alert-actions.vertical {
+  align-items: flex-end;
+}
+
+[data-platform='android'] .alert-button,
+[data-platform='android'] .alert-button.default {
+  flex: none;
+  padding: 10px 14px;
+  background: none;
+  color: var(--brand);
+  font-size: calc(14px * var(--type));
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Menus: squarer surfaces with taller rows. */
+[data-platform='android'] .menu {
+  border-radius: 8px;
+  padding: 8px 0;
+  background: var(--group);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  border: 0;
+}
+
+[data-platform='android'] .menu-item {
+  border-radius: 0;
+  min-height: 48px;
+  padding: 0 16px 0 12px;
+}
+
+[data-platform='android'] .menu-divider {
+  height: 1px;
+  margin: 8px 0;
+  background: var(--separator);
+}
+
+/* Bottom sheets with a drag handle. */
+[data-platform='android'] .sheet {
+  border-radius: 28px 28px 0 0;
+  background: var(--group);
+}
+
+[data-platform='android'] .sheet::before {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  margin: 8px auto 4px;
+  background: var(--tertiary);
+}
+
+/* Snackbars: dark, squarer, at the bottom. */
+[data-platform='android'] .toast {
+  border-radius: 6px;
+  background: #313033;
+  color: #f4eff4;
+  border: 0;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-size: calc(14px * var(--type));
+  min-height: 48px;
+}
+
+[data-platform='android'] .snackbar .text-button {
+  background: none;
+  color: #ff8a80;
+  border-radius: 4px;
+}
+
+[data-platform='android'] .toasts {
+  left: calc(var(--safe-left) + 16px);
+  right: calc(var(--safe-right) + 16px);
+  transform: none;
+  width: auto;
+  max-width: 560px;
+  margin: 0 auto;
+  align-items: stretch;
+}
+
+[data-platform='android'] .snackbar {
+  justify-content: space-between;
+}
+
+/* The add button floats at the bottom right, above the tab bar. */
+.fab-wrapper {
+  position: fixed;
+  right: calc(var(--safe-right) + 16px);
+  bottom: calc(var(--safe-bottom) + 84px);
+  z-index: 15;
+}
+
+.fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(var(--brand-rgb), 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Room for the floating button above the last row and the snackbar. */
+[data-platform='android'] .library {
+  padding-bottom: calc(var(--safe-bottom) + 170px);
+}
+
+[data-platform='android'] .library .toasts {
+  bottom: calc(var(--safe-bottom) + 156px);
+}
+
+/* Switches: Material track and thumb. */
+[data-platform='android'] .toggle {
+  border: 2px solid var(--tertiary);
+  background: var(--fill);
+}
+
+[data-platform='android'] .toggle.on {
+  border-color: var(--brand);
+  background: var(--brand);
+}
+
+[data-platform='android'] .toggle-knob {
+  top: 6px;
+  left: 6px;
+  width: 16px;
+  height: 16px;
+  background: var(--secondary);
+  box-shadow: none;
+  transition: transform 0.2s, width 0.2s, height 0.2s, top 0.2s, left 0.2s;
+}
+
+[data-platform='android'] .toggle.on .toggle-knob {
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background: #fff;
+  transform: translateX(20px);
 }
 
 @media (prefers-reduced-motion: reduce) {

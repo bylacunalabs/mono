@@ -9,6 +9,11 @@
 import { clampWPM, DEFAULT_WPM, delayMs, pace, rampUpFactor, textTiming, WPM_STEP, type Pace, type TextTiming } from './timing'
 import { endsSentence, type Token } from './tokenizer'
 
+/** Words the reader goes back on resuming after a pause, within the sentence. */
+export const REWIND_WORDS = 4
+/** Pauses shorter than this don't lose the thread: no rewind. */
+export const REWIND_AFTER_MS = 1500
+
 export class RSVPEngine {
   tokens: Token[] = []
   currentIndex = 0
@@ -18,6 +23,8 @@ export class RSVPEngine {
   isPlaying = false
   wpm: number
   rampUpEnabled: boolean
+  /** Go back a few words on resuming after a pause (see play()). */
+  rewindOnResume: boolean
   /** Token index where each paragraph begins (sorted). */
   paragraphStarts: number[] = []
   /** Token range [start, end) of every paragraph, for the text panel. */
@@ -33,6 +40,11 @@ export class RSVPEngine {
   private timer: ReturnType<typeof setTimeout> | undefined
   private deadline = 0
   private wordsSinceResume = 0
+  /** The position was picked (seek, skip) since the last pause: resume exactly there. */
+  private positionChosen = false
+  private pausedAt = -Infinity
+  /** Where the last resume started: rewinding never goes further back, so short pauses don't creep backwards. */
+  private resumedFrom = 0
   private listeners = new Set<() => void>()
 
   // Reading-session accounting for statistics.
@@ -40,9 +52,12 @@ export class RSVPEngine {
   private sessionSeconds = 0
   private playStartedAt: number | undefined
 
-  constructor(options: { wpm?: number; rampUp?: boolean; onWPMChange?: (wpm: number) => void } = {}) {
+  constructor(
+    options: { wpm?: number; rampUp?: boolean; rewindOnResume?: boolean; onWPMChange?: (wpm: number) => void } = {},
+  ) {
     this.wpm = clampWPM(options.wpm || DEFAULT_WPM)
     this.rampUpEnabled = options.rampUp ?? true
+    this.rewindOnResume = options.rewindOnResume ?? true
     this.onWPMChange = options.onWPMChange
   }
 
@@ -78,6 +93,10 @@ export class RSVPEngine {
     this.remainingPauseMs = pauses
     this.pace = pace(this.timing, this.wpm)
     this.setIndex(this.clampIndex(startIndex))
+    // Opening a book is like resuming after a long pause.
+    this.positionChosen = false
+    this.pausedAt = -Infinity
+    this.resumedFrom = 0
   }
 
   set splitForDisplay(split: (word: string) => string[]) {
@@ -134,6 +153,12 @@ export class RSVPEngine {
     if (this.isPlaying || !this.tokens.length) return
     // Restart from the beginning if parked on the final word.
     if (this.isFinished) this.setIndex(0)
+    else if (this.rewindOnResume && !this.positionChosen && performance.now() - this.pausedAt >= REWIND_AFTER_MS) {
+      const i = this.currentIndex
+      const target = Math.max(i - REWIND_WORDS, this.sentenceStart(i), Math.min(i, this.resumedFrom))
+      if (target !== i) this.setIndex(target)
+    }
+    this.resumedFrom = this.currentIndex
     this.isPlaying = true
     this.playStartedAt = performance.now()
     this.deadline = performance.now()
@@ -145,6 +170,8 @@ export class RSVPEngine {
   pause() {
     if (!this.isPlaying) return
     this.isPlaying = false
+    this.positionChosen = false
+    this.pausedAt = performance.now()
     clearTimeout(this.timer)
     this.timer = undefined
     if (this.playStartedAt !== undefined) {
@@ -157,6 +184,7 @@ export class RSVPEngine {
   seek(index: number) {
     const clamped = this.clampIndex(index)
     if (clamped !== this.currentIndex || this.pieceIndex !== 0) this.setIndex(clamped)
+    this.positionChosen = true
     this.emit()
   }
 

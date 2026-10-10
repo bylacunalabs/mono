@@ -1,7 +1,8 @@
 // The distraction-free reading surface: pure black, a single centred word at
 // a time.
 //
-// • Tap anywhere: play / pause. While paused the full text (scrollable, with
+// • Tap anywhere: play / pause (or, in touch-and-hold mode, words run only
+//   while a finger is down). While paused the full text (scrollable, with
 //   chapter marks), progress and controls fade in; tapping a word jumps
 //   there. In "keep text visible" mode the text stays on screen while
 //   playing too, following the current word.
@@ -10,6 +11,11 @@
 // • Swipe up / down, ↑ ↓: speed.
 // • Pinch (or ctrl + scroll on a trackpad): text size, the same for every
 //   word. It can't grow past the size at which the widest word still fits.
+//
+// Swipes that start at the screen's edges are left to the system (Android's
+// back gesture, iOS's Notification Centre and home indicator). Scrubbing the
+// position slider previews the chapter and sentence under the thumb. The
+// gestures are explained the first time the reader opens.
 //
 // Back (button or gesture) and Escape close the reader. The text is
 // tokenized in the import worker, so opening a long book doesn't freeze.
@@ -30,6 +36,7 @@ import { settings, type NavigationUnit } from '../state/settings'
 import { useObserve } from '../state/store'
 import { loadText } from '../storage/db'
 import { formatNumber, Menu } from './components'
+import { GestureGuide } from './GestureGuide'
 import {
   availableHalfWidth, BASE_FONT_SIZE, extents, maxExtents, maxFontSize, MINIMUM_SCALE, referenceExtents,
   wordViewHeight, type Extents,
@@ -37,10 +44,15 @@ import {
 import { useBackButton } from './history'
 import { useSize } from './hooks'
 import { Icon } from './icons'
+import { haptic } from './platform'
 import { RSVPWord } from './RSVPWord'
 import { TextPanel } from './TextPanel'
 
 const NO_CHAPTERS: Chapter[] = []
+/** Margins, in px, where touches start the system's gestures rather than ours. */
+const EDGE = 24
+const EDGE_TOP = 40
+const EDGE_BOTTOM = 32
 const UNIT_TITLES: Record<NavigationUnit, string> = { sentence: 'Sentence', paragraph: 'Paragraph', chapter: 'Chapter' }
 
 export function ReaderView({ book, onClose }: { book: Book; onClose: () => void }) {
@@ -50,6 +62,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
       new RSVPEngine({
         wpm: settings.value.wpm,
         rampUp: settings.value.rampUp,
+        rewindOnResume: settings.value.rewindOnResume,
         onWPMChange: wpm => settings.set('wpm', wpm),
       }),
     [],
@@ -60,10 +73,12 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   const [isLoaded, setLoaded] = useState(false)
   const [textExtents, setTextExtents] = useState<Extents>()
   const [badgeVisible, setBadgeVisible] = useState(false)
+  /** The position slider is being dragged. */
+  const [scrubbing, setScrubbing] = useState(false)
   const [rootRef, size] = useSize<HTMLDivElement>()
   const badgeTimer = useRef<ReturnType<typeof setTimeout>>()
 
-  const { readingFont: font, boldWord: bold, textScale, alwaysShowText, navigationUnit } = settings.value
+  const { readingFont: font, boldWord: bold, textScale, alwaysShowText, navigationUnit, holdToRead } = settings.value
   const chapters = book.chapters ?? NO_CHAPTERS
   const chapterStarts = useMemo(() => chapters.map(c => c.wordIndex), [chapters])
   // Chapter navigation needs chapters; fall back to paragraphs.
@@ -78,8 +93,8 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   const maxScale = Math.max(MINIMUM_SCALE, maxSize / BASE_FONT_SIZE)
 
   // Latest values for event handlers registered once.
-  const live = useRef({ unit, chapterStarts, maxScale, textScale })
-  live.current = { unit, chapterStarts, maxScale, textScale }
+  const live = useRef({ unit, chapterStarts, maxScale, textScale, holdToRead })
+  live.current = { unit, chapterStarts, maxScale, textScale, holdToRead }
 
   // Loading
 
@@ -116,7 +131,8 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
 
   useEffect(() => {
     engine.rampUpEnabled = settings.value.rampUp
-  }, [settings.value.rampUp])
+    engine.rewindOnResume = settings.value.rewindOnResume
+  }, [settings.value.rampUp, settings.value.rewindOnResume])
 
   // Saving
 
@@ -193,7 +209,9 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   }
 
   const changeWPM = (steps: number) => {
+    const before = engine.wpm
     engine.adjustWPM(steps)
+    if (engine.wpm !== before) haptic('selection')
     flashBadge()
   }
 
@@ -202,7 +220,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
     if (unit === 'sentence') forward ? engine.nextSentence() : engine.previousSentence()
     else if (unit === 'paragraph') forward ? engine.nextParagraph() : engine.previousParagraph()
     else forward ? engine.nextIn(chapterStarts) : engine.previousIn(chapterStarts)
-    navigator.vibrate?.(8)
+    haptic('light')
   }
 
   const setScale = (scale: number) => {
@@ -217,7 +235,12 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
       const target = event.target as HTMLElement
       if (target.closest('input, textarea, select, .menu')) return
       switch (event.key) {
-        case ' ': engine.toggle(); break
+        case ' ':
+          // Touch-and-hold mode: hold the space bar.
+          if (live.current.holdToRead) {
+            if (!event.repeat) engine.play()
+          } else engine.toggle()
+          break
         case 'ArrowUp': changeWPM(1); break
         case 'ArrowDown': changeWPM(-1); break
         case 'ArrowLeft': jump(false); break
@@ -227,8 +250,15 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
       }
       event.preventDefault()
     }
+    const onKeyUp = (event: KeyboardEvent) => {
+      if (event.key === ' ' && live.current.holdToRead) engine.pause()
+    }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keyup', onKeyUp)
+    }
   }, [])
 
   // Gestures: tap, swipe, pinch, ctrl + wheel.
@@ -237,7 +267,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   useEffect(() => {
     const element = surface.current
     if (!element) return
-    const pointers = new Map<number, { x: number; y: number; startX: number; startY: number }>()
+    const pointers = new Map<number, { x: number; y: number; startX: number; startY: number; fromEdge: boolean }>()
     let axis: 'h' | 'v' | undefined
     let appliedSteps = 0
     let pinch: { distance: number; scale: number } | undefined
@@ -249,17 +279,30 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
       return Math.hypot(a.x - b.x, a.y - b.y)
     }
 
+    /** A touch starting this close to an edge belongs to the system's own gestures. */
+    const fromEdge = (event: PointerEvent) => {
+      if (event.pointerType === 'mouse') return false
+      const { width, height } = element.getBoundingClientRect()
+      const x = event.clientX
+      const y = event.clientY
+      return x < EDGE || x > width - EDGE || y < EDGE_TOP || y > height - EDGE_BOTTOM
+    }
+
     const down = (event: PointerEvent) => {
       element.setPointerCapture(event.pointerId)
-      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY })
+      pointers.set(event.pointerId, {
+        x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY, fromEdge: fromEdge(event),
+      })
       if (pointers.size === 1) {
         axis = undefined
         appliedSteps = 0
         wasPinch = false
+        if (live.current.holdToRead) engine.play()
       } else if (pointers.size === 2) {
         // Start from the size actually shown, which may be capped.
         pinch = { distance: distance(), scale: Math.min(live.current.textScale, live.current.maxScale) }
         wasPinch = true
+        if (live.current.holdToRead) engine.pause()
       }
     }
 
@@ -272,10 +315,14 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
         setScale((pinch.scale * distance()) / Math.max(1, pinch.distance))
         return
       }
-      if (wasPinch) return
+      if (wasPinch || pointer.fromEdge) return
       const dx = pointer.x - pointer.startX
       const dy = pointer.y - pointer.startY
-      if (!axis && Math.hypot(dx, dy) > 20) axis = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
+      if (!axis && Math.hypot(dx, dy) > 20) {
+        axis = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
+        // Holding to read: a sideways swipe stops to skip; speed changes keep reading.
+        if (axis === 'h' && live.current.holdToRead) engine.pause()
+      }
       if (axis === 'v') {
         // One speed step per 40 px of vertical travel; up is faster.
         const steps = Math.trunc(-dy / 40)
@@ -291,6 +338,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
       pointers.delete(event.pointerId)
       if (pointers.size < 2) pinch = undefined
       isTap = false
+      if (live.current.holdToRead && pointers.size === 0) engine.pause()
       if (!pointer || wasPinch || event.type === 'pointercancel') return
       const dx = pointer.x - pointer.startX
       const dy = pointer.y - pointer.startY
@@ -302,7 +350,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
     // Play / pause on the click that follows a tap, not on pointerup: the
     // text panel appears on pause, and the click would otherwise land on it.
     const click = () => {
-      if (isTap) engine.toggle()
+      if (isTap && !live.current.holdToRead) engine.toggle()
       isTap = false
     }
 
@@ -409,8 +457,13 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
                 value={engine.currentIndex}
                 disabled={total < 2}
                 aria-label="Position"
+                onPointerDown={() => setScrubbing(true)}
+                onPointerUp={() => setScrubbing(false)}
+                onPointerCancel={() => setScrubbing(false)}
+                onBlur={() => setScrubbing(false)}
                 onInput={e => engine.seek(Number(e.currentTarget.value))}
               />
+              {scrubbing && <ScrubPreview engine={engine} chapters={chapters} />}
               <div class="position-labels">
                 <span class="mono-digits">
                   {formatNumber(engine.currentIndex + 1)} / {formatNumber(total)}
@@ -479,12 +532,36 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
         isLoaded && <div class="reader-progress" style={{ width: `${engine.progress * 100}%` }} />
       )}
 
+      {isLoaded && !settings.value.didShowGestures && (
+        <GestureGuide onClose={() => settings.set('didShowGestures', true)} />
+      )}
+
       {badgeVisible && (
         <div class="wpm-badge glass">
           <Icon name="speed" size={18} />
           <strong>{engine.wpm}</strong>
           <span>WPM</span>
         </div>
+      )}
+    </div>
+  )
+}
+
+/** Where the slider's thumb is: the chapter, how far in, and the sentence there. */
+function ScrubPreview({ engine, chapters }: { engine: RSVPEngine; chapters: Chapter[] }) {
+  const index = engine.currentIndex
+  const chapter = chapters.findLast(c => c.wordIndex <= index)
+  const sentence = sentenceAround(engine.tokens, index, 6, 10)
+  return (
+    <div class="scrub-preview glass" aria-hidden="true">
+      <div class="scrub-heading">
+        <span class="scrub-chapter">{chapter?.title ?? 'Position'}</span>
+        <span class="mono-digits">{Math.round(engine.progress * 100)}%</span>
+      </div>
+      {sentence && (
+        <p class="scrub-sentence">
+          {sentence.before} <strong>{sentence.word}</strong> {sentence.after}
+        </p>
       )}
     </div>
   )

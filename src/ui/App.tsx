@@ -15,6 +15,7 @@ import { LibraryView } from './LibraryView'
 import { ReaderView } from './ReaderView'
 import { SettingsView } from './SettingsView'
 import { StatsView } from './StatsView'
+import { bookElement, morph } from './transitions'
 
 type Tab = 'library' | 'stats' | 'settings'
 
@@ -91,7 +92,11 @@ export function App() {
     window.scrollTo(0, 0)
   }, [tab])
 
-  const open = (book: Book) => setReadingID(book.id)
+  const open = (book: Book, from?: HTMLElement | null) => morph(() => setReadingID(book.id), { from })
+  const close = () => {
+    const id = readingID
+    morph(() => setReadingID(undefined), { to: () => (id ? bookElement(id) : null) })
+  }
 
   return (
     <>
@@ -133,7 +138,7 @@ export function App() {
         </nav>
       </main>
 
-      {reading && <ReaderView key={reading.id} book={reading} onClose={() => setReadingID(undefined)} />}
+      {reading && <ReaderView key={reading.id} book={reading} onClose={close} />}
 
       {library.error && (
         <div class="top-layer">

@@ -10,6 +10,7 @@ import { settings, type Appearance, type ORPHighlight } from '../state/settings'
 import { download } from '../storage/backup'
 import { useObserve } from '../state/store'
 import { Alert, Toggle } from './components'
+import { GestureGuide } from './GestureGuide'
 import {
   availableHalfWidth, BASE_FONT_SIZE, cssFont, FONT_NAMES, maxFontSize, MINIMUM_SCALE, READING_FONTS,
   referenceExtents, wordViewHeight,
@@ -34,6 +35,7 @@ export function SettingsView() {
   useObserve(settings)
   useObserve(pwa)
   const [ref, width] = useWidth<HTMLDivElement>()
+  const [showGestures, setShowGestures] = useState(false)
   const s = settings.value
 
   // Without a text loaded, cap the size with typical long words; the reader
@@ -177,6 +179,30 @@ export function SettingsView() {
 
         <section class="group">
           <div class="row">
+            <span>Resume a few words back</span>
+            <Toggle
+              label="Resume a few words back"
+              checked={s.rewindOnResume}
+              onChange={v => settings.set('rewindOnResume', v)}
+            />
+          </div>
+          <div class="row">
+            <span>Touch and hold to read</span>
+            <Toggle label="Touch and hold to read" checked={s.holdToRead} onChange={v => settings.set('holdToRead', v)} />
+          </div>
+          <button type="button" class="row choice" onClick={() => setShowGestures(true)}>
+            <span class="brand">Reading Gestures</span>
+            <Icon name="help" size={20} class="brand" />
+          </button>
+        </section>
+        <p class="footnote">
+          After a pause of more than a second or two, reading starts again up to four words back, never before the
+          start of the sentence. With touch and hold, words run only while your finger is on the screen (or the space
+          bar is held down).
+        </p>
+
+        <section class="group">
+          <div class="row">
             <span>Keep text visible</span>
             <Toggle
               label="Keep text visible"
@@ -193,6 +219,7 @@ export function SettingsView() {
         <BackupSection />
         <InstallSection />
       </div>
+      {showGestures && <GestureGuide onClose={() => setShowGestures(false)} />}
     </div>
   )
 }

@@ -339,6 +339,34 @@ describe('Engine navigation', () => {
     expect(engine.currentIndex).toBe(0)
   })
 
+  it('goes back a few words within the sentence on resuming', () => {
+    // Indices:   0   1   2   3   4    5     6     7     8     9
+    const engine = make('Uno due tre. Uno due tre quattro cinque sei sette.', 8)
+    engine.play()
+    engine.pause()
+    expect(engine.currentIndex).toBe(4)
+    // Never before the sentence start.
+    const short = make(text, 4)
+    short.play()
+    expect(short.currentIndex).toBe(3)
+  })
+
+  it('resumes exactly where the reader chose to', () => {
+    const engine = make(text)
+    engine.seek(6)
+    engine.play()
+    expect(engine.currentIndex).toBe(6)
+    engine.pause()
+    // A short pause keeps the thread.
+    engine.play()
+    expect(engine.currentIndex).toBe(6)
+    engine.pause()
+    const off = make(text, 6)
+    off.rewindOnResume = false
+    off.play()
+    expect(off.currentIndex).toBe(6)
+  })
+
   it('advances during playback and counts session words', async () => {
     const engine = make('a b c d e f g h i j')
     engine.rampUpEnabled = false

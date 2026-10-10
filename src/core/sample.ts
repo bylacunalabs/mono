@@ -10,15 +10,15 @@ RSVP shows one word at a time in the centre of the screen. Your eyes stay still:
 
 Chapter 2 – Controls
 
-Tap the screen to pause or resume. While paused the whole text appears: tap any word to continue from there. Swipe right to go back, left to skip ahead, by a sentence, paragraph or chapter. Swipe up or down to change speed. Pinch to make the text larger or smaller. On a keyboard, use the space bar to play or pause, the left and right arrows to skip and the up and down arrows to change speed.
+Tap the screen to pause or resume. While paused the whole text appears: tap any word to continue from there. Swipe right to go back, left to skip ahead, by a sentence, paragraph or chapter. Swipe up or down to change speed. Pinch to make the text larger or smaller. On a keyboard, use the space bar to play or pause, the left and right arrows to skip and the up and down arrows to change speed. If you prefer, turn on touch and hold in Settings: words then run only while your finger is on the screen.
 
 Chapter 3 – Getting started
 
-Start at a moderate pace, around three hundred words per minute. As you get used to the rhythm, speed up gradually. After every pause the first few words run a little slower, so you can pick up the thread effortlessly. Take regular breaks to let your brain process what you have read.
+Start at a moderate pace, around three hundred words per minute. As you get used to the rhythm, speed up gradually. After a pause, reading picks up a few words back and the first words run a little slower, so you can pick up the thread effortlessly. Take regular breaks to let your brain process what you have read.
 
 Chapter 4 – Importing your texts
 
-Tap the plus button in the library to import text files, PDFs, EPUBs and web pages, or to paste text. You can also drop files onto the library. Your place is saved automatically. Add Mono to your Home Screen to use it like an app, even offline.
+Tap the plus button in the library to import text files, PDFs, EPUBs and web pages, or to paste text. You can also drop files onto the library. Your place is saved automatically. Swipe a text to the left to start it over or delete it; a deletion can be undone for a few seconds. Add Mono to your Home Screen to use it like an app, even offline.
 
 Chapter 5 – Start reading
 
