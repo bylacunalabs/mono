@@ -11,6 +11,7 @@ import { download } from '../storage/backup'
 import { useObserve } from '../state/store'
 import { Alert, Toggle } from './components'
 import { GestureGuide } from './GestureGuide'
+import { manualInstallSteps } from './InstallPrompt'
 import {
   availableHalfWidth, BASE_FONT_SIZE, cssFont, FONT_NAMES, maxFontSize, MINIMUM_SCALE, READING_FONTS,
   referenceExtents, wordViewHeight,
@@ -293,29 +294,35 @@ function BackupSection() {
   )
 }
 
-/** Installing Mono as an app: the browser's prompt, or instructions on iOS. */
+/** Installing Mono as an app, always offered: the browser's prompt, or the steps to do it by hand. */
 function InstallSection() {
-  if (pwa.isInstalled || (!pwa.canInstall && !pwa.isIOS)) return null
+  const [showSteps, setShowSteps] = useState(false)
   return (
     <>
       <h4 class="group-header">App</h4>
       <section class="group">
-        {pwa.canInstall ? (
-          <button type="button" class="row choice" onClick={() => pwa.install()}>
+        {pwa.isInstalled ? (
+          <div class="row">
+            <span>Mono is installed</span>
+            <Icon name="check" size={20} class="brand" />
+          </div>
+        ) : (
+          <button
+            type="button"
+            class="row choice"
+            onClick={() => (pwa.canInstall ? pwa.install() : setShowSteps(true))}
+          >
             <span class="brand">Install Mono</span>
             <Icon name="install" size={20} class="brand" />
           </button>
-        ) : (
-          <div class="row">
-            <span>Install Mono</span>
-            <Icon name="share" size={20} class="secondary" />
-          </div>
         )}
       </section>
       <p class="footnote">
-        {pwa.canInstall
-          ? 'Installed, Mono opens in its own window, works offline and can open and receive files from other apps.'
-          : 'In Safari, tap Share, then “Add to Home Screen”. Installed, Mono opens full screen, works offline and keeps your library safe from automatic clean-up.'}
+        {pwa.isInstalled
+          ? 'You’re using the installed app: it opens full screen, works offline and keeps your library safe from automatic clean-up.'
+          : showSteps || !pwa.canInstall
+            ? `${manualInstallSteps()} Installed, Mono opens full screen, works offline and keeps your library safe from automatic clean-up.`
+            : 'Installed, Mono opens full screen, works offline, keeps your library safe from automatic clean-up and can open and receive files from other apps.'}
       </p>
     </>
   )

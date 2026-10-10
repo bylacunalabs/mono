@@ -1189,12 +1189,22 @@ p {
   color: rgb(var(--ink-rgb));
 }
 
+/* Reticle marks: strongest at their outer ends, fading towards the word. */
 .rsvp-tick {
   position: absolute;
   left: 50%;
   width: 1.5px;
   margin-left: -0.75px;
-  background: rgba(var(--ink-rgb), 0.22);
+  --mark-outer: rgba(var(--ink-rgb), 0.32);
+  --mark-inner: rgba(var(--ink-rgb), 0.03);
+}
+
+.rsvp-tick.top {
+  background: linear-gradient(to bottom, var(--mark-outer), var(--mark-inner));
+}
+
+.rsvp-tick.bottom {
+  background: linear-gradient(to top, var(--mark-outer), var(--mark-inner));
 }
 
 .rsvp-arm {
@@ -1202,7 +1212,16 @@ p {
   top: 50%;
   height: 1.5px;
   margin-top: -0.75px;
-  background: rgba(var(--ink-rgb), 0.18);
+  --mark-outer: rgba(var(--ink-rgb), 0.28);
+  --mark-inner: rgba(var(--ink-rgb), 0.03);
+}
+
+.rsvp-arm.left {
+  background: linear-gradient(to right, var(--mark-outer), var(--mark-inner));
+}
+
+.rsvp-arm.right {
+  background: linear-gradient(to left, var(--mark-outer), var(--mark-inner));
 }
 
 .rsvp-word {
@@ -2241,6 +2260,69 @@ p {
   height: 24px;
   background: #fff;
   transform: translateX(20px);
+}
+
+/* Install Mono (first launch) */
+
+.install-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding-top: 16px;
+  text-align: center;
+}
+
+.install-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  align-self: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.install-prompt h2 {
+  font-size: calc(24px * var(--type));
+  font-weight: 700;
+}
+
+.install-benefits {
+  list-style: none;
+  margin: 4px 0 8px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--fill);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.install-benefits li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: calc(15px * var(--type));
+}
+
+.install-benefits svg {
+  flex: none;
+}
+
+.install-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(var(--brand-rgb), 0.12);
+  font-size: calc(15px * var(--type));
+  font-weight: 500;
+}
+
+.install-prompt .footnote {
+  padding: 0 0 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {

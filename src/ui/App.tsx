@@ -1,7 +1,7 @@
 // Bottom tab bar: Library, Statistics, Settings. The reader is presented
 // full screen over everything. Also the app-wide pieces: the light / dark
 // theme, launches (files opened with Mono, shortcuts, shares), the update
-// banner and errors.
+// banner, the first-launch install question and errors.
 
 import { useEffect, useState } from 'preact/hooks'
 import { continueReading, type Book } from '../core/book'
@@ -11,6 +11,7 @@ import { settings, type Appearance } from '../state/settings'
 import { useObserve } from '../state/store'
 import { Alert } from './components'
 import { Icon } from './icons'
+import { InstallPrompt } from './InstallPrompt'
 import { LibraryView } from './LibraryView'
 import { ReaderView } from './ReaderView'
 import { SettingsView } from './SettingsView'
@@ -139,6 +140,10 @@ export function App() {
       </main>
 
       {reading && <ReaderView key={reading.id} book={reading} onClose={close} />}
+
+      {!pwa.isInstalled && !settings.value.didAskInstall && !reading && (
+        <InstallPrompt onClose={() => settings.set('didAskInstall', true)} />
+      )}
 
       {library.error && (
         <div class="top-layer">

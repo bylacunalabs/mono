@@ -27,6 +27,8 @@ export interface Settings {
   appearance: Appearance
   didSeedSample: boolean
   didShowGestures: boolean
+  /** The first-launch "install or continue in the browser" question was answered. */
+  didAskInstall: boolean
 }
 
 const DEFAULTS: Settings = {
@@ -44,6 +46,7 @@ const DEFAULTS: Settings = {
   appearance: 'system',
   didSeedSample: false,
   didShowGestures: false,
+  didAskInstall: false,
 }
 
 const KEY = 'mono.settings'

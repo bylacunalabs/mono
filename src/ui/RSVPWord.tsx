@@ -8,7 +8,8 @@
 // run in from the top and bottom and stop just short of the focus letter's
 // own ink (so they reach lower over an "o" than over an "l"), and arms on
 // the word's centreline that run in from the reticle's edges and stop just
-// short of the word's first and last letter.
+// short of the word's first and last letter. Every mark fades as it nears
+// the word, strongest at its outer end.
 
 import { orpParts } from '../core/orp'
 import { settings } from '../state/settings'
@@ -66,12 +67,12 @@ export function RSVPWord({ word, font, fontSize }: Props) {
           style={{ width: fontSize * 2.8, height: fontSize * 2.8, marginLeft: -fontSize * 1.4, marginTop: -fontSize * 1.4 }}
         />
       )}
-      <div class="rsvp-tick" style={{ top: 0, height: topTick }} />
-      <div class="rsvp-tick" style={{ bottom: 0, height: bottomTick }} />
+      <div class="rsvp-tick top" style={{ top: 0, height: topTick }} />
+      <div class="rsvp-tick bottom" style={{ bottom: 0, height: bottomTick }} />
       {width > 0 && (
         <>
-          <div class="rsvp-arm" style={{ left: `calc(50% - ${reach}px)`, width: leftArm }} />
-          <div class="rsvp-arm" style={{ left: `calc(50% + ${reach - rightArm}px)`, width: rightArm }} />
+          <div class="rsvp-arm left" style={{ left: `calc(50% - ${reach}px)`, width: leftArm }} />
+          <div class="rsvp-arm right" style={{ left: `calc(50% + ${reach - rightArm}px)`, width: rightArm }} />
           <div
             class="rsvp-word"
             style={{ font: cssFont(font, fontSize * scale, bold), left: `calc(50% - ${leftEdge}px)`, top: wordTop, height: lineHeight, lineHeight: `${lineHeight}px` }}
