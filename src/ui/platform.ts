@@ -10,6 +10,7 @@
 // • --type scales the interface text with the system text size: iOS
 //   Dynamic Type (read through -apple-system-body), and Chromium's
 //   preferred-text-scale where available. The reader has its own size.
+// • The page never zooms (see preventZoom); the reader's pinch sizes the words.
 // • haptic() taps the device: the Vibration API on Android, and on iOS (which
 //   has none) the system switch's tick, triggered by toggling a hidden switch.
 
@@ -52,6 +53,26 @@ export function applyPlatform() {
     const homeIndicator = /iPhone/.test(navigator.userAgent) && Math.max(screen.width, screen.height) >= 812
     if (standalone && homeIndicator) root.dataset.homeIndicator = ''
   }
+  preventZoom()
+}
+
+/**
+ * Keeps the page at its size. The viewport tag (maximum-scale, also stopping
+ * iOS from zooming into a focused field) and touch-action (no pinch or
+ * double-tap zoom) cover most browsers; Safari ignores user-scalable, so
+ * its pinch gesture events are cancelled too, and on a trackpad a pinch
+ * (ctrl + wheel) is only the reader's.
+ */
+function preventZoom() {
+  for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
+    document.addEventListener(type, event => event.preventDefault(), { passive: false })
+  document.addEventListener(
+    'wheel',
+    event => {
+      if (event.ctrlKey) event.preventDefault()
+    },
+    { passive: false },
+  )
 }
 
 /** iOS: the body text size the user picked in Settings › Display & Brightness › Text Size, relative to the default 17 pt. */

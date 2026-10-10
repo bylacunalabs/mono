@@ -3,9 +3,10 @@
 //
 // A word's "extents" are how far it reaches left and right of the centre of
 // its ORP glyph, per point of font size. The widest extents among a text's
-// words of up to WHOLE_WORD_LIMIT characters decide the largest font size —
-// the automatic zoom maximum — so at any allowed size those words always
-// appear whole. Longer words are split into syllables only if they don't fit.
+// words of up to WHOLE_WORD_LIMIT characters decide the size at which every
+// word still appears whole. The zoom goes further, up to the size at which
+// short words (up to ZOOM_WORD_LIMIT characters) fill the screen's width:
+// past the whole-word size, words that don't fit are split into syllables.
 //
 // Apple's system faces (SF Pro, SF Mono, New York, SF Rounded) are reached
 // through the ui-* generic families; other platforms get close fallbacks.
@@ -116,14 +117,16 @@ export function extents(word: string, font: ReadingFont, bold: boolean): Extents
   }
 }
 
-/** Words up to this many characters always fit whole at the maximum size. */
+/** Words up to this many characters fit whole at the whole-word size. */
 export const WHOLE_WORD_LIMIT = 16
+/** Words up to this many characters still fit whole at the largest zoom. */
+export const ZOOM_WORD_LIMIT = 6
 
 /**
- * Widest extents over a text's words of up to WHOLE_WORD_LIMIT characters.
+ * Widest extents over a text's words of up to `limit` characters.
  * Sums cached per-character advances and adds a small margin for kerning.
  */
-export function maxExtents(tokens: Token[], font: ReadingFont, bold: boolean): Extents {
+export function maxExtents(tokens: Token[], font: ReadingFont, bold: boolean, limit = WHOLE_WORD_LIMIT): Extents {
   const advances = new Map<string, number>()
   const advance = (c: string) => {
     let width = advances.get(c)
@@ -140,7 +143,7 @@ export function maxExtents(tokens: Token[], font: ReadingFont, bold: boolean): E
     if (seen.has(text)) continue
     seen.add(text)
     const c = chars(text)
-    if (!c.length || c.length > WHOLE_WORD_LIMIT) continue
+    if (!c.length || c.length > limit) continue
     const orp = Math.min(orpIndex(text), c.length - 1)
     const half = advance(c[orp]) / 2
     let l = half
@@ -154,9 +157,12 @@ export function maxExtents(tokens: Token[], font: ReadingFont, bold: boolean): E
   return { left: left * margin, right: right * margin }
 }
 
-/** Typical worst case, for when no text is loaded (the settings preview). */
-export function referenceExtents(font: ReadingFont, bold: boolean): Extents {
-  return ['particolarmente,', 'frequentassero,', 'responsabilità,', '«Straordinaria»', 'understandingly', 'Massachusetts,']
+const LONG_WORDS = ['particolarmente,', 'frequentassero,', 'responsabilità,', '«Straordinaria»', 'understandingly', 'Massachusetts,']
+const SHORT_WORDS = ['people,', 'mondo,', '«Così»', 'which.', 'Monday']
+
+/** Typical worst case, for when no text is loaded: long words, or short ones for the zoom's limit. */
+export function referenceExtents(font: ReadingFont, bold: boolean, short = false): Extents {
+  return (short ? SHORT_WORDS : LONG_WORDS)
     .map(w => extents(w, font, bold))
     .reduce((a, b) => ({ left: Math.max(a.left, b.left), right: Math.max(a.right, b.right) }), { left: 0, right: 0 })
 }
@@ -175,7 +181,7 @@ export const TICK_CLEARANCE = 0.1
 export const TICK_MIN_CLEARANCE = 3
 
 /** Half the reticle's width: the screen on phones, capped on wide screens. */
-export const reticleHalfWidth = (width: number) => Math.min(width / 2, 360)
+export const reticleHalfWidth = (width: number) => Math.min(width / 2, 480)
 
 /** Room for a word on each side of the centreline. */
 export const availableHalfWidth = (width: number) => Math.max(0, reticleHalfWidth(width) - ARM_INSET - MINIMUM_ARM - ARM_GAP)
@@ -184,3 +190,6 @@ export const armReach = (width: number) => reticleHalfWidth(width) - ARM_INSET
 export const ARM_GAP_PX = ARM_GAP
 
 export const wordViewHeight = (fontSize: number) => fontSize * 1.25 + 2 * (TICK_LENGTH + TICK_GAP)
+
+/** Largest font size whose reticle fits `height`. */
+export const maxFontSizeForHeight = (height: number) => Math.max(0, (height - 2 * (TICK_LENGTH + TICK_GAP) - 24) / 1.25)

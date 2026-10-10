@@ -92,6 +92,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   overscroll-behavior-y: none;
+  /* No page zoom (pinch or double tap): the reader has its own pinch. */
+  touch-action: pan-x pan-y;
 }
 
 button {
@@ -2276,13 +2278,18 @@ p {
 
 /* Install Mono (first launch) */
 
-.install-prompt {
+.install-prompt,
+.install-head,
+.install-body {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 12px;
-  padding-top: 16px;
   text-align: center;
+}
+
+.install-prompt {
+  padding-top: 16px;
 }
 
 .install-icon {
@@ -2416,9 +2423,12 @@ p {
 .side-player .skip,
 .side-player .small-labeled {
   min-width: 44px;
-  width: 44px;
   height: 48px;
   min-height: 48px;
+}
+
+.side-player .skip {
+  width: 44px;
 }
 
 .side-player .scrub-preview {
@@ -2615,6 +2625,46 @@ p {
 
   .sheet {
     max-width: 560px;
+  }
+
+  /* Sheets with more to show go wide, in two columns. */
+  .sheet:has(.install-prompt, .guide) {
+    max-width: 780px;
+  }
+
+  .install-prompt {
+    flex-direction: row;
+    align-items: center;
+    gap: 28px;
+    padding-top: 8px;
+  }
+
+  .install-head {
+    flex: 0 0 36%;
+  }
+
+  .install-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .install-benefits {
+    margin: 0;
+  }
+
+  .guide {
+    padding-top: 8px;
+  }
+
+  .guide-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 24px;
+  }
+
+  /* Settings: a readable column rather than the full width. */
+  .settings .content {
+    max-width: 680px;
   }
 }
 

@@ -10,7 +10,8 @@
 //   chapter (picked in the controls).
 // • Swipe up / down, ↑ ↓: speed.
 // • Pinch (or ctrl + scroll on a trackpad): text size, the same for every
-//   word. It can't grow past the size at which the widest word still fits.
+//   word, up to where short words fill the screen's width; words too wide
+//   at that size are shown in syllable pieces.
 //
 // On a phone on its side, while paused the screen splits in two: on the left
 // the text with the player (position, skip, play, speed) and on the right
@@ -48,8 +49,8 @@ import { loadText } from '../storage/db'
 import { formatNumber, Menu } from './components'
 import { GestureGuide } from './GestureGuide'
 import {
-  availableHalfWidth, BASE_FONT_SIZE, extents, maxExtents, maxFontSize, MINIMUM_SCALE, referenceExtents,
-  wordViewHeight, type Extents,
+  availableHalfWidth, BASE_FONT_SIZE, extents, maxExtents, maxFontSize, maxFontSizeForHeight, MINIMUM_SCALE,
+  referenceExtents, wordViewHeight, ZOOM_WORD_LIMIT, type Extents,
 } from './fonts'
 import { useBackButton } from './history'
 import { LANDSCAPE_PHONE, useMediaQuery, useSize } from './hooks'
@@ -84,7 +85,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   useBackButton(onClose)
 
   const [isLoaded, setLoaded] = useState(false)
-  const [textExtents, setTextExtents] = useState<Extents>()
+  const [textExtents, setTextExtents] = useState<{ whole: Extents; short: Extents }>()
   const [badgeVisible, setBadgeVisible] = useState(false)
   /** The position slider is being dragged. */
   const [scrubbing, setScrubbing] = useState(false)
@@ -107,10 +108,16 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   /** Width of the word's area: the right half when split. */
   const wordWidth = split ? size.width * WORD_SHARE : size.width
 
-  // Largest size at which every word of this text fits the reticle.
-  const maxSize = maxFontSize(textExtents ?? referenceExtents(font, bold), availableHalfWidth(wordWidth))
-  const fontSize = Math.min(BASE_FONT_SIZE * textScale, maxSize)
-  const maxScale = Math.max(MINIMUM_SCALE, maxSize / BASE_FONT_SIZE)
+  // The zoom's limit: short words fill the whole width (or the height).
+  // Past the size at which every word fits whole, longer words are split
+  // into syllables; split in two, the word stays at that size.
+  const zoomSize = Math.min(
+    maxFontSize(textExtents?.short ?? referenceExtents(font, bold, true), availableHalfWidth(size.width)),
+    maxFontSizeForHeight(size.height),
+  )
+  const wholeSize = maxFontSize(textExtents?.whole ?? referenceExtents(font, bold), availableHalfWidth(wordWidth))
+  const fontSize = Math.min(BASE_FONT_SIZE * textScale, zoomSize, split ? wholeSize : Infinity)
+  const maxScale = Math.max(MINIMUM_SCALE, zoomSize / BASE_FONT_SIZE)
 
   // Latest values for event handlers registered once.
   const live = useRef({ unit, chapterStarts, maxScale, textScale, holdToRead, scaleKey, landscape })
@@ -134,7 +141,11 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   }, [])
 
   useEffect(() => {
-    if (isLoaded) setTextExtents(maxExtents(engine.tokens, font, bold))
+    if (isLoaded)
+      setTextExtents({
+        whole: maxExtents(engine.tokens, font, bold),
+        short: maxExtents(engine.tokens, font, bold, ZOOM_WORD_LIMIT),
+      })
   }, [isLoaded, font, bold])
 
   // Words wider than the reticle at the current size are shown in syllable
