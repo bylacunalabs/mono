@@ -12,6 +12,11 @@
 // • Pinch (or ctrl + scroll on a trackpad): text size, the same for every
 //   word. It can't grow past the size at which the widest word still fits.
 //
+// On a phone on its side the word moves left with the text in a column to
+// its right, the controls shrink to a low bar, the word size is kept apart
+// from the upright one, and on Android reading goes full screen, locked on
+// its side. Upright on a phone, a one-time hint suggests turning it.
+//
 // Swipes that start at the screen's edges are left to the system (Android's
 // back gesture, iOS's Notification Centre and home indicator). Scrubbing the
 // position slider previews the chapter and sentence under the thumb. The
@@ -33,7 +38,7 @@ import { MAX_WPM, MIN_WPM, WPM_STEP } from '../core/timing'
 import { sentenceAround, tokenize } from '../core/tokenizer'
 import { tokenizeText } from '../import/importer'
 import { library } from '../state/library'
-import { settings, type NavigationUnit } from '../state/settings'
+import { settings, textScaleKey, type NavigationUnit } from '../state/settings'
 import { useObserve } from '../state/store'
 import { loadText } from '../storage/db'
 import { formatNumber, Menu } from './components'
@@ -43,9 +48,9 @@ import {
   wordViewHeight, type Extents,
 } from './fonts'
 import { useBackButton } from './history'
-import { useSize } from './hooks'
+import { LANDSCAPE_PHONE, useMediaQuery, useSize } from './hooks'
 import { Icon } from './icons'
-import { haptic } from './platform'
+import { haptic, immerseInLandscape, isTouch, leaveImmersion } from './platform'
 import { tick, unlockTicks } from './ticks'
 import { RSVPWord } from './RSVPWord'
 import { TextPanel } from './TextPanel'
@@ -79,8 +84,13 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   const [scrubbing, setScrubbing] = useState(false)
   const [rootRef, size] = useSize<HTMLDivElement>()
   const badgeTimer = useRef<ReturnType<typeof setTimeout>>()
+  const landscape = useMediaQuery(LANDSCAPE_PHONE)
+  /** Room taken by the top and bottom controls in the side-by-side layout, measured. */
+  const [bars, setBars] = useState({ top: 0, bottom: 0 })
 
-  const { readingFont: font, boldWord: bold, textScale, alwaysShowText, navigationUnit, holdToRead } = settings.value
+  const { readingFont: font, boldWord: bold, alwaysShowText, navigationUnit, holdToRead } = settings.value
+  const scaleKey = textScaleKey(landscape)
+  const textScale = settings.value[scaleKey]
   const chapters = book.chapters ?? NO_CHAPTERS
   const chapterStarts = useMemo(() => chapters.map(c => c.wordIndex), [chapters])
   // Chapter navigation needs chapters; fall back to paragraphs.
@@ -95,8 +105,8 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   const maxScale = Math.max(MINIMUM_SCALE, maxSize / BASE_FONT_SIZE)
 
   // Latest values for event handlers registered once.
-  const live = useRef({ unit, chapterStarts, maxScale, textScale, holdToRead })
-  live.current = { unit, chapterStarts, maxScale, textScale, holdToRead }
+  const live = useRef({ unit, chapterStarts, maxScale, textScale, holdToRead, scaleKey, landscape })
+  live.current = { unit, chapterStarts, maxScale, textScale, holdToRead, scaleKey, landscape }
 
   // Loading
 
@@ -151,6 +161,13 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
     library.recordReading(session.words, session.seconds)
   }
 
+  // Android on its side: full screen, locked on its side. Tried when the
+  // phone turns and again on play, which comes with the tap it needs.
+  useEffect(() => {
+    if (landscape) void immerseInLandscape()
+  }, [landscape])
+  useEffect(() => () => leaveImmersion(), [])
+
   // Tick sound: one tick per word shown while playing.
   useEffect(() => {
     let wasPlaying = false
@@ -158,6 +175,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
     return engine.subscribe(() => {
       const started = engine.isPlaying && !wasPlaying
       wasPlaying = engine.isPlaying
+      if (started && live.current.landscape && !document.fullscreenElement) void immerseInLandscape()
       if (!settings.value.tickSound || !engine.isPlaying) {
         lastIndex = -1
         return
@@ -248,7 +266,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   }
 
   const setScale = (scale: number) => {
-    settings.set('textScale', Math.min(Math.max(scale, MINIMUM_SCALE), live.current.maxScale))
+    settings.set(live.current.scaleKey, Math.min(Math.max(scale, MINIMUM_SCALE), live.current.maxScale))
   }
 
   // Keyboard
@@ -400,19 +418,111 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
     }
   }, [])
 
-  // Layout
+  // Layout. Upright: the word sits above the text, which fills the screen
+  // below it, and the controls float over the bottom. On its side: the word
+  // on the left, the text in a column on the right, both between the top
+  // controls and a low bar at the bottom.
 
-  const lift = showsText ? size.height * 0.2 : 0
+  const split = landscape && showsText
+  const top = landscape && isPaused ? bars.top : 0
+  const bottom = landscape && isPaused ? bars.bottom : 0
+  const wordShift = landscape ? (top - bottom) / 2 : showsText ? -size.height * 0.2 : 0
   const wordBottom = size.height / 2 - size.height * 0.2 + wordViewHeight(fontSize) / 2
-  const panelHeight = Math.max(0, size.height - 8 - wordBottom - 12)
+  const panelHeight = landscape
+    ? Math.max(0, size.height - top - bottom - 24)
+    : Math.max(0, size.height - 8 - wordBottom - 12)
   const currentChapter = chapters.findLast(c => c.wordIndex <= engine.currentIndex)
   const total = engine.tokens.length
 
+  /** Measures how far the controls reach in from the top and bottom. */
+  const measureTop = (element: HTMLElement | null) => {
+    if (!element) return
+    const reach = Math.round(element.getBoundingClientRect().bottom)
+    if (reach !== bars.top) setBars(b => ({ ...b, top: reach }))
+  }
+  const measureBottom = (element: HTMLElement | null) => {
+    if (!element) return
+    const reach = Math.round(size.height - element.getBoundingClientRect().top)
+    if (size.height && reach !== bars.bottom) setBars(b => ({ ...b, bottom: reach }))
+  }
+
+  const changeSpeed = (steps: number) => {
+    engine.adjustWPM(steps)
+    haptic('selection')
+  }
+
+  const positionSlider = (
+    <>
+      <input
+        type="range"
+        class="slider"
+        min={0}
+        max={Math.max(1, total - 1)}
+        step={1}
+        value={engine.currentIndex}
+        disabled={total < 2}
+        aria-label="Position"
+        onPointerDown={() => setScrubbing(true)}
+        onPointerUp={() => setScrubbing(false)}
+        onPointerCancel={() => setScrubbing(false)}
+        onBlur={() => setScrubbing(false)}
+        onInput={e => engine.seek(Number(e.currentTarget.value))}
+      />
+      {scrubbing && <ScrubPreview engine={engine} chapters={chapters} />}
+    </>
+  )
+  const positionCount = (
+    <span class="mono-digits">
+      {formatNumber(engine.currentIndex + 1)} / {formatNumber(total)}
+    </span>
+  )
+  const timeLeft = <span>{formatReadingTime(engine.secondsRemaining)}</span>
+
+  const transport = (
+    <>
+      <Menu
+        label="Skip by"
+        title="Skip by"
+        class="small-labeled"
+        align="left"
+        direction="up"
+        items={(['sentence', 'paragraph', 'chapter'] as NavigationUnit[]).map(option => ({
+          label: UNIT_TITLES[option],
+          checked: option === unit,
+          disabled: option === 'chapter' && !chapterStarts.length,
+          onSelect: () => settings.set('navigationUnit', option),
+        }))}
+      >
+        <Icon name="arrows" size={22} />
+        <span>{UNIT_TITLES[unit]}</span>
+      </Menu>
+      <button type="button" class="skip" aria-label={`Previous ${unit}`} onClick={() => jump(false)}>
+        <Icon name="backward" size={26} />
+      </button>
+      <button type="button" class="play" aria-label="Play" onClick={() => engine.play()}>
+        <Icon name="play" size={landscape ? 26 : 34} />
+      </button>
+      <button type="button" class="skip" aria-label={`Next ${unit}`} onClick={() => jump(true)}>
+        <Icon name="forward" size={26} />
+      </button>
+      <button
+        type="button"
+        class={alwaysShowText ? 'small-labeled active' : 'small-labeled'}
+        aria-label="Keep text visible"
+        aria-pressed={alwaysShowText}
+        onClick={() => settings.set('alwaysShowText', !alwaysShowText)}
+      >
+        <Icon name="text" size={22} />
+        <span>Text</span>
+      </button>
+    </>
+  )
+
   return (
-    <div class="reader" ref={rootRef}>
+    <div class={landscape ? 'reader landscape' : 'reader'} ref={rootRef}>
       <div class="reader-surface" ref={surface} aria-label={engine.currentWord ?? book.title} />
 
-      <div class="reader-word" style={{ transform: `translateY(${-lift}px)` }}>
+      <div class={split ? 'reader-word side' : 'reader-word'} style={{ transform: `translateY(${wordShift}px)` }}>
         {!isLoaded ? (
           <span class="spinner large" />
         ) : engine.currentWord !== undefined ? (
@@ -434,17 +544,18 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
           isPlaying={engine.isPlaying}
           font={font}
           onSelect={index => engine.seek(index)}
-          style={{
-            top: wordBottom + 12,
-            height: panelHeight,
-            opacity: panelHeight > 60 ? 1 : 0,
-          }}
+          side={split}
+          style={
+            split
+              ? { top: top + 12, height: panelHeight, opacity: panelHeight > 60 ? 1 : 0 }
+              : { top: wordBottom + 12, height: panelHeight, opacity: panelHeight > 60 ? 1 : 0 }
+          }
         />
       )}
 
       {isPaused ? (
         <div class="reader-controls">
-          <div class="reader-top">
+          <div class="reader-top" ref={measureTop}>
             <button type="button" class="glass-circle" aria-label="Close" onClick={onClose}>
               <Icon name="close" size={20} />
             </button>
@@ -470,90 +581,66 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
           </div>
 
           <div class="reader-bottom-scrim" />
-          <div class="reader-bottom glass">
-            <div class="position">
-              <input
-                type="range"
-                class="slider"
-                min={0}
-                max={Math.max(1, total - 1)}
-                step={1}
-                value={engine.currentIndex}
-                disabled={total < 2}
-                aria-label="Position"
-                onPointerDown={() => setScrubbing(true)}
-                onPointerUp={() => setScrubbing(false)}
-                onPointerCancel={() => setScrubbing(false)}
-                onBlur={() => setScrubbing(false)}
-                onInput={e => engine.seek(Number(e.currentTarget.value))}
-              />
-              {scrubbing && <ScrubPreview engine={engine} chapters={chapters} />}
-              <div class="position-labels">
-                <span class="mono-digits">
-                  {formatNumber(engine.currentIndex + 1)} / {formatNumber(total)}
-                </span>
-                <span>{formatReadingTime(engine.secondsRemaining)}</span>
+          {landscape ? (
+            <div class="reader-bottom compact glass" ref={measureBottom}>
+              <div class="position-row">
+                {positionCount}
+                <div class="position">{positionSlider}</div>
+                {timeLeft}
+              </div>
+              <div class="transport">
+                {transport}
+                <div class="speed-stepper" role="group" aria-label="Reading speed">
+                  <button type="button" aria-label="Slower" disabled={engine.wpm <= MIN_WPM} onClick={() => changeSpeed(-1)}>
+                    −
+                  </button>
+                  <span class="speed-value">
+                    {engine.wpm}
+                    <small> WPM</small>
+                  </span>
+                  <button type="button" aria-label="Faster" disabled={engine.wpm >= MAX_WPM} onClick={() => changeSpeed(1)}>
+                    +
+                  </button>
+                </div>
               </div>
             </div>
-
-            <div class="transport">
-              <Menu
-                label="Skip by"
-                title="Skip by"
-                class="small-labeled"
-                align="left"
-                direction="up"
-                items={(['sentence', 'paragraph', 'chapter'] as NavigationUnit[]).map(option => ({
-                  label: UNIT_TITLES[option],
-                  checked: option === unit,
-                  disabled: option === 'chapter' && !chapterStarts.length,
-                  onSelect: () => settings.set('navigationUnit', option),
-                }))}
-              >
-                <Icon name="arrows" size={22} />
-                <span>{UNIT_TITLES[unit]}</span>
-              </Menu>
-              <button type="button" class="skip" aria-label={`Previous ${unit}`} onClick={() => jump(false)}>
-                <Icon name="backward" size={26} />
-              </button>
-              <button type="button" class="play" aria-label="Play" onClick={() => engine.play()}>
-                <Icon name="play" size={34} />
-              </button>
-              <button type="button" class="skip" aria-label={`Next ${unit}`} onClick={() => jump(true)}>
-                <Icon name="forward" size={26} />
-              </button>
-              <button
-                type="button"
-                class={alwaysShowText ? 'small-labeled active' : 'small-labeled'}
-                aria-label="Keep text visible"
-                aria-pressed={alwaysShowText}
-                onClick={() => settings.set('alwaysShowText', !alwaysShowText)}
-              >
-                <Icon name="text" size={22} />
-                <span>Text</span>
-              </button>
-            </div>
-
-            <div class="speed">
-              <div class="speed-labels">
-                <span class="speed-title">Reading speed</span>
-                <span class="speed-value">{engine.wpm} WPM</span>
+          ) : (
+            <div class="reader-bottom glass">
+              <div class="position">
+                {positionSlider}
+                <div class="position-labels">
+                  {positionCount}
+                  {timeLeft}
+                </div>
               </div>
-              <input
-                type="range"
-                class="slider"
-                min={MIN_WPM}
-                max={MAX_WPM}
-                step={WPM_STEP}
-                value={engine.wpm}
-                aria-label="Reading speed"
-                onInput={e => engine.setWPM(Number(e.currentTarget.value))}
-              />
+
+              <div class="transport">{transport}</div>
+
+              <div class="speed">
+                <div class="speed-labels">
+                  <span class="speed-title">Reading speed</span>
+                  <span class="speed-value">{engine.wpm} WPM</span>
+                </div>
+                <input
+                  type="range"
+                  class="slider"
+                  min={MIN_WPM}
+                  max={MAX_WPM}
+                  step={WPM_STEP}
+                  value={engine.wpm}
+                  aria-label="Reading speed"
+                  onInput={e => engine.setWPM(Number(e.currentTarget.value))}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       ) : (
         isLoaded && <div class="reader-progress" style={{ width: `${engine.progress * 100}%` }} />
+      )}
+
+      {isLoaded && settings.value.didShowGestures && !settings.value.didShowRotateHint && isTouch && !landscape && Math.min(screen.width, screen.height) < 500 && (
+        <RotateHint />
       )}
 
       {isLoaded && !settings.value.didShowGestures && (
@@ -587,6 +674,24 @@ function ScrubPreview({ engine, chapters }: { engine: RSVPEngine; chapters: Chap
           {sentence.before} <strong>{sentence.word}</strong> {sentence.after}
         </p>
       )}
+    </div>
+  )
+}
+
+/** Once, upright on a phone: turning it sideways gives the words more room. */
+function RotateHint() {
+  useEffect(() => {
+    const timer = setTimeout(() => settings.set('didShowRotateHint', true), 6000)
+    return () => {
+      clearTimeout(timer)
+      // Turned (unmounted by the layout) or closed: shown either way.
+      settings.set('didShowRotateHint', true)
+    }
+  }, [])
+  return (
+    <div class="rotate-hint glass" role="status">
+      <Icon name="rotate" size={22} class="brand" />
+      <span>Turn sideways for bigger words</span>
     </div>
   )
 }

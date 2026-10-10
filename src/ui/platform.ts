@@ -87,6 +87,27 @@ export function haptic(kind: Haptic = 'light') {
 }
 
 /**
+ * Android, phone on its side: reading goes full screen (no status or
+ * navigation bar) and the screen stays on its side, so lying down doesn't
+ * rotate it back. Needs a recent tap; does nothing elsewhere (iOS has
+ * neither API on iPhone).
+ */
+export async function immerseInLandscape() {
+  if (platform !== 'android') return
+  try {
+    if (!document.fullscreenElement) await document.documentElement.requestFullscreen({ navigationUI: 'hide' })
+    await (screen.orientation as { lock?: (orientation: string) => Promise<void> }).lock?.('landscape')
+  } catch {
+    // no recent tap, or not allowed: reading works the same
+  }
+}
+
+/** Leaves full screen (which also releases the orientation lock). */
+export function leaveImmersion() {
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+}
+
+/**
  * Material ripple on Android: pressing a button starts a ripple from the
  * touch point (drawn by .rippling::after in the styles).
  */

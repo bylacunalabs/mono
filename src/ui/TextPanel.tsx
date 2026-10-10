@@ -25,6 +25,8 @@ interface Props {
   font: ReadingFont
   onSelect: (index: number) => void
   style?: Record<string, string | number>
+  /** A column beside the word (phone on its side) rather than below it. */
+  side?: boolean
 }
 
 const TEXT_SIZE = 18
@@ -109,7 +111,7 @@ export function TextPanel(props: Props) {
   return (
     <div
       ref={scroller}
-      class="text-panel"
+      class={props.side ? 'text-panel side' : 'text-panel'}
       style={props.style}
       onWheel={pauseFollowing}
       onTouchMove={pauseFollowing}

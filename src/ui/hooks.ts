@@ -46,3 +46,19 @@ export function useEscape(handler: () => void) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 }
+
+/** A phone on its side: little height to spare, so layouts go side by side. */
+export const LANDSCAPE_PHONE = '(orientation: landscape) and (max-height: 500px)'
+
+/** Whether a media query matches, live. */
+export function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() => matchMedia(query).matches)
+  useEffect(() => {
+    const list = matchMedia(query)
+    const update = () => setMatches(list.matches)
+    update()
+    list.addEventListener('change', update)
+    return () => list.removeEventListener('change', update)
+  }, [query])
+  return matches
+}

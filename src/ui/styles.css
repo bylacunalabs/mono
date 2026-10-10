@@ -2325,6 +2325,237 @@ p {
   padding: 0 0 4px;
 }
 
+/* Reader on a phone on its side: word left, text right, a low control bar */
+
+.reader-word.side {
+  right: 42%;
+  left: var(--safe-left);
+}
+
+.text-panel.side {
+  left: auto;
+  right: calc(var(--safe-right) + 20px);
+  transform: none;
+  width: calc(42% - var(--safe-right) - 28px);
+}
+
+.reader.landscape .reader-top {
+  top: calc(var(--safe-top) + 6px);
+  left: calc(var(--safe-left) + 12px);
+  right: calc(var(--safe-right) + 12px);
+}
+
+.reader.landscape .reader-bottom-scrim {
+  height: calc(160px + var(--safe-bottom));
+}
+
+.reader-bottom.compact {
+  width: min(calc(100% - var(--safe-left) - var(--safe-right) - 24px), 760px);
+  bottom: calc(var(--safe-bottom) + 6px);
+  padding: 8px 16px 6px;
+  gap: 2px;
+  border-radius: 26px;
+}
+
+.position-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: calc(12px * var(--type));
+  color: rgba(var(--ink-rgb), 0.5);
+  white-space: nowrap;
+}
+
+.position-row .position {
+  flex: 1;
+  min-width: 0;
+}
+
+.reader-bottom.compact .transport {
+  gap: 4px;
+}
+
+.reader-bottom.compact .play {
+  width: 52px;
+  height: 52px;
+  padding-left: 3px;
+}
+
+.reader-bottom.compact .skip,
+.reader-bottom.compact .small-labeled {
+  min-width: 48px;
+  width: auto;
+  height: 48px;
+  min-height: 48px;
+}
+
+.speed-stepper {
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(var(--ink-rgb), 0.08);
+}
+
+.speed-stepper button {
+  width: 40px;
+  height: 36px;
+  font-size: calc(20px * var(--type));
+  font-weight: 500;
+  color: rgb(var(--ink-rgb));
+}
+
+.speed-stepper .speed-value {
+  min-width: 74px;
+  text-align: center;
+  font-size: calc(17px * var(--type));
+}
+
+.speed-stepper small {
+  font-size: calc(11px * var(--type));
+  color: rgba(var(--ink-rgb), 0.5);
+}
+
+.rotate-hint {
+  position: absolute;
+  top: calc(var(--safe-top) + 64px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: calc(15px * var(--type));
+  font-weight: 500;
+  pointer-events: none;
+  animation: pop 0.25s ease-out;
+}
+
+/* App on a phone on its side: a lower tab bar, wider content, two columns */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .screen {
+    padding-bottom: calc(var(--safe-bottom) + 76px);
+  }
+
+  .content,
+  .toolbar {
+    max-width: 960px;
+  }
+
+  .large-title {
+    margin-top: 16px;
+  }
+
+  .tab-bar {
+    bottom: calc(var(--safe-bottom) + 8px);
+    width: min(440px, calc(100vw - 32px));
+  }
+
+  .tab {
+    flex-direction: row;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    font-size: calc(13px * var(--type));
+  }
+
+  .tab svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .toasts,
+  .update-banner {
+    bottom: calc(var(--safe-bottom) + 64px);
+  }
+
+  .fab-wrapper {
+    bottom: calc(var(--safe-bottom) + 64px);
+  }
+
+  [data-platform='android'] .library .toasts {
+    bottom: calc(var(--safe-bottom) + 64px);
+    right: calc(var(--safe-right) + 88px);
+  }
+
+  [data-platform='android'] .library {
+    padding-bottom: calc(var(--safe-bottom) + 90px);
+  }
+
+  .library-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding-right: 56px;
+  }
+
+  .library-header .chips {
+    margin-top: 0;
+  }
+
+  /* Continue reading: the sentence on the left, the book on the right. */
+  .continue-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 34%);
+    grid-template-areas:
+      'top top'
+      'sentence book'
+      'sentence bottom';
+    column-gap: 24px;
+    align-items: center;
+  }
+
+  .continue-card .card-top {
+    grid-area: top;
+  }
+
+  .continue-card .card-sentence,
+  .continue-card .rsvp {
+    grid-area: sentence;
+  }
+
+  .continue-card .card-book {
+    grid-area: book;
+    align-self: end;
+  }
+
+  .continue-card .card-bottom {
+    grid-area: bottom;
+    align-self: start;
+  }
+
+  .book-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+  }
+
+  .book-row + .book-row::before {
+    display: none;
+  }
+
+  .book-row:nth-child(n + 3)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 70px;
+    right: 0;
+    border-top: 0.5px solid var(--separator);
+  }
+
+  .tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .sheet {
+    max-width: 560px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

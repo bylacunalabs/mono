@@ -7,7 +7,7 @@ type IconName =
   | 'text' | 'arrows' | 'sun' | 'flame' | 'search' | 'sort' | 'pencil' | 'trash' | 'restart'
   | 'doc' | 'clipboard' | 'check' | 'speed' | 'book' | 'ellipsis' | 'checkCircle' | 'smaller' | 'larger'
   | 'sparkles' | 'download' | 'upload' | 'install' | 'share' | 'moon' | 'contrast'
-  | 'tap' | 'hold' | 'swipeH' | 'swipeV' | 'pinch' | 'help' | 'undo'
+  | 'tap' | 'hold' | 'swipeH' | 'swipeV' | 'pinch' | 'help' | 'undo' | 'rotate'
 
 const PATHS: Record<IconName, JSX.Element> = {
   tap: (
@@ -29,6 +29,12 @@ const PATHS: Record<IconName, JSX.Element> = {
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.4M12 17h.01" />
+    </>
+  ),
+  rotate: (
+    <>
+      <rect x="7" y="3" width="10" height="16" rx="2" transform="rotate(-90 12 12)" />
+      <path d="M4 7a8 8 0 0 1 6-4M8.5 1.5L10 3 8.5 4.5" />
     </>
   ),
   undo: <path d="M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />,

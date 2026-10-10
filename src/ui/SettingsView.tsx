@@ -6,7 +6,7 @@ import { useRef, useState } from 'preact/hooks'
 import { MAX_WPM, MIN_WPM, WPM_STEP } from '../core/timing'
 import { library } from '../state/library'
 import { pwa } from '../state/pwa'
-import { settings, type Appearance, type ORPHighlight } from '../state/settings'
+import { settings, textScaleKey, type Appearance, type ORPHighlight } from '../state/settings'
 import { download } from '../storage/backup'
 import { useObserve } from '../state/store'
 import { Alert, Toggle } from './components'
@@ -17,7 +17,7 @@ import {
   availableHalfWidth, BASE_FONT_SIZE, cssFont, FONT_NAMES, maxFontSize, MINIMUM_SCALE, READING_FONTS,
   referenceExtents, wordViewHeight,
 } from './fonts'
-import { useWidth } from './hooks'
+import { LANDSCAPE_PHONE, useMediaQuery, useWidth } from './hooks'
 import { Icon } from './icons'
 import { RSVPWord } from './RSVPWord'
 
@@ -39,12 +39,14 @@ export function SettingsView() {
   const [ref, width] = useWidth<HTMLDivElement>()
   const [showGestures, setShowGestures] = useState(false)
   const s = settings.value
+  const landscape = useMediaQuery(LANDSCAPE_PHONE)
+  const scaleKey = textScaleKey(landscape)
 
   // Without a text loaded, cap the size with typical long words; the reader
   // refines the cap with the actual text.
   const maxSize = maxFontSize(referenceExtents(s.readingFont, s.boldWord), availableHalfWidth(width || 390))
   const maxScale = Math.max(MINIMUM_SCALE + 0.05, maxSize / BASE_FONT_SIZE)
-  const scale = Math.min(s.textScale, maxScale)
+  const scale = Math.min(s[scaleKey], maxScale)
   const fontSize = BASE_FONT_SIZE * scale
 
   return (
@@ -80,7 +82,7 @@ export function SettingsView() {
           </div>
           <div class="row column">
             <div class="row-line">
-              <span>Text size</span>
+              <span>{landscape ? 'Text size on its side' : 'Text size'}</span>
               <span class="secondary">{Math.round(fontSize)} pt</span>
             </div>
             <div class="slider-row">
@@ -93,7 +95,7 @@ export function SettingsView() {
                 step={0.01}
                 value={scale}
                 aria-label="Text size"
-                onInput={e => settings.set('textScale', Number(e.currentTarget.value))}
+                onInput={e => settings.set(scaleKey, Number(e.currentTarget.value))}
               />
               <Icon name="larger" size={20} />
             </div>
@@ -101,7 +103,8 @@ export function SettingsView() {
         </section>
         <p class="footnote">
           Every word is shown at the same size. The maximum is set automatically so that even the longest words fit
-          on screen.
+          on screen. On a phone, the size is kept separately upright and on its side, where there's room for bigger
+          words.
         </p>
 
         <h4 class="group-header">Focus letter</h4>

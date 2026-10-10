@@ -19,7 +19,9 @@ export interface Settings {
   holdToRead: boolean
   /** A soft tick as each word appears, pitched by the pause after it. */
   tickSound: boolean
+  /** Word size in portrait, and on its side (where there's room for bigger words). */
   textScale: number
+  textScaleLandscape: number
   readingFont: ReadingFont
   alwaysShowText: boolean
   navigationUnit: NavigationUnit
@@ -31,6 +33,7 @@ export interface Settings {
   didShowGestures: boolean
   /** The first-launch "install or continue in the browser" question was answered. */
   didAskInstall: boolean
+  didShowRotateHint: boolean
 }
 
 const DEFAULTS: Settings = {
@@ -40,6 +43,7 @@ const DEFAULTS: Settings = {
   holdToRead: false,
   tickSound: false,
   textScale: 1,
+  textScaleLandscape: 1.3,
   readingFont: 'mono',
   alwaysShowText: false,
   navigationUnit: 'sentence',
@@ -50,6 +54,7 @@ const DEFAULTS: Settings = {
   didSeedSample: false,
   didShowGestures: false,
   didAskInstall: false,
+  didShowRotateHint: false,
 }
 
 const KEY = 'mono.settings'
@@ -106,3 +111,7 @@ class SettingsStore extends Store {
 }
 
 export const settings = new SettingsStore()
+
+/** The text size setting for the orientation. */
+export const textScaleKey = (landscape: boolean): 'textScale' | 'textScaleLandscape' =>
+  landscape ? 'textScaleLandscape' : 'textScale'
