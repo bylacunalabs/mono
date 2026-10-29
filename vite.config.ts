@@ -55,11 +55,6 @@ const DEMO = `${base}demo.js`
 function landingPage(): Plugin {
   const serve: Connect.NextHandleFunction = (req, res, next) => {
     const path = decodeURIComponent(req.url?.split('?')[0] ?? '')
-    if (path === DEMO) {
-      // In development the demo is the TypeScript source, compiled on request.
-      req.url = `${base}landing/demo.ts`
-      return next()
-    }
     if (!path.startsWith(site) || path.startsWith(base)) return next()
     let file = join('landing', normalize(path.slice(site.length - 1)))
     if (!file.startsWith('landing')) return next()
@@ -77,7 +72,14 @@ function landingPage(): Plugin {
   }
   return {
     name: 'landing-page',
-    configureServer: server => void server.middlewares.use(serve),
+    configureServer: server => {
+      // In development the demo is its TypeScript source, compiled on request.
+      server.middlewares.use((req, _res, next) => {
+        if (req.url?.split('?')[0] === DEMO) req.url = `${base}landing/demo.ts`
+        next()
+      })
+      server.middlewares.use(serve)
+    },
     configurePreviewServer: server => void server.middlewares.use(serve),
     closeBundle: () => cpSync('landing', 'dist', { recursive: true, filter: source => !source.endsWith('.ts') }),
   }

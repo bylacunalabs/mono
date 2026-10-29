@@ -5,3 +5,5 @@ package-lock.json
 public
 src/ui/wordmark.svg
 scripts/splash-screens.json
+test-results
+playwright-report

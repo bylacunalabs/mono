@@ -19,6 +19,8 @@ npm install
 npm run dev        # landing page at /, the app at /app/
 npm test
 npm run build      # type-checks too
+npm run test:e2e   # Playwright, on the build: npx playwright install chromium once
+npm run lint && npm run format
 ```
 
 - Keep pull requests focused on one change, and describe what it does and why.

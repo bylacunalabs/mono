@@ -16,6 +16,8 @@ works offline.
 npm install
 npm run dev        # http://localhost:5173 (landing page), /app/ (the app)
 npm test           # unit tests
+npm run test:e2e   # end-to-end tests on the build (Playwright; after npm run build)
+npm run lint       # ESLint; npm run format applies Prettier
 npm run build      # type-check + production build in dist/
 npm run preview    # serve dist/ (service worker active)
 npm run brand      # redraw the logo, icons, launch screens and social image
