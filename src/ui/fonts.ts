@@ -157,7 +157,14 @@ export function maxExtents(tokens: Token[], font: ReadingFont, bold: boolean, li
   return { left: left * margin, right: right * margin }
 }
 
-const LONG_WORDS = ['particolarmente,', 'frequentassero,', 'responsabilità,', '«Straordinaria»', 'understandingly', 'Massachusetts,']
+const LONG_WORDS = [
+  'particolarmente,',
+  'frequentassero,',
+  'responsabilità,',
+  '«Straordinaria»',
+  'understandingly',
+  'Massachusetts,',
+]
 const SHORT_WORDS = ['people,', 'mondo,', '«Così»', 'which.', 'Monday']
 
 /** Typical worst case, for when no text is loaded: long words, or short ones for the zoom's limit. */
@@ -184,7 +191,8 @@ export const TICK_MIN_CLEARANCE = 3
 export const reticleHalfWidth = (width: number) => Math.min(width / 2, 480)
 
 /** Room for a word on each side of the centreline. */
-export const availableHalfWidth = (width: number) => Math.max(0, reticleHalfWidth(width) - ARM_INSET - MINIMUM_ARM - ARM_GAP)
+export const availableHalfWidth = (width: number) =>
+  Math.max(0, reticleHalfWidth(width) - ARM_INSET - MINIMUM_ARM - ARM_GAP)
 
 export const armReach = (width: number) => reticleHalfWidth(width) - ARM_INSET
 export const ARM_GAP_PX = ARM_GAP

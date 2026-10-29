@@ -117,7 +117,13 @@ export function Alert(props: {
   useBackButton(props.onClose)
   return (
     <div class="scrim center" onClick={props.onClose}>
-      <div class="alert glass" role="alertdialog" aria-modal="true" aria-label={props.title} onClick={e => e.stopPropagation()}>
+      <div
+        class="alert glass"
+        role="alertdialog"
+        aria-modal="true"
+        aria-label={props.title}
+        onClick={e => e.stopPropagation()}
+      >
         <div class="alert-body">
           <h2>{props.title}</h2>
           {props.message && <p>{props.message}</p>}

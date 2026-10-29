@@ -8,10 +8,17 @@ import { decodeText } from './textDecoding'
 import { htmlArticle } from './html'
 import { parseEPUB } from './epub'
 import {
-  EMPTY_ERROR, ImportError, plainText, prepareText, type CoverImage, type ExtractedDocument, type PreparedText,
+  EMPTY_ERROR,
+  ImportError,
+  plainText,
+  prepareText,
+  type CoverImage,
+  type ExtractedDocument,
+  type PreparedText,
 } from './document'
 
-export const ACCEPTED_FILES = '.txt,.text,.md,.pdf,.epub,.html,.htm,.xhtml,text/plain,application/pdf,application/epub+zip,text/html'
+export const ACCEPTED_FILES =
+  '.txt,.text,.md,.pdf,.epub,.html,.htm,.xhtml,text/plain,application/pdf,application/epub+zip,text/html'
 
 export interface ExtractedFile {
   document: ExtractedDocument
@@ -54,7 +61,9 @@ export async function extractFile(file: File): Promise<ExtractedFile> {
     case 'epub':
       document = parseEPUB(data)
       break
-    case 'html': case 'htm': case 'xhtml': {
+    case 'html':
+    case 'htm':
+    case 'xhtml': {
       const article = htmlArticle(decodeText(data))
       document = { title: article.title, paragraphs: article.paragraphs, chapters: [] }
       break

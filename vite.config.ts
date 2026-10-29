@@ -14,6 +14,7 @@ const base = `${site}app/`
 // an installed Mono opens on a white screen. One per screen size (CSS px and
 // pixel ratio, portrait) and theme, made with the wordmark on the app's
 // background; public/splash/WxH-light|dark.png in device pixels.
+// prettier-ignore
 const SPLASH_SCREENS: [number, number, number][] = [
   [440, 956, 3], [430, 932, 3], [428, 926, 3], [420, 912, 3], [414, 896, 3], [414, 896, 2], [402, 874, 3],
   [393, 852, 3], [390, 844, 3], [375, 812, 3], [375, 667, 2], [320, 568, 2],
@@ -120,13 +121,41 @@ export default defineConfig({
         ],
         // Shown by the richer install dialogs (Android, desktop Chromium).
         screenshots: [
-          { src: 'screenshots/library-narrow.png', sizes: '780x1688', type: 'image/png', form_factor: 'narrow', label: 'Your library and where you left off' },
-          { src: 'screenshots/reader-narrow.png', sizes: '780x1688', type: 'image/png', form_factor: 'narrow', label: 'Reading one word at a time' },
-          { src: 'screenshots/reader-wide.png', sizes: '1280x800', type: 'image/png', form_factor: 'wide', label: 'Reading one word at a time' },
+          {
+            src: 'screenshots/library-narrow.png',
+            sizes: '780x1688',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'Your library and where you left off',
+          },
+          {
+            src: 'screenshots/reader-narrow.png',
+            sizes: '780x1688',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'Reading one word at a time',
+          },
+          {
+            src: 'screenshots/reader-wide.png',
+            sizes: '1280x800',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'Reading one word at a time',
+          },
         ],
         shortcuts: [
-          { name: 'Continue Reading', short_name: 'Continue', url: './?action=continue', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
-          { name: 'Paste Text', short_name: 'Paste', url: './?action=paste', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
+          {
+            name: 'Continue Reading',
+            short_name: 'Continue',
+            url: './?action=continue',
+            icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }],
+          },
+          {
+            name: 'Paste Text',
+            short_name: 'Paste',
+            url: './?action=paste',
+            icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }],
+          },
         ],
         share_target: {
           action: 'share-target',
@@ -139,7 +168,17 @@ export default defineConfig({
             files: [
               {
                 name: 'files',
-                accept: ['text/plain', '.txt', 'application/pdf', '.pdf', 'application/epub+zip', '.epub', 'text/html', '.html', '.htm'],
+                accept: [
+                  'text/plain',
+                  '.txt',
+                  'application/pdf',
+                  '.pdf',
+                  'application/epub+zip',
+                  '.epub',
+                  'text/html',
+                  '.html',
+                  '.htm',
+                ],
               },
             ],
           },

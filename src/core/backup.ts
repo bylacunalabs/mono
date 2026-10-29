@@ -34,7 +34,8 @@ export function validateBackup(value: unknown): Backup {
     throw new BackupError('This backup was made by a newer version of Mono. Update the app and try again.')
   }
   const books = backup.books.filter(
-    (b): b is Book => !!b && typeof b.id === 'string' && typeof b.title === 'string' && typeof backup.texts?.[b.id] === 'string',
+    (b): b is Book =>
+      !!b && typeof b.id === 'string' && typeof b.title === 'string' && typeof backup.texts?.[b.id] === 'string',
   )
   return {
     format: BACKUP_FORMAT,

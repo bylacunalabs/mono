@@ -8,8 +8,18 @@
 
 import { useEffect, useRef, useState } from 'preact/hooks'
 import {
-  byline, continueReading, currentChapter, estimatedSecondsRemaining, isFinished, progress, SORT_TITLES, sortBooks,
-  SOURCE_LABEL, type Book, type LibrarySort, type SentenceContext,
+  byline,
+  continueReading,
+  currentChapter,
+  estimatedSecondsRemaining,
+  isFinished,
+  progress,
+  SORT_TITLES,
+  sortBooks,
+  SOURCE_LABEL,
+  type Book,
+  type LibrarySort,
+  type SentenceContext,
 } from '../core/book'
 import { orpParts } from '../core/orp'
 import { currentStreak, formatReadingTime, statsOn, totalWords } from '../core/stats'
@@ -130,7 +140,11 @@ export function LibraryView(props: {
             </label>
 
             {resume && (
-              <ContinueReadingCard book={resume} onOpen={from => props.onOpen(resume, from)} actions={actions(resume)} />
+              <ContinueReadingCard
+                book={resume}
+                onOpen={from => props.onOpen(resume, from)}
+                actions={actions(resume)}
+              />
             )}
 
             <div class="section-header">
@@ -408,7 +422,12 @@ function useSwipeActions(actionsWidth: number, onFullSwipe: () => void) {
 
     const down = (event: PointerEvent) => {
       if (event.pointerType === 'mouse' && event.button !== 0) return
-      start = { x: event.clientX, y: event.clientY, offset: latest.current.isOpen ? -latest.current.actionsWidth : 0, id: event.pointerId }
+      start = {
+        x: event.clientX,
+        y: event.clientY,
+        offset: latest.current.isOpen ? -latest.current.actionsWidth : 0,
+        id: event.pointerId,
+      }
       axis = undefined
     }
     const move = (event: PointerEvent) => {
@@ -505,7 +524,10 @@ function CoverTile({ book, small }: { book: Book; small?: boolean }) {
     )
   }
   if (small) return null
-  const initial = Array.from(book.title).find(c => /[\p{L}\p{N}]/u.test(c))?.toUpperCase() ?? '·'
+  const initial =
+    Array.from(book.title)
+      .find(c => /[\p{L}\p{N}]/u.test(c))
+      ?.toUpperCase() ?? '·'
   return (
     <div class={book.source ? 'cover has-source' : 'cover'} aria-hidden="true" data-book-id={book.id}>
       <div class="cover-mark">
@@ -565,7 +587,12 @@ function NewTextSheet({ onClose }: { onClose: () => void }) {
         </button>
       </div>
       <div class="form-group">
-        <input class="field" placeholder="Title (optional)" value={title} onInput={e => setTitle(e.currentTarget.value)} />
+        <input
+          class="field"
+          placeholder="Title (optional)"
+          value={title}
+          onInput={e => setTitle(e.currentTarget.value)}
+        />
       </div>
       <div class="form-group">
         <textarea

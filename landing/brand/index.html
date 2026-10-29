@@ -219,7 +219,11 @@
         height: calc(var(--w) * 0.6);
         transform: translate(-50%, -50%);
         border-radius: 50%;
-        background: radial-gradient(closest-side, rgba(var(--brand-rgb), calc(0.3 * var(--glow))), rgba(var(--brand-rgb), 0));
+        background: radial-gradient(
+          closest-side,
+          rgba(var(--brand-rgb), calc(0.3 * var(--glow))),
+          rgba(var(--brand-rgb), 0)
+        );
       }
 
       .anatomy ol {
@@ -456,8 +460,14 @@
             <p class="eyebrow">The idea</p>
             <h2>The focus point</h2>
             <ol style="margin-top: 28px">
-              <li><strong>The red o</strong>In the reader, the letter your eye lands on is red. In the name, the o plays that part: always red, always the first o.</li>
-              <li><strong>The reticle</strong>Ticks above and below the focus letter, arms on the centre line. Every mark fades as it nears the word.</li>
+              <li>
+                <strong>The red o</strong>In the reader, the letter your eye lands on is red. In the name, the o plays
+                that part: always red, always the first o.
+              </li>
+              <li>
+                <strong>The reticle</strong>Ticks above and below the focus letter, arms on the centre line. Every mark
+                fades as it nears the word.
+              </li>
               <li><strong>Still, not busy</strong>One word, lots of black around it. Space is part of the mark.</li>
             </ol>
           </div>
@@ -476,14 +486,18 @@
           </div>
           <div class="grid">
             <div class="tile reveal">
-              <div class="art night"><img class="wordmark" src="mono-wordmark-white.svg" alt="The Mono wordmark in white on black" /></div>
+              <div class="art night">
+                <img class="wordmark" src="mono-wordmark-white.svg" alt="The Mono wordmark in white on black" />
+              </div>
               <div class="meta">
                 <strong>On dark</strong>
                 <span class="downloads"><a href="mono-wordmark-white.svg" download>SVG</a></span>
               </div>
             </div>
             <div class="tile reveal">
-              <div class="art day"><img class="wordmark" src="mono-wordmark-black.svg" alt="The Mono wordmark in black on light grey" /></div>
+              <div class="art day">
+                <img class="wordmark" src="mono-wordmark-black.svg" alt="The Mono wordmark in black on light grey" />
+              </div>
               <div class="meta">
                 <strong>On light</strong>
                 <span class="downloads"><a href="mono-wordmark-black.svg" download>SVG</a></span>
@@ -509,7 +523,9 @@
                 <figure><img src="mono-icon.svg" width="180" height="180" alt="The Mono app icon" />App icon</figure>
                 <figure><img src="mono-icon.svg" width="96" height="96" alt="" />96 px</figure>
                 <figure><img src="mono-icon.svg" width="48" height="48" alt="" />48 px</figure>
-                <figure><img class="favicon" src="mono-favicon.svg" width="32" height="32" alt="The Mono favicon" />Favicon</figure>
+                <figure>
+                  <img class="favicon" src="mono-favicon.svg" width="32" height="32" alt="The Mono favicon" />Favicon
+                </figure>
               </div>
             </div>
             <div class="meta">
@@ -582,7 +598,9 @@
             </div>
             <div class="panel specimen reveal">
               <span class="label">Reading</span>
-              <div class="sample" style="font-family: var(--mono); font-weight: 500">wo<span style="color: var(--brand)">r</span>d</div>
+              <div class="sample" style="font-family: var(--mono); font-weight: 500">
+                wo<span style="color: var(--brand)">r</span>d
+              </div>
               <p>SF Mono for the word in the reticle and for numbers like 300 WPM. Readers can pick six other faces.</p>
             </div>
           </div>
@@ -620,9 +638,18 @@
             </div>
           </div>
           <div class="voice">
-            <div class="panel reveal"><h3>Buttons</h3><q>Start reading</q></div>
-            <div class="panel reveal"><h3>Empty states</h3><q>Import a book, an article or a PDF to begin.</q></div>
-            <div class="panel reveal"><h3>Errors</h3><q>This file has no text Mono can read.</q></div>
+            <div class="panel reveal">
+              <h3>Buttons</h3>
+              <q>Start reading</q>
+            </div>
+            <div class="panel reveal">
+              <h3>Empty states</h3>
+              <q>Import a book, an article or a PDF to begin.</q>
+            </div>
+            <div class="panel reveal">
+              <h3>Errors</h3>
+              <q>This file has no text Mono can read.</q>
+            </div>
           </div>
         </div>
       </section>

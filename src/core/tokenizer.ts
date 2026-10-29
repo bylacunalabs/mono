@@ -36,7 +36,10 @@ export function paragraphs(text: string): string[] {
   let usesBlankLines = false
   for (const line of lines) {
     if (isBlank(line)) {
-      if (sawContent) { usesBlankLines = true; break }
+      if (sawContent) {
+        usesBlankLines = true
+        break
+      }
     } else {
       sawContent = true
     }
@@ -52,7 +55,10 @@ export function paragraphs(text: string): string[] {
   }
 
   for (const line of lines) {
-    if (isBlank(line)) { flush(); continue }
+    if (isBlank(line)) {
+      flush()
+      continue
+    }
     const lineWords = words(line).map(w => w.replaceAll('­', ''))
     const last = current[current.length - 1]
     if (last !== undefined && lineWords.length && isLineBreakHyphenation(last, lineWords[0])) {
@@ -115,6 +121,7 @@ export function endsSentence(t: Token, next?: Token): boolean {
 }
 
 /** Titles usually followed by a capitalised name. */
+// prettier-ignore
 const TITLES = new Set([
   'sig', 'sigg', 'dott', 'dr', 'prof', 'ing', 'avv', 'arch', 'geom',
   'on', 'sen', 'gen', 'mons', 'mr', 'mrs', 'ms', 'mx', 'st', 'rev', 'capt', 'lt', 'sgt', 'vs', 'cfr',
@@ -132,7 +139,10 @@ export function isAbbreviation(word: string, next: string): boolean {
   const following = chars(next).find(isLetterOrNumber)
   if (following === undefined) return false
   if (isLowercase(following) || /\p{N}/u.test(following)) return true
-  const core = c.slice(0, -1).join('').replace(/^[«"“‘'(\[]+/u, '')
+  const core = c
+    .slice(0, -1)
+    .join('')
+    .replace(/^[«"“‘'([]+/u, '')
   if (chars(core).length === 1 && isLetter(core) && !isLowercase(core)) return true
   return TITLES.has(core.toLowerCase())
 }
@@ -153,7 +163,11 @@ export function sentenceAround(
   while (start > 0 && index - start < maxBefore && !endsSentence(tokens[start - 1], tokens[start])) start--
   let end = index
   while (end < tokens.length - 1 && end - index < maxAfter && !endsSentence(tokens[end], tokens[end + 1])) end++
-  const text = (from: number, to: number) => tokens.slice(from, to).map(t => t.text).join(' ')
+  const text = (from: number, to: number) =>
+    tokens
+      .slice(from, to)
+      .map(t => t.text)
+      .join(' ')
   const cutBefore = start > 0 && !endsSentence(tokens[start - 1], tokens[start])
   const cutAfter = end < tokens.length - 1 && !endsSentence(tokens[end], tokens[end + 1])
   return {

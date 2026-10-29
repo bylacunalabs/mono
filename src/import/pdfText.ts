@@ -8,7 +8,10 @@ import { isLowercase, length } from '../core/text'
 const NEWLINE = /\r\n|[\n\r\v\f\u0085\u2028\u2029]/
 
 export function pdfParagraphs(pages: string[]): { paragraphs: string[]; pageStarts: number[] } {
-  const allLines = pages.flatMap(p => p.split(NEWLINE)).map(l => l.trim()).filter(Boolean)
+  const allLines = pages
+    .flatMap(p => p.split(NEWLINE))
+    .map(l => l.trim())
+    .filter(Boolean)
   const lengths = allLines.map(length).sort((a, b) => a - b)
   const typicalLength = lengths.length ? lengths[Math.floor((lengths.length * 3) / 4)] : 0
 
@@ -25,7 +28,10 @@ export function pdfParagraphs(pages: string[]): { paragraphs: string[]; pageStar
     pageStarts.push(paragraphs.length)
     for (const rawLine of page.split(NEWLINE)) {
       const line = rawLine.trim()
-      if (!line) { flush(); continue }
+      if (!line) {
+        flush()
+        continue
+      }
       // Bare page numbers.
       if (/^\p{N}{1,4}$/u.test(line)) continue
 

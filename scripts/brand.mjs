@@ -60,7 +60,10 @@ function wordmarkSVG(color) {
 }
 
 /** Reticle marks around the red o, fading as they near it, like the reader's. */
-function reticle(id, { cx = 256, cy = 256, top = [105, 151], bottom = [360, 406], left, right, color = '#8e8e93', width = 5 } = {}) {
+function reticle(
+  id,
+  { cx = 256, cy = 256, top = [105, 151], bottom = [360, 406], left, right, color = '#8e8e93', width = 5 } = {},
+) {
   const tick = (y1, y2, fadeTo) =>
     `<rect x="${cx - width / 2}" y="${y1}" width="${width}" height="${y2 - y1}" rx="${width / 2}" fill="url(#${id}-${fadeTo})"/>`
   const arm = (x1, x2, fadeTo) =>
@@ -68,7 +71,12 @@ function reticle(id, { cx = 256, cy = 256, top = [105, 151], bottom = [360, 406]
   const gradient = (name, x1, y1, x2, y2) =>
     `<linearGradient id="${id}-${name}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"><stop offset="0" stop-color="${color}" stop-opacity="0.9"/><stop offset="1" stop-color="${color}" stop-opacity="0.12"/></linearGradient>`
   return {
-    defs: [gradient('down', 0, 0, 0, 1), gradient('up', 0, 1, 0, 0), gradient('right', 0, 0, 1, 0), gradient('left', 1, 0, 0, 0)].join(''),
+    defs: [
+      gradient('down', 0, 0, 0, 1),
+      gradient('up', 0, 1, 0, 0),
+      gradient('right', 0, 0, 1, 0),
+      gradient('left', 1, 0, 0, 0),
+    ].join(''),
     marks: [
       tick(top[0], top[1], 'down'),
       tick(bottom[0], bottom[1], 'up'),
@@ -174,6 +182,7 @@ function socialSVG() {
 
 // The iOS launch screens linked by vite.config.ts (keep the two lists alike):
 // width, height (CSS px) and pixel ratio.
+// prettier-ignore
 const SPLASH_SCREENS = [
   [440, 956, 3], [430, 932, 3], [428, 926, 3], [420, 912, 3], [414, 896, 3], [414, 896, 2], [402, 874, 3],
   [393, 852, 3], [390, 844, 3], [375, 812, 3], [375, 667, 2], [320, 568, 2],

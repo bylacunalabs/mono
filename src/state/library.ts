@@ -93,11 +93,13 @@ class Library extends Store {
 
   async addText(text: string, title?: string) {
     const trimmed = text.trim()
-    await this.add(async () => importDocument({
-      document: plainText(trimmed, title),
-      fallbackTitle: titleFromText(trimmed),
-      source: 'text' as Source,
-    }))
+    await this.add(async () =>
+      importDocument({
+        document: plainText(trimmed, title),
+        fallbackTitle: titleFromText(trimmed),
+        source: 'text' as Source,
+      }),
+    )
   }
 
   /** Imports whatever was shared to Mono from other apps (see sw.ts). */
@@ -116,7 +118,10 @@ class Library extends Store {
       const text = item.text?.trim()
       if (text) await this.addText(item.url && !text.includes(item.url) ? `${text}\n\n${item.url}` : text, item.title)
       else if (item.url) {
-        this.fail('Nothing to read', "Mono can't download web pages yet. Share the article's text, or save the page and import the file.")
+        this.fail(
+          'Nothing to read',
+          "Mono can't download web pages yet. Share the article's text, or save the page and import the file.",
+        )
       }
     }
   }
@@ -126,11 +131,13 @@ class Library extends Store {
     if (settings.value.didSeedSample) return
     if (this.books.length) return settings.set('didSeedSample', true)
     // Flag it only once added, so a failed first attempt is retried.
-    const added = await this.add(async () => importDocument({
-      document: plainText(SAMPLE_BODY, SAMPLE_TITLE),
-      fallbackTitle: SAMPLE_TITLE,
-      source: 'text' as Source,
-    }))
+    const added = await this.add(async () =>
+      importDocument({
+        document: plainText(SAMPLE_BODY, SAMPLE_TITLE),
+        fallbackTitle: SAMPLE_TITLE,
+        source: 'text' as Source,
+      }),
+    )
     if (added) settings.set('didSeedSample', true)
   }
 
@@ -219,14 +226,20 @@ class Library extends Store {
     this.pendingDeletion = undefined
     this.emit()
     covers.forget(book.id)
-    await db.deleteBook(book.id).then(() => this.broadcast(), error => this.saveFailed(error))
+    await db.deleteBook(book.id).then(
+      () => this.broadcast(),
+      error => this.saveFailed(error),
+    )
   }
 
   recordReading(words: number, seconds: number) {
     if (words <= 0) return
     this.days = stats.record(this.days, words, seconds)
     this.emit()
-    db.saveStats(this.days).then(() => this.broadcast(), error => this.saveFailed(error))
+    db.saveStats(this.days).then(
+      () => this.broadcast(),
+      error => this.saveFailed(error),
+    )
   }
 
   // Backup
@@ -245,7 +258,10 @@ class Library extends Store {
       // On a fresh install, bring the preferences along too.
       if (!this.books.some(b => b.title !== SAMPLE_TITLE)) settings.assign({ ...backup.settings, didSeedSample: true })
       const restored = booksToRestore(this.books, backup.books)
-      await restoreBooks(backup, restored.map(b => b.id))
+      await restoreBooks(
+        backup,
+        restored.map(b => b.id),
+      )
       await db.saveStats(mergeStats(this.days, backup.stats))
       for (const book of restored) covers.forget(book.id)
       await this.reload()
@@ -267,7 +283,10 @@ class Library extends Store {
     this.books = this.books.map(b => (b.id === id ? (updated = { ...b, ...changes }) : b))
     if (!updated) return
     this.emit()
-    db.saveBook(updated).then(() => this.broadcast(), error => this.saveFailed(error))
+    db.saveBook(updated).then(
+      () => this.broadcast(),
+      error => this.saveFailed(error),
+    )
   }
 
   private fail(title: string, message: string) {

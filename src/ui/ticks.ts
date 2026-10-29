@@ -83,7 +83,11 @@ export function woodTick(context: BaseAudioContext, when: number, semitones: num
   click.buffer = noise
 
   // The sticks' modes: frequency ratio, sharpness (how long it rings), level.
-  for (const [ratio, q, level] of [[1, 38, 7], [2.76, 30, 3.5], [5.4, 24, 1.2]]) {
+  for (const [ratio, q, level] of [
+    [1, 38, 7],
+    [2.76, 30, 3.5],
+    [5.4, 24, 1.2],
+  ]) {
     const mode = context.createBiquadFilter()
     mode.type = 'bandpass'
     mode.frequency.value = frequency * ratio
@@ -105,6 +109,7 @@ export function woodTick(context: BaseAudioContext, when: number, semitones: num
 }
 
 /** A short sample phrase: plain words, a comma, a sentence end and a paragraph end. */
+// prettier-ignore
 export const SAMPLE_PHRASE: [number, PauseKind, boolean][] = [
   [3, 'none', false], [6, 'none', false], [4, 'comma', false], [2, 'none', false], [7, 'none', false], [5, 'sentence', true],
 ]
@@ -112,5 +117,7 @@ export const SAMPLE_PHRASE: [number, PauseKind, boolean][] = [
 /** Plays the sample phrase, for when the tick is switched on in Settings. */
 export function previewTicks() {
   unlockTicks()
-  SAMPLE_PHRASE.forEach(([letters, pause, paragraph], i) => setTimeout(() => tick(letters, pause, paragraph), 120 + i * 260))
+  SAMPLE_PHRASE.forEach(([letters, pause, paragraph], i) =>
+    setTimeout(() => tick(letters, pause, paragraph), 120 + i * 260),
+  )
 }

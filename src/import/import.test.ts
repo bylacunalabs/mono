@@ -173,7 +173,8 @@ describe('EPUB', () => {
     })
 
   it('reads the EPUB 3 main title, authors and year', () => {
-    const document = parseEPUB(book(`
+    const document = parseEPUB(
+      book(`
 <dc:title id="t1">  Le città
   invisibili </dc:title>
 <meta refines="#t1" property="title-type">main</meta>
@@ -184,19 +185,22 @@ describe('EPUB', () => {
 <dc:creator id="c2">William Weaver</dc:creator>
 <meta refines="#c2" property="role" scheme="marc:relators">trl</meta>
 <meta name="cover" content="img"/>
-<dc:date>1972-11-01</dc:date>`))
+<dc:date>1972-11-01</dc:date>`),
+    )
     expect(document.title).toBe('Le città invisibili')
     expect(document.author).toBe('Italo Calvino')
     expect(document.year).toBe('1972')
   })
 
   it('reads EPUB 2 roles, entities and the publication date', () => {
-    const document = parseEPUB(book(`
+    const document = parseEPUB(
+      book(`
 <dc:title><![CDATA[Fear & Loathing]]></dc:title>
 <dc:creator opf:role="aut" opf:file-as="Orwell, George">George Orwell</dc:creator>
 <dc:creator opf:role="edt">Someone Else</dc:creator>
 <dc:date opf:event="modification">2015-01-01</dc:date>
-<dc:date opf:event="publication">1949</dc:date>`))
+<dc:date opf:event="publication">1949</dc:date>`),
+    )
     expect(document.title).toBe('Fear & Loathing')
     expect(document.author).toBe('George Orwell')
     expect(document.year).toBe('1949')
@@ -205,17 +209,25 @@ describe('EPUB', () => {
   it('finds the cover image', () => {
     const png = String.fromCharCode(0x89) + 'PNG'
     const epub3 = parseEPUB(
-      book('<dc:title>T</dc:title>', '<item id="i" href="img/c.png" media-type="image/png" properties="cover-image"/>', {
-        'OEBPS/img/c.png': png,
-      }),
+      book(
+        '<dc:title>T</dc:title>',
+        '<item id="i" href="img/c.png" media-type="image/png" properties="cover-image"/>',
+        {
+          'OEBPS/img/c.png': png,
+        },
+      ),
     )
     expect(epub3.cover?.type).toBe('image/png')
     expect(epub3.cover?.data.length).toBe(strToU8(png).length)
 
     const epub2 = parseEPUB(
-      book('<dc:title>T</dc:title><meta name="cover" content="pic"/>', '<item id="pic" href="front.jpg" media-type="image/jpeg"/>', {
-        'OEBPS/front.jpg': 'jpeg',
-      }),
+      book(
+        '<dc:title>T</dc:title><meta name="cover" content="pic"/>',
+        '<item id="pic" href="front.jpg" media-type="image/jpeg"/>',
+        {
+          'OEBPS/front.jpg': 'jpeg',
+        },
+      ),
     )
     expect(epub2.cover?.type).toBe('image/jpeg')
 
@@ -223,7 +235,10 @@ describe('EPUB', () => {
       book(
         '<dc:title>T</dc:title>',
         '<item id="cp" href="cover.xhtml" media-type="application/xhtml+xml"/><item id="x" href="images/x1.jpeg" media-type="image/jpeg"/>',
-        { 'OEBPS/cover.xhtml': '<html><body><img src="images/x1.jpeg"/></body></html>', 'OEBPS/images/x1.jpeg': 'jpeg' },
+        {
+          'OEBPS/cover.xhtml': '<html><body><img src="images/x1.jpeg"/></body></html>',
+          'OEBPS/images/x1.jpeg': 'jpeg',
+        },
       ),
     )
     expect(coverPage.cover?.type).toBe('image/jpeg')

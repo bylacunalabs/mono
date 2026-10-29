@@ -44,10 +44,16 @@ export const SOURCE_LABEL: Record<Source, string> = { text: 'TXT', pdf: 'PDF', e
 
 export function sourceForExtension(ext: string): Source {
   switch (ext.toLowerCase()) {
-    case 'pdf': return 'pdf'
-    case 'epub': return 'epub'
-    case 'html': case 'htm': case 'xhtml': return 'web'
-    default: return 'text'
+    case 'pdf':
+      return 'pdf'
+    case 'epub':
+      return 'epub'
+    case 'html':
+    case 'htm':
+    case 'xhtml':
+      return 'web'
+    default:
+      return 'text'
   }
 }
 
@@ -85,9 +91,12 @@ const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'bas
 export function sortBooks(books: Book[], sort: LibrarySort): Book[] {
   const copy = [...books]
   switch (sort) {
-    case 'recent': return copy.sort((a, b) => (b.lastOpened ?? b.dateAdded) - (a.lastOpened ?? a.dateAdded))
-    case 'added': return copy.sort((a, b) => b.dateAdded - a.dateAdded)
-    case 'title': return copy.sort((a, b) => collator.compare(a.title, b.title))
+    case 'recent':
+      return copy.sort((a, b) => (b.lastOpened ?? b.dateAdded) - (a.lastOpened ?? a.dateAdded))
+    case 'added':
+      return copy.sort((a, b) => b.dateAdded - a.dateAdded)
+    case 'title':
+      return copy.sort((a, b) => collator.compare(a.title, b.title))
   }
 }
 

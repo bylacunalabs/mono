@@ -15,8 +15,18 @@ import { orpParts } from '../core/orp'
 import { settings } from '../state/settings'
 import { useObserve } from '../state/store'
 import {
-  ARM_GAP_PX, armReach, availableHalfWidth, cssFont, glyphBounds, textWidth, TICK_CLEARANCE, TICK_GAP, TICK_LENGTH,
-  TICK_MIN_CLEARANCE, wordViewHeight, type ReadingFont,
+  ARM_GAP_PX,
+  armReach,
+  availableHalfWidth,
+  cssFont,
+  glyphBounds,
+  textWidth,
+  TICK_CLEARANCE,
+  TICK_GAP,
+  TICK_LENGTH,
+  TICK_MIN_CLEARANCE,
+  wordViewHeight,
+  type ReadingFont,
 } from './fonts'
 import { useWidth } from './hooks'
 
@@ -64,7 +74,12 @@ export function RSVPWord({ word, font, fontSize }: Props) {
       {highlight === 'red' && (
         <div
           class="rsvp-halo"
-          style={{ width: fontSize * 2.8, height: fontSize * 2.8, marginLeft: -fontSize * 1.4, marginTop: -fontSize * 1.4 }}
+          style={{
+            width: fontSize * 2.8,
+            height: fontSize * 2.8,
+            marginLeft: -fontSize * 1.4,
+            marginTop: -fontSize * 1.4,
+          }}
         />
       )}
       <div class="rsvp-tick top" style={{ top: 0, height: topTick }} />
@@ -75,7 +90,13 @@ export function RSVPWord({ word, font, fontSize }: Props) {
           <div class="rsvp-arm right" style={{ left: `calc(50% + ${reach - rightArm}px)`, width: rightArm }} />
           <div
             class="rsvp-word"
-            style={{ font: cssFont(font, fontSize * scale, bold), left: `calc(50% - ${leftEdge}px)`, top: wordTop, height: lineHeight, lineHeight: `${lineHeight}px` }}
+            style={{
+              font: cssFont(font, fontSize * scale, bold),
+              left: `calc(50% - ${leftEdge}px)`,
+              top: wordTop,
+              height: lineHeight,
+              lineHeight: `${lineHeight}px`,
+            }}
           >
             <span style={{ opacity: sideOpacity }}>{parts.prefix}</span>
             <span class={highlight === 'red' ? 'rsvp-orp red' : 'rsvp-orp'}>{parts.orp}</span>

@@ -20,11 +20,17 @@ self.addEventListener('fetch', event => {
 })
 
 async function receiveShare(request: Request): Promise<Response> {
-  const text = (value: FormDataEntryValue | null) => (typeof value === 'string' && value.trim() ? value.trim() : undefined)
+  const text = (value: FormDataEntryValue | null) =>
+    typeof value === 'string' && value.trim() ? value.trim() : undefined
   try {
     const form = await request.formData()
     const files = form.getAll('files').filter((f): f is File => f instanceof File && f.size > 0)
-    await addToInbox({ title: text(form.get('title')), text: text(form.get('text')), url: text(form.get('url')), files })
+    await addToInbox({
+      title: text(form.get('title')),
+      text: text(form.get('text')),
+      url: text(form.get('url')),
+      files,
+    })
     for (const client of await self.clients.matchAll({ type: 'window' })) client.postMessage({ type: 'shared' })
   } catch {
     // Nothing usable was shared: just open the app.

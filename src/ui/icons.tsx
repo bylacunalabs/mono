@@ -3,11 +3,49 @@
 import type { JSX } from 'preact'
 
 type IconName =
-  | 'plus' | 'books' | 'chart' | 'gear' | 'play' | 'backward' | 'forward' | 'close' | 'list'
-  | 'text' | 'arrows' | 'sun' | 'flame' | 'search' | 'sort' | 'pencil' | 'trash' | 'restart'
-  | 'doc' | 'clipboard' | 'check' | 'speed' | 'book' | 'ellipsis' | 'checkCircle' | 'smaller' | 'larger'
-  | 'sparkles' | 'download' | 'upload' | 'install' | 'share' | 'moon' | 'contrast'
-  | 'tap' | 'hold' | 'swipeH' | 'swipeV' | 'pinch' | 'help' | 'undo' | 'rotate' | 'pause'
+  | 'plus'
+  | 'books'
+  | 'chart'
+  | 'gear'
+  | 'play'
+  | 'backward'
+  | 'forward'
+  | 'close'
+  | 'list'
+  | 'text'
+  | 'arrows'
+  | 'sun'
+  | 'flame'
+  | 'search'
+  | 'sort'
+  | 'pencil'
+  | 'trash'
+  | 'restart'
+  | 'doc'
+  | 'clipboard'
+  | 'check'
+  | 'speed'
+  | 'book'
+  | 'ellipsis'
+  | 'checkCircle'
+  | 'smaller'
+  | 'larger'
+  | 'sparkles'
+  | 'download'
+  | 'upload'
+  | 'install'
+  | 'share'
+  | 'moon'
+  | 'contrast'
+  | 'tap'
+  | 'hold'
+  | 'swipeH'
+  | 'swipeV'
+  | 'pinch'
+  | 'help'
+  | 'undo'
+  | 'rotate'
+  | 'pause'
 
 const PATHS: Record<IconName, JSX.Element> = {
   tap: (
@@ -38,10 +76,14 @@ const PATHS: Record<IconName, JSX.Element> = {
     </>
   ),
   undo: <path d="M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />,
-  sparkles: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z" />,
+  sparkles: (
+    <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z" />
+  ),
   download: <path d="M12 4v11M7 10.5l5 5 5-5M5 20h14" />,
   upload: <path d="M12 16V5M7 9.5l5-5 5 5M5 20h14" />,
-  install: <path d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM12 7v7M9 11l3 3 3-3M10.5 18h3" />,
+  install: (
+    <path d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM12 7v7M9 11l3 3 3-3M10.5 18h3" />
+  ),
   share: <path d="M12 3v12M8 7l4-4 4 4M6 11H5v10h14V11h-1" />,
   moon: <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />,
   contrast: (
@@ -124,8 +166,16 @@ const PATHS: Record<IconName, JSX.Element> = {
       <path d="M7.5 12.5l3 3 6-6.5" stroke="#fff" />
     </>
   ),
-  smaller: <text x="12" y="17" font-size="11" text-anchor="middle" fill="currentColor" stroke="none" font-weight="600">A</text>,
-  larger: <text x="12" y="19" font-size="19" text-anchor="middle" fill="currentColor" stroke="none" font-weight="600">A</text>,
+  smaller: (
+    <text x="12" y="17" font-size="11" text-anchor="middle" fill="currentColor" stroke="none" font-weight="600">
+      A
+    </text>
+  ),
+  larger: (
+    <text x="12" y="19" font-size="19" text-anchor="middle" fill="currentColor" stroke="none" font-weight="600">
+      A
+    </text>
+  ),
 }
 
 export function Icon({ name, size = 22, class: className }: { name: IconName; size?: number; class?: string }) {

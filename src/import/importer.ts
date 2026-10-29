@@ -35,7 +35,10 @@ function run<T>(request: WorkerRequest): Promise<T> {
 }
 
 /** Reads and prepares any supported file; `onProgress` reports PDF pages. */
-export async function importFile(file: File, onProgress?: (done: number, total: number) => void): Promise<ImportedDocument> {
+export async function importFile(
+  file: File,
+  onProgress?: (done: number, total: number) => void,
+): Promise<ImportedDocument> {
   if (fileExtension(file) !== 'pdf') return run({ kind: 'import', file })
   const { parsePDF } = await import('./pdf')
   const document = await parsePDF(new Uint8Array(await file.arrayBuffer()), onProgress)

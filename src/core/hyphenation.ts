@@ -19,6 +19,7 @@ import { chars, isLetter } from './text'
 const MINIMUM_PIECE = 2
 
 const VOWELS = new Set(chars('aeiouyàáâäèéêëìíîïòóôöùúûü'))
+// prettier-ignore
 const INSEPARABLE = new Set([
   'bl', 'br', 'cl', 'cr', 'dl', 'dr', 'fl', 'fr', 'gl', 'gr', 'pl', 'pr',
   'tl', 'tr', 'vl', 'vr', 'ch', 'gh', 'gn', 'ph', 'th', 'sh',
@@ -48,7 +49,10 @@ export function pieces(word: string, fits: (piece: string) => boolean): string[]
 
   while (start < c.length) {
     const rest = c.slice(start).join('')
-    if (fits(rest)) { result.push(rest); break }
+    if (fits(rest)) {
+      result.push(rest)
+      break
+    }
     // Prefer the word's own hyphens, then syllables: the longest prefix
     // ending at such a break that still fits.
     const candidates = breaks.filter(b => b > start)
@@ -62,7 +66,10 @@ export function pieces(word: string, fits: (piece: string) => boolean): string[]
     // Nothing fits at a syllable boundary: cut as late as possible.
     let cut = c.length - 1
     while (cut > start + 1 && !fits(piece(start, cut))) cut--
-    if (cut <= start) { result.push(rest); break }
+    if (cut <= start) {
+      result.push(rest)
+      break
+    }
     result.push(piece(start, cut))
     start = cut
   }
@@ -87,7 +94,10 @@ export function breakPositions(word: string): number[] {
 
   let lastVowel: number | undefined
   for (let i = 0; i < count; i++) {
-    if (!isLetter(c[i])) { lastVowel = undefined; continue }
+    if (!isLetter(c[i])) {
+      lastVowel = undefined
+      continue
+    }
     if (!isVowel(i)) continue
     if (lastVowel !== undefined) {
       const clusterLength = i - lastVowel - 1

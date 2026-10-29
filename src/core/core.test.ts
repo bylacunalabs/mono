@@ -7,7 +7,17 @@ import { breakPositions, pieces } from './hyphenation'
 import { orpIndex, orpIndexForLength } from './orp'
 import { addDays, averageWPM, currentStreak, record, recentDays, totalWords, type Days } from './stats'
 import {
-  delayMs, lengthFactor, MAX_WPM, MIN_WPM, pace, pauseAfter, RAMP_UP_WORDS, rampUpFactor, recognitionFactor, textTiming, TIMING,
+  delayMs,
+  lengthFactor,
+  MAX_WPM,
+  MIN_WPM,
+  pace,
+  pauseAfter,
+  RAMP_UP_WORDS,
+  rampUpFactor,
+  recognitionFactor,
+  textTiming,
+  TIMING,
 } from './timing'
 import { endsSentence, isAbbreviation, paragraphs, sentenceAround, token, tokenCount, tokenize } from './tokenizer'
 import { booksToRestore, mergeStats, validateBackup } from './backup'
@@ -16,7 +26,10 @@ import { titleFromText } from './book'
 
 describe('Tokenizer', () => {
   it('uses blank lines as paragraph separators and joins hard wraps', () => {
-    expect(paragraphs('First line\nwraps here.\n\nSecond   paragraph.\n')).toEqual(['First line wraps here.', 'Second paragraph.'])
+    expect(paragraphs('First line\nwraps here.\n\nSecond   paragraph.\n')).toEqual([
+      'First line wraps here.',
+      'Second paragraph.',
+    ])
   })
 
   it('treats every line as a paragraph without blank lines', () => {
@@ -37,7 +50,10 @@ describe('Tokenizer', () => {
   })
 
   it('joins line-break hyphenation', () => {
-    expect(paragraphs('Se loro frequen-\ntassero la scuola.\n\nFine.')).toEqual(['Se loro frequentassero la scuola.', 'Fine.'])
+    expect(paragraphs('Se loro frequen-\ntassero la scuola.\n\nFine.')).toEqual([
+      'Se loro frequentassero la scuola.',
+      'Fine.',
+    ])
   })
 
   it('keeps real hyphens and capitalised continuations', () => {
@@ -119,6 +135,7 @@ describe('Hyphenation', () => {
 })
 
 describe('ORP', () => {
+  // prettier-ignore
   it.each([
     [1, 0], [2, 1], [3, 1], [4, 2], [5, 2], [6, 3], [9, 3], [10, 4], [13, 4], [14, 4], [20, 6],
   ])('length %i → %i', (length, expected) => {
@@ -281,7 +298,11 @@ describe('Engine navigation', () => {
   it('navigates paragraphs', () => {
     const engine = make('Uno due tre.\n\nQuattro cinque.\n\nSei sette.', 1)
     expect(engine.paragraphStarts).toEqual([0, 3, 5])
-    expect(engine.paragraphRanges).toEqual([[0, 3], [3, 5], [5, 7]])
+    expect(engine.paragraphRanges).toEqual([
+      [0, 3],
+      [3, 5],
+      [5, 7],
+    ])
     for (const expected of [3, 5, 6]) {
       engine.nextParagraph()
       expect(engine.currentIndex).toBe(expected)
@@ -428,7 +449,12 @@ describe('Sentence around the bookmark', () => {
 
 describe('Backup', () => {
   const book = (id: string, lastOpened?: number): Book => ({
-    id, title: id, wordCount: 10, currentIndex: 0, dateAdded: 1, lastOpened,
+    id,
+    title: id,
+    wordCount: 10,
+    currentIndex: 0,
+    dateAdded: 1,
+    lastOpened,
   })
 
   it('restores new books and more recently read copies only', () => {
@@ -440,7 +466,11 @@ describe('Backup', () => {
   it('keeps the larger total for each day', () => {
     const merged = mergeStats(
       { '2026-10-01': { words: 500, seconds: 120 }, '2026-10-02': { words: 50, seconds: 10 } },
-      { '2026-10-01': { words: 300, seconds: 60 }, '2026-10-02': { words: 80, seconds: 20 }, '2026-10-03': { words: 5, seconds: 1 } },
+      {
+        '2026-10-01': { words: 300, seconds: 60 },
+        '2026-10-02': { words: 80, seconds: 20 },
+        '2026-10-03': { words: 5, seconds: 1 },
+      },
     )
     expect(merged).toEqual({
       '2026-10-01': { words: 500, seconds: 120 },
@@ -452,7 +482,12 @@ describe('Backup', () => {
   it('rejects other files and drops books without text', () => {
     expect(() => validateBackup({ hello: 'world' })).toThrow('not a Mono backup')
     expect(() => validateBackup({ format: 'mono-backup', version: 99, books: [] })).toThrow('newer version')
-    const backup = validateBackup({ format: 'mono-backup', version: 1, books: [book('a'), book('b')], texts: { a: 'Text' } })
+    const backup = validateBackup({
+      format: 'mono-backup',
+      version: 1,
+      books: [book('a'), book('b')],
+      texts: { a: 'Text' },
+    })
     expect(backup.books.map(b => b.id)).toEqual(['a'])
   })
 })

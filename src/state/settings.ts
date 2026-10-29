@@ -93,7 +93,9 @@ class SettingsStore extends Store {
   /** Takes the known settings from e.g. a backup, ignoring anything else. */
   assign(values: Record<string, unknown>) {
     const known = Object.fromEntries(
-      Object.entries(values).filter(([key, value]) => key in DEFAULTS && typeof value === typeof DEFAULTS[key as keyof Settings]),
+      Object.entries(values).filter(
+        ([key, value]) => key in DEFAULTS && typeof value === typeof DEFAULTS[key as keyof Settings],
+      ),
     )
     this.value = { ...this.value, ...known }
     this.value.wpm = clampWPM(this.value.wpm)

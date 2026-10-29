@@ -49,8 +49,17 @@ import { loadText } from '../storage/db'
 import { formatNumber, Menu } from './components'
 import { GestureGuide } from './GestureGuide'
 import {
-  availableHalfWidth, BASE_FONT_SIZE, extents, maxExtents, maxFontSize, maxFontSizeForHeight, MINIMUM_SCALE,
-  referenceExtents, wordViewHeight, ZOOM_WORD_LIMIT, type Extents,
+  availableHalfWidth,
+  BASE_FONT_SIZE,
+  extents,
+  maxExtents,
+  maxFontSize,
+  maxFontSizeForHeight,
+  MINIMUM_SCALE,
+  referenceExtents,
+  wordViewHeight,
+  ZOOM_WORD_LIMIT,
+  type Extents,
 } from './fonts'
 import { useBackButton } from './history'
 import { LANDSCAPE_PHONE, useMediaQuery, useSize } from './hooks'
@@ -170,7 +179,13 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   const saveProgress = () => {
     if (!engine.tokens.length) return
     const index = engine.currentIndex
-    library.updateProgress(book.id, index, engine.tokens.length, engine.currentToken?.text, sentenceAround(engine.tokens, index))
+    library.updateProgress(
+      book.id,
+      index,
+      engine.tokens.length,
+      engine.currentToken?.text,
+      sentenceAround(engine.tokens, index),
+    )
   }
 
   /** Saves the position and books the words read since the last checkpoint. */
@@ -302,12 +317,23 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
             if (!event.repeat) engine.play()
           } else engine.toggle()
           break
-        case 'ArrowUp': changeWPM(1); break
-        case 'ArrowDown': changeWPM(-1); break
-        case 'ArrowLeft': jump(false); break
-        case 'ArrowRight': jump(true); break
-        case 'Escape': onClose(); break
-        default: return
+        case 'ArrowUp':
+          changeWPM(1)
+          break
+        case 'ArrowDown':
+          changeWPM(-1)
+          break
+        case 'ArrowLeft':
+          jump(false)
+          break
+        case 'ArrowRight':
+          jump(true)
+          break
+        case 'Escape':
+          onClose()
+          break
+        default:
+          return
       }
       event.preventDefault()
     }
@@ -352,7 +378,11 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
     const down = (event: PointerEvent) => {
       element.setPointerCapture(event.pointerId)
       pointers.set(event.pointerId, {
-        x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY, fromEdge: fromEdge(event),
+        x: event.clientX,
+        y: event.clientY,
+        startX: event.clientX,
+        startY: event.clientY,
+        fromEdge: fromEdge(event),
       })
       if (pointers.size === 1) {
         axis = undefined
@@ -606,13 +636,23 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
               <div class="speed-row">
                 <span class="speed-title">Speed</span>
                 <div class="speed-stepper" role="group" aria-label="Reading speed">
-                  <button type="button" aria-label="Slower" disabled={engine.wpm <= MIN_WPM} onClick={() => changeSpeed(-1)}>
+                  <button
+                    type="button"
+                    aria-label="Slower"
+                    disabled={engine.wpm <= MIN_WPM}
+                    onClick={() => changeSpeed(-1)}
+                  >
                     −
                   </button>
                   <span class="speed-value">
                     {engine.wpm} <small>WPM</small>
                   </span>
-                  <button type="button" aria-label="Faster" disabled={engine.wpm >= MAX_WPM} onClick={() => changeSpeed(1)}>
+                  <button
+                    type="button"
+                    aria-label="Faster"
+                    disabled={engine.wpm >= MAX_WPM}
+                    onClick={() => changeSpeed(1)}
+                  >
                     +
                   </button>
                 </div>
@@ -621,17 +661,18 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
           )}
         </div>
       ) : (
-        showsText && !landscape && (
+        showsText &&
+        !landscape && (
           <TextPanel
-              tokens={engine.tokens}
-              paragraphs={engine.paragraphRanges}
-              chapters={chapters}
-              currentIndex={engine.currentIndex}
-              isPlaying={engine.isPlaying}
-              font={font}
-              onSelect={index => engine.seek(index)}
-              style={{ top: panelTop, height: panelHeight, opacity: panelHeight > 60 ? 1 : 0 }}
-            />
+            tokens={engine.tokens}
+            paragraphs={engine.paragraphRanges}
+            chapters={chapters}
+            currentIndex={engine.currentIndex}
+            isPlaying={engine.isPlaying}
+            font={font}
+            onSelect={index => engine.seek(index)}
+            style={{ top: panelTop, height: panelHeight, opacity: panelHeight > 60 ? 1 : 0 }}
+          />
         )
       )}
 
@@ -685,9 +726,12 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
         isLoaded && engine.isPlaying && <div class="reader-progress" style={{ width: `${engine.progress * 100}%` }} />
       )}
 
-      {isLoaded && settings.value.didShowGestures && !settings.value.didShowRotateHint && isTouch && !landscape && Math.min(screen.width, screen.height) < 500 && (
-        <RotateHint />
-      )}
+      {isLoaded &&
+        settings.value.didShowGestures &&
+        !settings.value.didShowRotateHint &&
+        isTouch &&
+        !landscape &&
+        Math.min(screen.width, screen.height) < 500 && <RotateHint />}
 
       {isLoaded && !settings.value.didShowGestures && (
         <GestureGuide onClose={() => settings.set('didShowGestures', true)} />

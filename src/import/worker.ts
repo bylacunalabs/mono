@@ -5,9 +5,7 @@ import { tokenize } from '../core/tokenizer'
 import { extractFile, importDocument, type ExtractedFile } from './extract'
 
 export type WorkerRequest =
-  | { kind: 'import'; file: File }
-  | { kind: 'prepare'; extracted: ExtractedFile }
-  | { kind: 'tokenize'; text: string }
+  { kind: 'import'; file: File } | { kind: 'prepare'; extracted: ExtractedFile } | { kind: 'tokenize'; text: string }
 
 /** Tokens in a compact shape that's cheap to send between threads. */
 export interface PackedTokens {
@@ -18,8 +16,10 @@ export interface PackedTokens {
 
 export async function handle(request: WorkerRequest) {
   switch (request.kind) {
-    case 'import': return importDocument(await extractFile(request.file))
-    case 'prepare': return importDocument(request.extracted)
+    case 'import':
+      return importDocument(await extractFile(request.file))
+    case 'prepare':
+      return importDocument(request.extracted)
     case 'tokenize': {
       const tokens = tokenize(request.text)
       const ends = new Uint8Array(tokens.length)

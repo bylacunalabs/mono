@@ -7,7 +7,16 @@
 // at high speeds (1200 WPM = 50 ms per word on average).
 
 import {
-  clampWPM, DEFAULT_WPM, delayMs, pace, rampUpFactor, textTiming, WPM_STEP, type Pace, type PauseKind, type TextTiming,
+  clampWPM,
+  DEFAULT_WPM,
+  delayMs,
+  pace,
+  rampUpFactor,
+  textTiming,
+  WPM_STEP,
+  type Pace,
+  type PauseKind,
+  type TextTiming,
 } from './timing'
 import { endsSentence, type Token } from './tokenizer'
 
@@ -109,7 +118,6 @@ export class RSVPEngine {
 
   // Derived state
 
-
   /** What's on screen: the current word, or the current piece of it. */
   get currentWord(): string | undefined {
     return this.pieces[this.pieceIndex]
@@ -125,7 +133,9 @@ export class RSVPEngine {
   }
 
   get isFinished(): boolean {
-    return this.tokens.length > 0 && this.currentIndex >= this.tokens.length - 1 && this.pieceIndex >= this.pieces.length - 1
+    return (
+      this.tokens.length > 0 && this.currentIndex >= this.tokens.length - 1 && this.pieceIndex >= this.pieces.length - 1
+    )
   }
 
   get progress(): number {

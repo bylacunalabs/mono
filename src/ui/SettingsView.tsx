@@ -14,8 +14,16 @@ import { GestureGuide } from './GestureGuide'
 import { manualInstallSteps } from './InstallPrompt'
 import { previewTicks } from './ticks'
 import {
-  availableHalfWidth, BASE_FONT_SIZE, cssFont, FONT_NAMES, maxFontSize, maxFontSizeForHeight, MINIMUM_SCALE, READING_FONTS,
-  referenceExtents, wordViewHeight,
+  availableHalfWidth,
+  BASE_FONT_SIZE,
+  cssFont,
+  FONT_NAMES,
+  maxFontSize,
+  maxFontSizeForHeight,
+  MINIMUM_SCALE,
+  READING_FONTS,
+  referenceExtents,
+  wordViewHeight,
 } from './fonts'
 import { LANDSCAPE_PHONE, useMediaQuery, useWidth } from './hooks'
 import { Icon } from './icons'
@@ -52,7 +60,10 @@ export function SettingsView() {
   const scale = Math.min(s[scaleKey], maxScale)
   const fontSize = BASE_FONT_SIZE * scale
   // The preview is narrower than the reader: a word that doesn't fit shrinks.
-  const previewSize = Math.min(fontSize, maxFontSize(referenceExtents(s.readingFont, s.boldWord), availableHalfWidth(width || 390)))
+  const previewSize = Math.min(
+    fontSize,
+    maxFontSize(referenceExtents(s.readingFont, s.boldWord), availableHalfWidth(width || 390)),
+  )
 
   return (
     <div class="screen settings">
@@ -107,9 +118,9 @@ export function SettingsView() {
           </div>
         </section>
         <p class="footnote">
-          Every word is shown at the same size, up to where short words fill the screen. Words too long for the
-          chosen size are shown a syllable group at a time. On a phone, the size is kept separately upright and on
-          its side, where there's room for bigger words.
+          Every word is shown at the same size, up to where short words fill the screen. Words too long for the chosen
+          size are shown a syllable group at a time. On a phone, the size is kept separately upright and on its side,
+          where there's room for bigger words.
         </p>
 
         <h4 class="group-header">Focus letter</h4>
@@ -131,8 +142,8 @@ export function SettingsView() {
           </div>
         </section>
         <p class="footnote">
-          The letter your eyes rest on stays centred in the reticle. Choose how much it stands out from the rest of
-          the word.
+          The letter your eyes rest on stays centred in the reticle. Choose how much it stands out from the rest of the
+          word.
         </p>
 
         <h4 class="group-header">Font</h4>
@@ -216,7 +227,11 @@ export function SettingsView() {
           </div>
           <div class="row">
             <span>Touch and hold to read</span>
-            <Toggle label="Touch and hold to read" checked={s.holdToRead} onChange={v => settings.set('holdToRead', v)} />
+            <Toggle
+              label="Touch and hold to read"
+              checked={s.holdToRead}
+              onChange={v => settings.set('holdToRead', v)}
+            />
           </div>
           <button type="button" class="row choice" onClick={() => setShowGestures(true)}>
             <span class="brand">Reading Gestures</span>
@@ -224,9 +239,9 @@ export function SettingsView() {
           </button>
         </section>
         <p class="footnote">
-          After a pause of more than a second or two, reading starts again up to four words back, never before the
-          start of the sentence. With touch and hold, words run only while your finger is on the screen (or the space
-          bar is held down).
+          After a pause of more than a second or two, reading starts again up to four words back, never before the start
+          of the sentence. With touch and hold, words run only while your finger is on the screen (or the space bar is
+          held down).
         </p>
 
         <section class="group">

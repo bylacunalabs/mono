@@ -4,9 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Mono — Speed reading, one word at a time</title>
-    <meta name="description" content="Mono shows one word at a time, anchored on the letter your eye lands on. Read books, articles and PDFs faster. Free, offline, private and open source." />
+    <meta
+      name="description"
+      content="Mono shows one word at a time, anchored on the letter your eye lands on. Read books, articles and PDFs faster. Free, offline, private and open source."
+    />
     <meta property="og:title" content="Mono — Speed reading, one word at a time" />
-    <meta property="og:description" content="One word at a time, anchored on the letter your eye lands on. Free, offline, private and open source." />
+    <meta
+      property="og:description"
+      content="One word at a time, anchored on the letter your eye lands on. Free, offline, private and open source."
+    />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="og-image.png" />
     <meta property="og:image:width" content="1200" />
@@ -37,7 +43,11 @@
         position: absolute;
         inset: -64px 0 auto;
         height: 1100px;
-        background: radial-gradient(42% 46% at 50% 62%, rgba(var(--brand-rgb), calc(0.17 * var(--glow))), transparent 72%);
+        background: radial-gradient(
+          42% 46% at 50% 62%,
+          rgba(var(--brand-rgb), calc(0.17 * var(--glow))),
+          transparent 72%
+        );
         pointer-events: none;
         z-index: -1;
       }
@@ -408,7 +418,12 @@
       /* Screens */
 
       .screens-band {
-        background: linear-gradient(to bottom, transparent, rgba(var(--brand-rgb), calc(0.06 * var(--glow))) 60%, transparent);
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          rgba(var(--brand-rgb), calc(0.06 * var(--glow))) 60%,
+          transparent
+        );
       }
 
       .screens {
@@ -423,7 +438,9 @@
         padding: 10px;
         border-radius: 48px;
         background: #0b0b0c;
-        box-shadow: 0 0 0 1.5px #2a2a2e, var(--shadow);
+        box-shadow:
+          0 0 0 1.5px #2a2a2e,
+          var(--shadow);
       }
 
       .phone img {
@@ -664,8 +681,13 @@
           <div class="wrap">
             <div class="console">
               <button class="play" id="play" type="button" aria-label="Play">
-                <svg class="icon-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.8v14.4a1 1 0 0 0 1.5.86l12-7.2a1 1 0 0 0 0-1.72l-12-7.2A1 1 0 0 0 5 2.8Z" /></svg>
-                <svg class="icon-pause" viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="2.5" width="4.5" height="15" rx="1.2" /><rect x="12" y="2.5" width="4.5" height="15" rx="1.2" /></svg>
+                <svg class="icon-play" viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M5 2.8v14.4a1 1 0 0 0 1.5.86l12-7.2a1 1 0 0 0 0-1.72l-12-7.2A1 1 0 0 0 5 2.8Z" />
+                </svg>
+                <svg class="icon-pause" viewBox="0 0 20 20" aria-hidden="true">
+                  <rect x="3.5" y="2.5" width="4.5" height="15" rx="1.2" />
+                  <rect x="12" y="2.5" width="4.5" height="15" rx="1.2" />
+                </svg>
               </button>
               <div>
                 <label class="speed-label" for="speed">Reading speed</label>
@@ -688,9 +710,8 @@
             <p class="eyebrow">How it works</p>
             <h2>The words come to you.</h2>
             <p class="lead">
-              Reading a page, your eyes hop from word to word and line to line, and every hop costs time. Mono uses
-              RSVP — Rapid Serial Visual Presentation — to put each word in the same place, so your eyes never have to
-              move.
+              Reading a page, your eyes hop from word to word and line to line, and every hop costs time. Mono uses RSVP
+              — Rapid Serial Visual Presentation — to put each word in the same place, so your eyes never have to move.
             </p>
           </div>
           <div class="compare">
@@ -700,7 +721,10 @@
                   <text x="10" y="52">Your eyes jump along</text>
                   <text x="10" y="86">every line, then sweep</text>
                   <text x="10" y="120">back to the next one.</text>
-                  <path class="hop" d="M30 34 Q 65 16 100 34 Q 135 16 170 34 M170 34 Q 100 50 30 68 M30 68 Q 70 50 110 68 Q 150 50 190 68 M190 68 Q 110 84 30 102" />
+                  <path
+                    class="hop"
+                    d="M30 34 Q 65 16 100 34 Q 135 16 170 34 M170 34 Q 100 50 30 68 M30 68 Q 70 50 110 68 Q 150 50 190 68 M190 68 Q 110 84 30 102"
+                  />
                   <circle class="fix" cx="30" cy="34" r="4" style="animation-delay: 0s" />
                   <circle class="fix" cx="100" cy="34" r="4" style="animation-delay: 0.6s" />
                   <circle class="fix" cx="170" cy="34" r="4" style="animation-delay: 1.2s" />
@@ -711,7 +735,9 @@
                 </svg>
               </div>
               <h3>On a page</h3>
-              <p>Dozens of jumps per line, a sweep back at every line's end, and the odd look back to find your place.</p>
+              <p>
+                Dozens of jumps per line, a sweep back at every line's end, and the odd look back to find your place.
+              </p>
             </div>
             <div class="panel reveal">
               <div class="figure">
@@ -739,11 +765,15 @@
           <div class="section-head reveal">
             <p class="eyebrow">Features</p>
             <h2>Built for reading whole books.</h2>
-            <p class="lead">A rhythm that feels natural, any text you have, and a library that remembers where you were.</p>
+            <p class="lead">
+              A rhythm that feels natural, any text you have, and a library that remembers where you were.
+            </p>
           </div>
           <div class="features">
             <article class="feature reveal">
-              <div class="glyph"><svg viewBox="0 0 24 24"><path d="M3 12h3l3-7 4 14 3-7h5" /></svg></div>
+              <div class="glyph">
+                <svg viewBox="0 0 24 24"><path d="M3 12h3l3-7 4 14 3-7h5" /></svg>
+              </div>
               <h3>A rhythm that reads like you do</h3>
               <p>
                 Sentences end with a short pause, frequent words pass quicker and long ones linger. Very long words are
@@ -751,13 +781,25 @@
               </p>
             </article>
             <article class="feature reveal">
-              <div class="glyph"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></svg></div>
+              <div class="glyph">
+                <svg viewBox="0 0 24 24">
+                  <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                  <path d="M14 3v5h5M9 13h6M9 17h4" />
+                </svg>
+              </div>
               <h3>Bring any text</h3>
-              <p>Import books, documents and saved pages, paste text, drop files on the library or share them to Mono.</p>
+              <p>
+                Import books, documents and saved pages, paste text, drop files on the library or share them to Mono.
+              </p>
               <div class="formats"><span>EPUB</span><span>PDF</span><span>TXT</span><span>HTML</span></div>
             </article>
             <article class="feature reveal">
-              <div class="glyph"><svg viewBox="0 0 24 24"><path d="M9 11V6a2 2 0 1 1 4 0v5" /><path d="M13 10a2 2 0 1 1 4 0v2a7 7 0 0 1-7 7h-.5A5.5 5.5 0 0 1 4 13.5V12a2 2 0 1 1 4 0" /></svg></div>
+              <div class="glyph">
+                <svg viewBox="0 0 24 24">
+                  <path d="M9 11V6a2 2 0 1 1 4 0v5" />
+                  <path d="M13 10a2 2 0 1 1 4 0v2a7 7 0 0 1-7 7h-.5A5.5 5.5 0 0 1 4 13.5V12a2 2 0 1 1 4 0" />
+                </svg>
+              </div>
               <h3>One gesture away</h3>
               <p>
                 Tap to pause and see the whole text. Swipe to skip by sentence, paragraph or chapter, up or down for
@@ -765,7 +807,12 @@
               </p>
             </article>
             <article class="feature reveal">
-              <div class="glyph"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5M12 7v5l3 2" /></svg></div>
+              <div class="glyph">
+                <svg viewBox="0 0 24 24">
+                  <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                  <path d="M3 3v5h5M12 7v5l3 2" />
+                </svg>
+              </div>
               <h3>Never lose the thread</h3>
               <p>
                 Your place is saved as you read. After a pause Mono picks up a few words back and eases into speed, so
@@ -773,12 +820,21 @@
               </p>
             </article>
             <article class="feature reveal">
-              <div class="glyph"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg></div>
+              <div class="glyph">
+                <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+              </div>
               <h3>A library with a memory</h3>
-              <p>Covers, progress and time left for every text, search, the words you read today and your daily streak.</p>
+              <p>
+                Covers, progress and time left for every text, search, the words you read today and your daily streak.
+              </p>
             </article>
             <article class="feature reveal">
-              <div class="glyph"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg></div>
+              <div class="glyph">
+                <svg viewBox="0 0 24 24">
+                  <rect x="5" y="11" width="14" height="10" rx="2" />
+                  <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                </svg>
+              </div>
               <h3>Private and offline</h3>
               <p>
                 No account, no server: your texts and statistics are stored on your device and Mono works without a
@@ -801,10 +857,22 @@
           </div>
           <div class="screens reveal">
             <div class="phone">
-              <img src="app/screenshots/library-narrow.png" width="780" height="1688" loading="lazy" alt="Mono's library: continue reading, words read today, streak and the list of texts" />
+              <img
+                src="app/screenshots/library-narrow.png"
+                width="780"
+                height="1688"
+                loading="lazy"
+                alt="Mono's library: continue reading, words read today, streak and the list of texts"
+              />
             </div>
             <div class="phone raised">
-              <img src="app/screenshots/reader-narrow.png" width="780" height="1688" loading="lazy" alt="Mono's reader, paused: the word in the reticle above the whole text, with playback controls and speed" />
+              <img
+                src="app/screenshots/reader-narrow.png"
+                width="780"
+                height="1688"
+                loading="lazy"
+                alt="Mono's reader, paused: the word in the reticle above the whole text, with playback controls and speed"
+              />
             </div>
           </div>
           <p class="caption reveal">The library, and the reader paused on the whole text.</p>
@@ -822,7 +890,11 @@
             </p>
             <div class="actions">
               <a class="button secondary" href="https://github.com/bylacunalabs/mono">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z" /></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"
+                  />
+                </svg>
                 Source on GitHub
               </a>
             </div>
@@ -923,7 +995,9 @@
         'Import a book, an article or a PDF, choose your speed, and simply read.'
 
       const FREQUENT = new Set(
-        'a an and are as at be but by for from has have he her his i if in is it its me my no not of on or our she so that the their them they this to up was we were with you your'.split(' '),
+        'a an and are as at be but by for from has have he her his i if in is it its me my no not of on or our she so that the their them they this to up was we were with you your'.split(
+          ' ',
+        ),
       )
       const PAUSES = { sentence: [1.5, 120], strong: [1.3, 70], comma: [1.15, 45] }
       const RAMP_UP_WORDS = 8
@@ -932,7 +1006,13 @@
         const letters = Array.from(word).filter(c => /[\p{L}\p{N}]/u.test(c)).length
         let factor = Math.min(1.8, Math.max(0.7, 1 + (letters - 5) * 0.08))
         if (FREQUENT.has(word.toLowerCase().replace(/[^\p{L}]/gu, ''))) factor *= 0.8
-        const [share, ms] = /[.!?]$/.test(word) ? PAUSES.sentence : /[:;—]$/.test(word) ? PAUSES.strong : /,$/.test(word) ? PAUSES.comma : [1, 0]
+        const [share, ms] = /[.!?]$/.test(word)
+          ? PAUSES.sentence
+          : /[:;—]$/.test(word)
+            ? PAUSES.strong
+            : /,$/.test(word)
+              ? PAUSES.comma
+              : [1, 0]
         return { word, factor: Math.max(0.55, factor * share), pause: ms }
       }
 
@@ -970,12 +1050,15 @@
         // Eases in from half speed after each resume, as the app does.
         const ramp = sinceResume < RAMP_UP_WORDS ? 1 + (RAMP_UP_WORDS - sinceResume) / RAMP_UP_WORDS : 1
         const last = index === words.length - 1
-        timer = setTimeout(() => {
-          index = last ? 0 : index + 1
-          sinceResume = last ? 0 : sinceResume + 1
-          render()
-          step()
-        }, timing[index] * ramp + (last ? 1400 : 0))
+        timer = setTimeout(
+          () => {
+            index = last ? 0 : index + 1
+            sinceResume = last ? 0 : sinceResume + 1
+            render()
+            step()
+          },
+          timing[index] * ramp + (last ? 1400 : 0),
+        )
       }
 
       function setPlaying(value) {
@@ -1020,10 +1103,13 @@
       render()
 
       // Plays while in view, unless paused by hand.
-      new IntersectionObserver(([entry]) => {
-        if (!entry.isIntersecting) setPlaying(false)
-        else if (!pausedByHand) setPlaying(true)
-      }, { threshold: 0.4 }).observe(reticle)
+      new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) setPlaying(false)
+          else if (!pausedByHand) setPlaying(true)
+        },
+        { threshold: 0.4 },
+      ).observe(reticle)
     </script>
   </body>
 </html>

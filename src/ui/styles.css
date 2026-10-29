@@ -145,7 +145,9 @@ p {
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   backdrop-filter: blur(24px) saturate(180%);
   border: 0.5px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .glass-circle {
@@ -158,7 +160,9 @@ p {
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   backdrop-filter: blur(24px) saturate(180%);
   border: 0.5px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
   transition: transform 0.15s;
 }
 
@@ -185,8 +189,7 @@ p {
   z-index: -1;
   background:
     radial-gradient(420px circle at 15% 0%, rgba(var(--brand-rgb), 0.16), transparent),
-    radial-gradient(360px circle at 100% 35%, rgba(255, 149, 0, 0.08), transparent),
-    var(--bg);
+    radial-gradient(360px circle at 100% 35%, rgba(255, 149, 0, 0.08), transparent), var(--bg);
 }
 
 .screen {
@@ -245,7 +248,9 @@ p {
   font-size: calc(11px * var(--type));
   font-weight: 600;
   color: var(--text);
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
 .tab.selected {
@@ -1081,7 +1086,9 @@ p {
 .button.prominent {
   background: var(--brand);
   color: #fff;
-  box-shadow: 0 6px 18px rgba(var(--brand-rgb), 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 6px 18px rgba(var(--brand-rgb), 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .toasts {
@@ -1846,7 +1853,6 @@ p {
   font-weight: 500;
 }
 
-
 /* Press feedback (iOS dims what's pressed; Android ripples, below) */
 
 .row-hit:active,
@@ -2237,7 +2243,9 @@ p {
   place-items: center;
   background: var(--brand);
   color: #fff;
-  box-shadow: 0 6px 16px rgba(var(--brand-rgb), 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 6px 16px rgba(var(--brand-rgb), 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Room for the floating button above the last row and the snackbar. */
@@ -2267,7 +2275,12 @@ p {
   height: 16px;
   background: var(--secondary);
   box-shadow: none;
-  transition: transform 0.2s, width 0.2s, height 0.2s, top 0.2s, left 0.2s;
+  transition:
+    transform 0.2s,
+    width 0.2s,
+    height 0.2s,
+    top 0.2s,
+    left 0.2s;
 }
 
 [data-platform='android'] .toggle.on .toggle-knob {

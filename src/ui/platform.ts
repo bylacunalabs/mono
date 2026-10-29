@@ -35,8 +35,7 @@ export function applyPlatform() {
 
   const lessTransparency = matchMedia('(prefers-reduced-transparency: reduce)')
   const nav = navigator as { deviceMemory?: number }
-  const lowEnd =
-    platform === 'android' && ((nav.deviceMemory ?? 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4)
+  const lowEnd = platform === 'android' && ((nav.deviceMemory ?? 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4)
   const updateGlass = () => {
     if (lowEnd || lessTransparency.matches) root.dataset.glass = 'solid'
     else delete root.dataset.glass

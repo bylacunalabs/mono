@@ -56,7 +56,7 @@ rules for using them are at `/brand/`.
 ## As an installed app
 
 - **Updates** are downloaded in the background and applied only when you tap
-  *Update* in the banner, so files never change under an open page.
+  _Update_ in the banner, so files never change under an open page.
 - **Back** (button or gesture) closes the reader, sheets and alerts instead
   of leaving the app.
 - **Share to Mono** (Android, desktop Chromium): text and files shared from

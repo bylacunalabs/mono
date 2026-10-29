@@ -20,7 +20,6 @@ how can could will would shall should may might must said says one two up out of
 export const FREQUENT_WORDS = new Set([...ITALIAN.split(/\s+/), ...ENGLISH.split(/\s+/)].filter(Boolean))
 
 /** "Della," → "della": the word as looked up in FREQUENT_WORDS. */
-export const bareWord = (text: string) =>
-  text.toLocaleLowerCase().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}']+$/gu, '')
+export const bareWord = (text: string) => text.toLocaleLowerCase().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}']+$/gu, '')
 
 export const isFrequent = (text: string) => FREQUENT_WORDS.has(bareWord(text))

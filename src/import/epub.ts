@@ -191,7 +191,9 @@ export function coverImage(
   // The guide's (or a manifest item's) cover page: its first image.
   const guideHref = tags('reference', opf).find(tag => attribute('type', tag)?.toLowerCase() === 'cover')
   const coverPage =
-    (guideHref && attribute('href', guideHref) && resolve(attribute('href', guideHref)!.split('#')[0], baseDirectory)) ||
+    (guideHref &&
+      attribute('href', guideHref) &&
+      resolve(attribute('href', guideHref)!.split('#')[0], baseDirectory)) ||
     items.find(item => item.mediaType.includes('html') && COVER_NAME.test(item.id + ' ' + item.href))?.href
   const pageHTML = coverPage && files[coverPage] ? decodeText(files[coverPage]) : undefined
   if (coverPage && pageHTML) {
@@ -200,7 +202,9 @@ export function coverImage(
       firstMatch(`<image\\b[^>]*href\\s*=\\s*["']([^"']+)["']`, pageHTML)
     if (src) {
       const path = resolve(src, dirname(coverPage))
-      candidates.push(items.find(item => item.href === path) ?? { id: '', href: path, mediaType: mediaTypeFor(path), properties: '' })
+      candidates.push(
+        items.find(item => item.href === path) ?? { id: '', href: path, mediaType: mediaTypeFor(path), properties: '' },
+      )
     }
   }
   candidates.push(items.find(item => isImage(item) && COVER_NAME.test(item.id + ' ' + item.href)))
@@ -216,7 +220,12 @@ export function coverImage(
 function mediaTypeFor(path: string): string {
   const ext = path.slice(path.lastIndexOf('.') + 1).toLowerCase()
   const types: Record<string, string> = {
-    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    svg: 'image/svg+xml',
   }
   return types[ext] ?? ''
 }

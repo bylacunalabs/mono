@@ -11,7 +11,11 @@ export function GestureGuide({ onClose }: { onClose: () => void }) {
   const { holdToRead } = settings.value
   const gestures: { icon: GestureIcon; title: string; detail: string }[] = [
     holdToRead
-      ? { icon: 'hold', title: 'Touch and hold', detail: 'Words run while your finger is on the screen; lift it to pause.' }
+      ? {
+          icon: 'hold',
+          title: 'Touch and hold',
+          detail: 'Words run while your finger is on the screen; lift it to pause.',
+        }
       : { icon: 'tap', title: 'Tap', detail: 'Play or pause. While paused, the whole text and the controls appear.' },
     { icon: 'swipeH', title: 'Swipe left or right', detail: 'Next or previous sentence, paragraph or chapter.' },
     { icon: 'swipeV', title: 'Swipe up or down', detail: 'Faster or slower, 25 words per minute at a time.' },

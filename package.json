@@ -9,12 +9,18 @@
     "url": "git+https://github.com/bylacunalabs/mono.git"
   },
   "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && tsc --noEmit -p tsconfig.sw.json && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "brand": "node scripts/brand.mjs"
+    "brand": "node scripts/brand.mjs",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "fflate": "^0.8.3",
@@ -24,10 +30,16 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
+    "@eslint/js": "^9.39.5",
     "@preact/preset-vite": "^2.10.6",
     "@types/node": "^24.19.2",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^17.13.0",
     "jsdom": "^30.1.2",
+    "prettier": "^3.9.10",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.1",
     "vite": "^8.3.4",
     "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.0.3",

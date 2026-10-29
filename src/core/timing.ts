@@ -134,8 +134,7 @@ export function textTiming(tokens: Token[]): TextTiming {
   const kinds: PauseKind[] = []
   let paragraphStart = 0
   tokens.forEach((t, i) => {
-    const isHeading =
-      t.endsParagraph && i - paragraphStart + 1 <= TIMING.headingWords && !/[\p{P}]$/u.test(t.text)
+    const isHeading = t.endsParagraph && i - paragraphStart + 1 <= TIMING.headingWords && !/[\p{P}]$/u.test(t.text)
     const pause = pauseAfter(t, tokens[i + 1], isHeading)
     kinds.push(pauseKind(t, tokens[i + 1], isHeading))
     const recognition = Math.max(TIMING.minimumFactor, lengthFactor(t) * recognitionFactor(t))
@@ -157,8 +156,7 @@ export interface Pace {
 
 export function pace(timing: TextTiming, wpm: number): Pace {
   const average = 60_000 / wpm
-  const pauseScale =
-    timing.meanPauseMs > 0 ? Math.min(1, (TIMING.maxPauseShare * average) / timing.meanPauseMs) : 1
+  const pauseScale = timing.meanPauseMs > 0 ? Math.min(1, (TIMING.maxPauseShare * average) / timing.meanPauseMs) : 1
   return { base: (average - pauseScale * timing.meanPauseMs) / timing.meanFactor, pauseScale }
 }
 
