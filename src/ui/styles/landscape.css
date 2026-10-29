@@ -1,0 +1,171 @@
+/* App on a phone on its side: a lower tab bar, wider content, two columns */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .screen {
+    padding-bottom: calc(var(--safe-bottom) + 76px);
+  }
+
+  .content,
+  .toolbar {
+    max-width: 960px;
+  }
+
+  .large-title {
+    margin-top: 16px;
+  }
+
+  .tab-bar {
+    bottom: calc(var(--safe-bottom) + 8px);
+    width: min(440px, calc(100vw - 32px));
+  }
+
+  .tab {
+    flex-direction: row;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    font-size: calc(13px * var(--type));
+  }
+
+  .tab svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .toasts,
+  .update-banner {
+    bottom: calc(var(--safe-bottom) + 64px);
+  }
+
+  .fab-wrapper {
+    bottom: calc(var(--safe-bottom) + 64px);
+  }
+
+  [data-platform='android'] .library .toasts {
+    bottom: calc(var(--safe-bottom) + 64px);
+    right: calc(var(--safe-right) + 88px);
+  }
+
+  [data-platform='android'] .library {
+    padding-bottom: calc(var(--safe-bottom) + 90px);
+  }
+
+  .library-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding-right: 56px;
+  }
+
+  .library-header .chips {
+    margin-top: 0;
+  }
+
+  /* Continue reading: the sentence on the left, the book on the right. */
+  .continue-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 34%);
+    grid-template-areas:
+      'top top'
+      'sentence book'
+      'sentence bottom';
+    column-gap: 24px;
+    align-items: center;
+  }
+
+  .continue-card .card-top {
+    grid-area: top;
+  }
+
+  .continue-card .card-sentence,
+  .continue-card .rsvp {
+    grid-area: sentence;
+  }
+
+  .continue-card .card-book {
+    grid-area: book;
+    align-self: end;
+  }
+
+  .continue-card .card-bottom {
+    grid-area: bottom;
+    align-self: start;
+  }
+
+  .book-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+  }
+
+  .book-row + .book-row::before {
+    display: none;
+  }
+
+  .book-row:nth-child(n + 3)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 70px;
+    right: 0;
+    border-top: 0.5px solid var(--separator);
+  }
+
+  .tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .sheet {
+    max-width: 560px;
+  }
+
+  /* Sheets with more to show go wide, in two columns. */
+  .sheet:has(.install-prompt, .guide) {
+    max-width: 780px;
+  }
+
+  .install-prompt {
+    flex-direction: row;
+    align-items: center;
+    gap: 28px;
+    padding-top: 8px;
+  }
+
+  .install-head {
+    flex: 0 0 36%;
+  }
+
+  .install-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .install-benefits {
+    margin: 0;
+  }
+
+  .guide {
+    padding-top: 8px;
+  }
+
+  .guide-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 24px;
+  }
+
+  /* Settings: a readable column rather than the full width. */
+  .settings .content {
+    max-width: 680px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

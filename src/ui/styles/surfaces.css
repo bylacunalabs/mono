@@ -1,0 +1,30 @@
+/* Fewer, opaque surfaces: less transparency asked for, or a low-end device */
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-bg: var(--group);
+  }
+}
+
+/* iOS home indicator, for when the system reports no safe area (see platform.ts). */
+[data-home-indicator] {
+  --min-safe-bottom: 34px;
+}
+
+@media (orientation: landscape) {
+  [data-home-indicator] {
+    --min-safe-bottom: 21px;
+  }
+}
+
+[data-glass='solid'] {
+  --glass-bg: var(--group);
+}
+
+[data-glass='solid'] .glass,
+[data-glass='solid'] .glass-circle,
+[data-glass='solid'] .group {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: var(--group);
+}

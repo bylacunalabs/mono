@@ -1,0 +1,228 @@
+/* Install Mono (first launch) */
+
+.install-prompt,
+.install-head,
+.install-body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  text-align: center;
+}
+
+.install-prompt {
+  padding-top: 16px;
+}
+
+.install-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  align-self: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.install-prompt h2 {
+  font-size: calc(24px * var(--type));
+  font-weight: 700;
+}
+
+.install-benefits {
+  list-style: none;
+  margin: 4px 0 8px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--fill);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.install-benefits li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: calc(15px * var(--type));
+}
+
+.install-benefits svg {
+  flex: none;
+}
+
+.install-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(var(--brand-rgb), 0.12);
+  font-size: calc(15px * var(--type));
+  font-weight: 500;
+}
+
+.install-prompt .footnote {
+  padding: 0 0 4px;
+}
+
+/* Reader on a phone on its side, split in two: the text and the player on
+   the left, the word on the right. Reading without the text, the word takes
+   the whole screen again. */
+
+.reader.landscape .reader-word {
+  left: var(--safe-left);
+  right: var(--safe-right);
+  transition: left 0.3s ease-in-out;
+}
+
+.reader.split .reader-word {
+  left: 50%;
+}
+
+.side-column {
+  position: absolute;
+  left: calc(var(--safe-left) + 12px);
+  top: calc(var(--safe-top) + 8px);
+  bottom: calc(var(--safe-bottom) + 8px);
+  width: calc(50% - var(--safe-left) - 20px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.side-column > * {
+  pointer-events: auto;
+}
+
+.side-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.side-top .reader-title {
+  text-align: left;
+}
+
+.text-panel.side {
+  position: relative;
+  left: auto;
+  transform: none;
+  width: auto;
+  flex: 1;
+  min-height: 0;
+  padding: 0 4px;
+}
+
+.text-panel.side .text-panel-inner {
+  padding: 24px 0 40%;
+}
+
+.side-player {
+  flex: none;
+  position: relative;
+  border-radius: 24px;
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: fade 0.25s;
+}
+
+.side-player .transport {
+  gap: 4px;
+}
+
+.side-player .play {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  padding-left: 3px;
+}
+
+.side-player .skip,
+.side-player .small-labeled {
+  min-width: 44px;
+  height: 48px;
+  min-height: 48px;
+}
+
+.side-player .skip {
+  width: 44px;
+}
+
+.side-player .scrub-preview {
+  bottom: calc(100% + 12px);
+}
+
+.position-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: calc(12px * var(--type));
+  color: rgba(var(--ink-rgb), 0.5);
+  white-space: nowrap;
+}
+
+.position-row .position {
+  flex: 1;
+  min-width: 0;
+}
+
+.speed-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.speed-stepper {
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(var(--ink-rgb), 0.08);
+}
+
+.speed-stepper button {
+  width: 44px;
+  height: 36px;
+  font-size: calc(20px * var(--type));
+  font-weight: 500;
+  color: rgb(var(--ink-rgb));
+}
+
+.speed-stepper button:disabled {
+  opacity: 0.3;
+}
+
+.speed-stepper .speed-value {
+  min-width: 84px;
+  text-align: center;
+  font-size: calc(17px * var(--type));
+}
+
+.speed-stepper .speed-value small {
+  font-size: 0.65em;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.rotate-hint {
+  position: absolute;
+  top: calc(var(--safe-top) + 64px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: calc(15px * var(--type));
+  font-weight: 500;
+  pointer-events: none;
+  animation: pop 0.25s ease-out;
+}

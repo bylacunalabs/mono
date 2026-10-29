@@ -1,0 +1,26 @@
+/* Mono — styles following iOS's own look (Liquid Glass approximated with
+   backdrop blur). Light and dark themes follow the system unless one is
+   chosen in Settings (data-theme on <html>); red is the accent in both.
+   On Android (data-platform="android") dialogs, menus, snackbars, sheets and
+   the add button follow Material instead, and buttons ripple (android.css).
+   data-glass="solid" replaces the blur with opaque surfaces.
+   Reading surfaces (reader, continue-reading card, covers) are drawn in
+   --ink on --paper: white on black in the dark theme, black on white in the
+   light one.
+
+   One file per area, in cascade order: later files override earlier ones. */
+
+@import './theme.css';
+@import './shell.css';
+@import './overlays.css';
+@import './library.css';
+@import './word.css';
+@import './statistics.css';
+@import './settings.css';
+@import './reader.css';
+@import './feedback.css';
+@import './reader-extras.css';
+@import './surfaces.css';
+@import './android.css';
+@import './install.css';
+@import './landscape.css';

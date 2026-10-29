@@ -1,0 +1,123 @@
+/* Reading gestures guide */
+
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+}
+
+.guide h2 {
+  font-size: calc(22px * var(--type));
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.guide-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.guide-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.guide-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--brand);
+  background: rgba(var(--brand-rgb), 0.12);
+}
+
+.guide-title {
+  font-weight: 600;
+}
+
+.guide-detail {
+  font-size: calc(15px * var(--type));
+  color: var(--secondary);
+  line-height: 1.35;
+}
+
+.guide .footnote {
+  padding: 8px 0 8px;
+}
+
+/* Position slider preview */
+
+.position {
+  position: relative;
+}
+
+.scrub-preview {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 28px);
+  padding: 12px 14px;
+  border-radius: 18px;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--group) 92%, transparent);
+  color: var(--text);
+  animation: pop 0.15s ease-out;
+}
+
+.scrub-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: calc(13px * var(--type));
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.scrub-chapter {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scrub-sentence {
+  margin-top: 4px;
+  font-size: calc(15px * var(--type));
+  line-height: 1.4;
+  color: var(--secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.scrub-sentence strong {
+  color: var(--text);
+}
+
+/* Cover → reader */
+
+.morphing .reader {
+  animation: none;
+}
+
+::view-transition-group(reader) {
+  animation-duration: 0.38s;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+  overflow: clip;
+}
+
+::view-transition-old(reader),
+::view-transition-new(reader) {
+  height: 100%;
+  object-fit: cover;
+}

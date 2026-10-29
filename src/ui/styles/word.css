@@ -1,0 +1,63 @@
+/* RSVP word */
+
+.rsvp {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  pointer-events: none;
+  color: rgb(var(--ink-rgb));
+}
+
+/* Reticle marks: strongest at their outer ends, fading towards the word. */
+.rsvp-tick {
+  position: absolute;
+  left: 50%;
+  width: 1.5px;
+  margin-left: -0.75px;
+  --mark-outer: rgba(var(--ink-rgb), 0.32);
+  --mark-inner: rgba(var(--ink-rgb), 0.03);
+}
+
+.rsvp-tick.top {
+  background: linear-gradient(to bottom, var(--mark-outer), var(--mark-inner));
+}
+
+.rsvp-tick.bottom {
+  background: linear-gradient(to top, var(--mark-outer), var(--mark-inner));
+}
+
+.rsvp-arm {
+  position: absolute;
+  top: 50%;
+  height: 1.5px;
+  margin-top: -0.75px;
+  --mark-outer: rgba(var(--ink-rgb), 0.28);
+  --mark-inner: rgba(var(--ink-rgb), 0.03);
+}
+
+.rsvp-arm.left {
+  background: linear-gradient(to right, var(--mark-outer), var(--mark-inner));
+}
+
+.rsvp-arm.right {
+  background: linear-gradient(to left, var(--mark-outer), var(--mark-inner));
+}
+
+.rsvp-word {
+  position: absolute;
+  white-space: pre;
+  color: rgb(var(--ink-rgb));
+}
+
+.rsvp-orp.red {
+  color: var(--brand);
+  text-shadow: 0 0 10px rgba(var(--brand-rgb), calc(0.8 * var(--glow)));
+}
+
+.rsvp-halo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--brand-rgb), calc(0.3 * var(--glow))), rgba(var(--brand-rgb), 0));
+}

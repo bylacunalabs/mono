@@ -59,7 +59,7 @@ the iOS launch screens, the social image and the app's own
   a Web Worker (`worker.ts`, driven by `importer.ts`)
 - `src/storage` — IndexedDB: books, texts, covers, statistics, share inbox; backup files
 - `src/state` — library, settings, covers and PWA (updates, install) stores
-- `src/ui` — Preact views and styles
+- `src/ui` — Preact views; `src/ui/styles/` one stylesheet per area, imported in cascade order by `index.css`
 - `src/sw.ts` — the service worker: precache, update on request, share target
 
 ## As an installed app

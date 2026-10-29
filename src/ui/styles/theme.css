@@ -1,0 +1,167 @@
+:root {
+  --brand: #ff3b30;
+  --brand-rgb: 255, 59, 48;
+  --bg: #f2f2f7;
+  --group: #ffffff;
+  --text: #000000;
+  --secondary: rgba(60, 60, 67, 0.6);
+  --tertiary: rgba(60, 60, 67, 0.3);
+  --separator: rgba(60, 60, 67, 0.18);
+  --fill: rgba(120, 120, 128, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.58);
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --green: #34c759;
+  --paper-rgb: 255, 255, 255;
+  --ink-rgb: 0, 0, 0;
+  /* Red glows are softer on white. */
+  --glow: 0.45;
+  --sans: system-ui, -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --rounded: ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+  --safe-top: env(safe-area-inset-top, 0px);
+  /* --min-safe-bottom: see platform.ts (iOS reports 0 on a cold start). */
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--min-safe-bottom, 0px));
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  /* Interface text scale: the system text size on iOS (see platform.ts). */
+  --type: 1;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #000000;
+    --group: #1c1c1e;
+    --text: #ffffff;
+    --secondary: rgba(235, 235, 245, 0.6);
+    --tertiary: rgba(235, 235, 245, 0.3);
+    --separator: rgba(84, 84, 88, 0.6);
+    --fill: rgba(120, 120, 128, 0.24);
+    --glass-bg: rgba(44, 44, 48, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --green: #30d158;
+    --paper-rgb: 0, 0, 0;
+    --ink-rgb: 255, 255, 255;
+    --glow: 1;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #000000;
+  --group: #1c1c1e;
+  --text: #ffffff;
+  --secondary: rgba(235, 235, 245, 0.6);
+  --tertiary: rgba(235, 235, 245, 0.3);
+  --separator: rgba(84, 84, 88, 0.6);
+  --fill: rgba(120, 120, 128, 0.24);
+  --glass-bg: rgba(44, 44, 48, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --green: #30d158;
+  --paper-rgb: 0, 0, 0;
+  --ink-rgb: 255, 255, 255;
+  --glow: 1;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: calc(17px * var(--type));
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+  /* No page zoom (pinch or double tap): the reader has its own pinch. */
+  touch-action: pan-x pan-y;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+.brand {
+  color: var(--brand);
+}
+
+.secondary,
+.muted {
+  color: var(--secondary);
+}
+
+/* Glass */
+
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 0.5px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.glass-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 0.5px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: transform 0.15s;
+}
+
+.glass-circle:active {
+  transform: scale(0.92);
+}
+
+.glass-circle-placeholder {
+  width: 44px;
+  height: 44px;
+  flex: none;
+}

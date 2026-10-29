@@ -1,0 +1,55 @@
+/* Press feedback (iOS dims what's pressed; Android ripples, below) */
+
+.row-hit:active,
+.choice:active,
+.menu-item:active:not(:disabled) {
+  background: var(--fill);
+}
+
+.chips:active .chip,
+.sort-button:active,
+.text-button:active,
+.button:active,
+.alert-button:active {
+  opacity: 0.7;
+}
+
+/* Snackbar: "Deleted …" with Undo; the line underneath runs out with the undo window. */
+
+.snackbar {
+  position: relative;
+  overflow: hidden;
+  gap: 14px;
+  padding: 8px 8px 8px 18px;
+}
+
+.snackbar-text {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.snackbar .text-button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(var(--brand-rgb), 0.12);
+}
+
+.snackbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: rgba(var(--brand-rgb), 0.5);
+  transform-origin: left;
+  animation: run-out var(--undo-seconds, 6s) linear forwards;
+}
+
+@keyframes run-out {
+  to {
+    transform: scaleX(0);
+  }
+}

@@ -1,0 +1,124 @@
+/* Statistics */
+
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 22px;
+  min-width: 0;
+}
+
+.tile-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--brand);
+  font-size: calc(12px * var(--type));
+  font-weight: 600;
+}
+
+.tile-value {
+  font-family: var(--rounded);
+  font-size: calc(28px * var(--type));
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tile-unit {
+  font-size: calc(12px * var(--type));
+  color: var(--secondary);
+}
+
+.card {
+  border-radius: 22px;
+  padding: 16px;
+}
+
+.chart-card h3 {
+  font-size: calc(17px * var(--type));
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.chart {
+  position: relative;
+  height: 180px;
+  padding-right: 36px;
+}
+
+.chart-grid {
+  position: absolute;
+  inset: 0 0 22px 0;
+}
+
+.chart-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 0.5px dashed var(--separator);
+}
+
+.chart-line span {
+  position: absolute;
+  right: 0;
+  top: -8px;
+  font-size: calc(11px * var(--type));
+  color: var(--secondary);
+}
+
+.chart-bars {
+  position: relative;
+  display: flex;
+  height: 100%;
+  gap: 10px;
+}
+
+.chart-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chart-bar-area {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.chart-bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(to bottom, rgba(var(--brand-rgb), 1), rgba(var(--brand-rgb), 0.75));
+}
+
+.chart-label {
+  height: 22px;
+  line-height: 22px;
+  font-size: calc(11px * var(--type));
+  color: var(--secondary);
+}
+
+.footnote {
+  font-size: calc(13px * var(--type));
+  color: var(--secondary);
+  padding: 6px 16px 22px;
+  line-height: 1.35;
+}
+
+.footnote.center {
+  text-align: center;
+  padding-top: 16px;
+}

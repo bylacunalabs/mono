@@ -1,0 +1,81 @@
+/* App shell */
+
+.app {
+  min-height: 100dvh;
+  position: relative;
+}
+
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(420px circle at 15% 0%, rgba(var(--brand-rgb), 0.16), transparent),
+    radial-gradient(360px circle at 100% 35%, rgba(255, 149, 0, 0.08), transparent), var(--bg);
+}
+
+.screen {
+  min-height: 100dvh;
+  padding: calc(var(--safe-top) + 8px) calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 110px)
+    calc(var(--safe-left) + 16px);
+}
+
+.content {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.toolbar {
+  position: sticky;
+  top: calc(var(--safe-top) + 8px);
+  z-index: 5;
+  display: flex;
+  justify-content: flex-end;
+  max-width: 680px;
+  margin: 0 auto;
+  height: 0;
+  overflow: visible;
+}
+
+.large-title {
+  font-size: calc(34px * var(--type));
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin: 44px 4px 16px;
+}
+
+/* Tab bar */
+
+.tab-bar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--safe-bottom) + 12px);
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  width: min(360px, calc(100vw - 32px));
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 4px 5px;
+  border-radius: 999px;
+  font-size: calc(11px * var(--type));
+  font-weight: 600;
+  color: var(--text);
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.tab.selected {
+  color: var(--brand);
+  background: var(--fill);
+}

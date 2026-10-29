@@ -1,0 +1,158 @@
+/* Settings */
+
+.group-header {
+  font-size: calc(13px * var(--type));
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--secondary);
+  padding: 0 16px 6px;
+}
+
+.group {
+  background: color-mix(in srgb, var(--group) 85%, transparent);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-radius: 22px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.group + .group {
+  margin-top: 22px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 16px;
+  width: 100%;
+  text-align: left;
+  position: relative;
+}
+
+.row + .row::before,
+.preview + .row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  border-top: 0.5px solid var(--separator);
+}
+
+.row.column {
+  flex-direction: column;
+  align-items: stretch;
+  padding-block: 12px;
+}
+
+.row-line {
+  display: flex;
+  justify-content: space-between;
+}
+
+.choice:active {
+  background: var(--fill);
+}
+
+.preview {
+  background: rgb(var(--paper-rgb));
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--secondary);
+}
+
+.slider {
+  flex: 1;
+  width: 100%;
+  accent-color: var(--brand);
+  height: 28px;
+  margin: 0;
+}
+
+.segmented {
+  display: flex;
+  flex: 1;
+  background: var(--fill);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.segmented button {
+  flex: 1;
+  padding: 7px 8px;
+  border-radius: 999px;
+  font-size: calc(15px * var(--type));
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.segmented button.selected {
+  background: var(--group);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  font-weight: 600;
+}
+
+.toggle {
+  flex: none;
+  width: 52px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--fill);
+  position: relative;
+  transition: background 0.2s;
+}
+
+.toggle.on {
+  background: var(--brand);
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.toggle.on .toggle-knob {
+  transform: translateX(20px);
+}
+
+.stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stepper {
+  display: flex;
+  background: var(--fill);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.stepper button {
+  width: 46px;
+  height: 32px;
+  font-size: calc(20px * var(--type));
+  font-weight: 500;
+}
+
+.stepper button + button {
+  border-left: 0.5px solid var(--separator);
+}
