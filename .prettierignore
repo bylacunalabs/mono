@@ -4,3 +4,4 @@ node_modules
 package-lock.json
 public
 src/ui/wordmark.svg
+scripts/splash-screens.json

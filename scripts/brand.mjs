@@ -5,12 +5,11 @@
 //     npm run brand
 //
 // writes the SVGs (landing/brand/, public/icons/favicon.svg, the app's
-// src/ui/wordmark.svg in currentColor) and renders the
-// PNGs (icons, iOS launch screens, the social image) with rsvg-convert
-// (librsvg: `brew install librsvg`).
+// src/ui/wordmark.svg in currentColor) and renders the PNGs (icons, iOS
+// launch screens, the social image) with resvg.
 
-import { execFileSync } from 'node:child_process'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { Resvg } from '@resvg/resvg-js'
 
 const BRAND = {
   red: '#ff3b30',
@@ -100,7 +99,8 @@ function iconSVG({ scale = 1 } = {}) {
       <stop offset="0" stop-color="#19191b"/><stop offset="1" stop-color="#050505"/>
     </radialGradient>
     <radialGradient id="glow" cx="256" cy="256" r="150" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="${BRAND.red}" stop-opacity="0.5"/><stop offset="1" stop-color="${BRAND.red}" stop-opacity="0"/>
+      <stop offset="0" stop-color="${BRAND.red}" stop-opacity="0.5"/><stop offset="0.5" stop-color="${BRAND.red}" stop-opacity="0.13"/>
+      <stop offset="1" stop-color="${BRAND.red}" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="letters" x1="0" y1="0" x2="512" y2="0" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#262628"/><stop offset="0.3" stop-color="#666669"/>
@@ -180,18 +180,14 @@ function socialSVG() {
 `
 }
 
-// The iOS launch screens linked by vite.config.ts (keep the two lists alike):
-// width, height (CSS px) and pixel ratio.
-// prettier-ignore
-const SPLASH_SCREENS = [
-  [440, 956, 3], [430, 932, 3], [428, 926, 3], [420, 912, 3], [414, 896, 3], [414, 896, 2], [402, 874, 3],
-  [393, 852, 3], [390, 844, 3], [375, 812, 3], [375, 667, 2], [320, 568, 2],
-  [1032, 1376, 2], [1024, 1366, 2], [834, 1210, 2], [834, 1194, 2], [834, 1112, 2], [820, 1180, 2], [810, 1080, 2],
-  [768, 1024, 2], [744, 1133, 2],
-]
+// The iOS launch screens linked by vite.config.ts: width, height (CSS px) and pixel ratio.
+const SPLASH_SCREENS = JSON.parse(readFileSync(new URL('splash-screens.json', import.meta.url), 'utf8'))
 
-function render(svg, out, width, height = width) {
-  execFileSync('rsvg-convert', ['--width', String(width), '--height', String(height), '--output', out], { input: svg })
+/** Only the social image has text, so only it loads the system's fonts. */
+function render(svg, out, width, { text = false } = {}) {
+  const font = { loadSystemFonts: text }
+  const png = new Resvg(svg, { fitTo: { mode: 'width', value: width }, font }).render().asPng()
+  writeFileSync(out, png)
 }
 
 function main() {
@@ -217,13 +213,13 @@ function main() {
   // Maskable: launchers may cut down to the central 80% circle.
   render(iconSVG({ scale: 0.82 }), 'public/icons/icon-maskable-512.png', 512)
   render(icon, 'landing/brand/mono-icon-1024.png', 1024)
-  render(socialSVG(), 'landing/og-image.png', 1200, 630)
+  render(socialSVG(), 'landing/og-image.png', 1200, { text: true })
 
   for (const [width, height, ratio] of SPLASH_SCREENS) {
     for (const scheme of ['light', 'dark']) {
       const w = width * ratio
       const h = height * ratio
-      render(splashSVG(w, h, scheme), `public/splash/${w}x${h}-${scheme}.png`, w, h)
+      render(splashSVG(w, h, scheme), `public/splash/${w}x${h}-${scheme}.png`, w)
     }
   }
   console.log(`Brand assets written: ${Object.keys(files).length} SVGs, ${6 + SPLASH_SCREENS.length * 2} PNGs.`)

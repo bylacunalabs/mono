@@ -4,23 +4,18 @@ import { extname, join, normalize } from 'node:path'
 import { defineConfig, type Connect, type Plugin } from 'vite'
 import preact from '@preact/preset-vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import splashScreens from './scripts/splash-screens.json' with { type: 'json' }
 
 // The site: the landing page at the root, the app in app/. BASE lets the site
-// live under a sub-path, e.g. BASE=/mono-web/ for GitHub Pages.
+// live under a sub-path, e.g. BASE=/mono/ for GitHub Pages.
 const site = process.env.BASE ?? '/'
 const base = `${site}app/`
 
 // iOS doesn't build a launch screen from the manifest: without these images
 // an installed Mono opens on a white screen. One per screen size (CSS px and
-// pixel ratio, portrait) and theme, made with the wordmark on the app's
-// background; public/splash/WxH-light|dark.png in device pixels.
-// prettier-ignore
-const SPLASH_SCREENS: [number, number, number][] = [
-  [440, 956, 3], [430, 932, 3], [428, 926, 3], [420, 912, 3], [414, 896, 3], [414, 896, 2], [402, 874, 3],
-  [393, 852, 3], [390, 844, 3], [375, 812, 3], [375, 667, 2], [320, 568, 2],
-  [1032, 1376, 2], [1024, 1366, 2], [834, 1210, 2], [834, 1194, 2], [834, 1112, 2], [820, 1180, 2], [810, 1080, 2],
-  [768, 1024, 2], [744, 1133, 2],
-]
+// pixel ratio, portrait) and theme, drawn by scripts/brand.mjs from the same
+// list; public/splash/WxH-light|dark.png in device pixels.
+const SPLASH_SCREENS = splashScreens as [number, number, number][]
 
 function appleSplashScreens(): Plugin {
   return {
@@ -45,7 +40,8 @@ function appleSplashScreens(): Plugin {
 // The landing page and brand guidelines (landing/, plain files) at the site's
 // root: served by the dev and preview servers, copied next to the app on
 // build. Its sw.js retires the service worker of the app as it was before it
-// moved to app/.
+// moved to app/. The landing page's reader, landing/demo.ts, uses the app's
+// own code: it's built with the app as app/demo.js.
 const CONTENT_TYPES: Record<string, string> = {
   '.html': 'text/html',
   '.css': 'text/css',
@@ -54,9 +50,16 @@ const CONTENT_TYPES: Record<string, string> = {
   '.png': 'image/png',
 }
 
+const DEMO = `${base}demo.js`
+
 function landingPage(): Plugin {
   const serve: Connect.NextHandleFunction = (req, res, next) => {
     const path = decodeURIComponent(req.url?.split('?')[0] ?? '')
+    if (path === DEMO) {
+      // In development the demo is the TypeScript source, compiled on request.
+      req.url = `${base}landing/demo.ts`
+      return next()
+    }
     if (!path.startsWith(site) || path.startsWith(base)) return next()
     let file = join('landing', normalize(path.slice(site.length - 1)))
     if (!file.startsWith('landing')) return next()
@@ -76,7 +79,7 @@ function landingPage(): Plugin {
     name: 'landing-page',
     configureServer: server => void server.middlewares.use(serve),
     configurePreviewServer: server => void server.middlewares.use(serve),
-    closeBundle: () => cpSync('landing', 'dist', { recursive: true }),
+    closeBundle: () => cpSync('landing', 'dist', { recursive: true, filter: source => !source.endsWith('.ts') }),
   }
 }
 
@@ -85,6 +88,11 @@ export default defineConfig({
   build: {
     outDir: 'dist/app',
     emptyOutDir: true,
+    rollupOptions: {
+      input: { main: 'index.html', demo: 'landing/demo.ts' },
+      // The landing page links demo.js by name.
+      output: { entryFileNames: chunk => (chunk.name === 'demo' ? 'demo.js' : 'assets/[name]-[hash].js') },
+    },
   },
   plugins: [
     preact(),

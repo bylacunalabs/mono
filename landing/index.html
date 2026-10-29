@@ -693,7 +693,7 @@
                 <label class="speed-label" for="speed">Reading speed</label>
                 <input id="speed" type="range" min="100" max="1200" step="25" value="300" />
               </div>
-              <output class="wpm" for="speed" id="wpm">300<small>WPM</small></output>
+              <output class="wpm" for="speed"><span id="wpm-value">300</span><small>WPM</small></output>
             </div>
             <p class="estimates" aria-live="polite">
               <span><strong id="t-article">5 min</strong>an article</span>
@@ -982,134 +982,6 @@
     </footer>
 
     <script src="site.js"></script>
-    <script>
-      // The demo follows the app's timing model (src/core/timing.ts), in brief:
-      // every word lasts base × factor + pause, with base chosen so the average
-      // word lasts 60 / WPM.
-
-      const TEXT =
-        'Mono shows you one word at a time. Your eyes stay still, and the words come to them. ' +
-        'The red letter is the optimal recognition point: where your gaze naturally lands. ' +
-        'With no lines to chase, your attention goes to the meaning. ' +
-        'Sentences end with a short pause, frequent words pass a little quicker, and longer ones linger. ' +
-        'Import a book, an article or a PDF, choose your speed, and simply read.'
-
-      const FREQUENT = new Set(
-        'a an and are as at be but by for from has have he her his i if in is it its me my no not of on or our she so that the their them they this to up was we were with you your'.split(
-          ' ',
-        ),
-      )
-      const PAUSES = { sentence: [1.5, 120], strong: [1.3, 70], comma: [1.15, 45] }
-      const RAMP_UP_WORDS = 8
-
-      function weigh(word) {
-        const letters = Array.from(word).filter(c => /[\p{L}\p{N}]/u.test(c)).length
-        let factor = Math.min(1.8, Math.max(0.7, 1 + (letters - 5) * 0.08))
-        if (FREQUENT.has(word.toLowerCase().replace(/[^\p{L}]/gu, ''))) factor *= 0.8
-        const [share, ms] = /[.!?]$/.test(word)
-          ? PAUSES.sentence
-          : /[:;—]$/.test(word)
-            ? PAUSES.strong
-            : /,$/.test(word)
-              ? PAUSES.comma
-              : [1, 0]
-        return { word, factor: Math.max(0.55, factor * share), pause: ms }
-      }
-
-      const words = TEXT.split(/\s+/).map(weigh)
-      const sum = key => words.reduce((total, w) => total + w[key], 0)
-
-      function delays(wpm) {
-        const total = (words.length * 60000) / wpm
-        // At most a quarter of the time goes to fixed pauses.
-        const pauses = Math.min(sum('pause'), total * 0.25)
-        const base = (total - pauses) / sum('factor')
-        return words.map(w => base * w.factor + w.pause * (pauses / sum('pause')))
-      }
-
-      const demo = document.getElementById('demo')
-      const reticle = document.getElementById('reticle')
-      const playButton = document.getElementById('play')
-      const speed = document.getElementById('speed')
-      const progress = document.getElementById('progress')
-
-      let timing = delays(300)
-      let index = 0
-      let sinceResume = 0
-      let timer = 0
-      let playing = false
-      let pausedByHand = matchMedia('(prefers-reduced-motion: reduce)').matches
-
-      function render() {
-        showWord(reticle, words[index].word)
-        reticle.setAttribute('aria-label', words[index].word)
-        progress.textContent = `${index + 1} / ${words.length}`
-      }
-
-      function step() {
-        // Eases in from half speed after each resume, as the app does.
-        const ramp = sinceResume < RAMP_UP_WORDS ? 1 + (RAMP_UP_WORDS - sinceResume) / RAMP_UP_WORDS : 1
-        const last = index === words.length - 1
-        timer = setTimeout(
-          () => {
-            index = last ? 0 : index + 1
-            sinceResume = last ? 0 : sinceResume + 1
-            render()
-            step()
-          },
-          timing[index] * ramp + (last ? 1400 : 0),
-        )
-      }
-
-      function setPlaying(value) {
-        if (value === playing) return
-        playing = value
-        demo.classList.toggle('playing', playing)
-        playButton.setAttribute('aria-label', playing ? 'Pause' : 'Play')
-        clearTimeout(timer)
-        if (playing) {
-          sinceResume = 0
-          step()
-        }
-      }
-
-      function toggle() {
-        pausedByHand = playing
-        setPlaying(!playing)
-      }
-
-      playButton.addEventListener('click', toggle)
-      reticle.addEventListener('click', toggle)
-
-      function duration(minutes) {
-        if (minutes < 60) return `${Math.max(1, Math.round(minutes))} min`
-        const hours = minutes / 60
-        return `${hours < 10 ? Math.round(hours * 10) / 10 : Math.round(hours)} h`
-      }
-
-      function setSpeed() {
-        const wpm = Number(speed.value)
-        timing = delays(wpm)
-        speed.style.setProperty('--value', `${((wpm - 100) / 1100) * 100}%`)
-        document.getElementById('wpm').innerHTML = `${wpm}<small>WPM</small>`
-        // Typical lengths: an article ~1,500 words, a short story ~7,500, a novel ~90,000.
-        document.getElementById('t-article').textContent = duration(1500 / wpm)
-        document.getElementById('t-story').textContent = duration(7500 / wpm)
-        document.getElementById('t-novel').textContent = duration(90000 / wpm)
-      }
-
-      speed.addEventListener('input', setSpeed)
-      setSpeed()
-      render()
-
-      // Plays while in view, unless paused by hand.
-      new IntersectionObserver(
-        ([entry]) => {
-          if (!entry.isIntersecting) setPlaying(false)
-          else if (!pausedByHand) setPlaying(true)
-        },
-        { threshold: 0.4 },
-      ).observe(reticle)
-    </script>
+    <script type="module" src="app/demo.js"></script>
   </body>
 </html>

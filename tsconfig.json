@@ -13,6 +13,6 @@
     "isolatedModules": true,
     "types": ["vite/client", "vite-plugin-pwa/client", "node"]
   },
-  "include": ["src", "vite.config.ts"],
+  "include": ["src", "landing", "vite.config.ts"],
   "exclude": ["src/sw.ts"]
 }
