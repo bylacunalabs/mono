@@ -1,10 +1,13 @@
 /// <reference types="vitest/config" />
-import { defineConfig, type Plugin } from 'vite'
+import { cpSync, readFileSync } from 'node:fs'
+import { defineConfig, type Connect, type Plugin } from 'vite'
 import preact from '@preact/preset-vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// BASE lets the app live under a sub-path, e.g. BASE=/mono-web/ for GitHub Pages.
-const base = process.env.BASE ?? '/'
+// The site: the landing page at the root, the app in app/. BASE lets the site
+// live under a sub-path, e.g. BASE=/mono-web/ for GitHub Pages.
+const site = process.env.BASE ?? '/'
+const base = `${site}app/`
 
 // iOS doesn't build a launch screen from the manifest: without these images
 // an installed Mono opens on a white screen. One per screen size (CSS px and
@@ -37,11 +40,35 @@ function appleSplashScreens(): Plugin {
   }
 }
 
+// The landing page (landing/, plain files) at the site's root: served by the
+// dev and preview servers, copied next to the app on build. Its sw.js retires
+// the service worker of the app as it was before it moved to app/.
+function landingPage(): Plugin {
+  const serve: Connect.NextHandleFunction = (req, res, next) => {
+    const path = req.url?.split('?')[0]
+    const file = path === site || path === `${site}index.html` ? 'index.html' : path === `${site}sw.js` ? 'sw.js' : undefined
+    if (!file) return next()
+    res.setHeader('Content-Type', file === 'sw.js' ? 'text/javascript' : 'text/html')
+    res.end(readFileSync(`landing/${file}`))
+  }
+  return {
+    name: 'landing-page',
+    configureServer: server => void server.middlewares.use(serve),
+    configurePreviewServer: server => void server.middlewares.use(serve),
+    closeBundle: () => cpSync('landing', 'dist', { recursive: true }),
+  }
+}
+
 export default defineConfig({
   base,
+  build: {
+    outDir: 'dist/app',
+    emptyOutDir: true,
+  },
   plugins: [
     preact(),
     appleSplashScreens(),
+    landingPage(),
     VitePWA({
       // The page asks before updating (see state/pwa.ts) and registers the
       // worker itself; src/sw.ts adds the share target to the precache.

@@ -1,20 +1,31 @@
 # Mono (web)
 
-The Mono RSVP speed reader as an installable Progressive Web App — a port
-of the iOS app with the same tokenizer, ORP placement, timing model,
-syllable splitting, library, statistics and reader controls.
+Speed reading, one word at a time. Mono shows each word in the same place,
+anchored on the letter your eye lands on (the Optimal Recognition Point), so
+your eyes stay still while you read books, articles and PDFs.
+
+This is the Mono RSVP speed reader as an installable Progressive Web App — a
+port of the iOS app with the same tokenizer, ORP placement, timing model,
+syllable splitting, library, statistics and reader controls. Everything runs
+in the browser: no account, no server, texts stay on the device and reading
+works offline.
 
 ## Develop
 
 ```sh
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # http://localhost:5173 (landing page), /app/ (the app)
 npm test           # unit tests (ported from the iOS test suite)
 npm run build      # type-check + production build in dist/
 npm run preview    # serve dist/ (service worker active)
 ```
 
-To serve from a sub-path (e.g. GitHub Pages at `/mono-web/`):
+The site is the landing page at the root (`landing/`, plain HTML with an
+inline demo of the reader) and the app in `app/`; `dist/` holds both. The
+landing page's `sw.js` retires the service worker of installs made before
+the app moved to `app/`.
+
+To serve from a sub-path (e.g. GitHub Pages at `/mono-web/`, app at `/mono-web/app/`):
 
 ```sh
 BASE=/mono-web/ npm run build
@@ -73,3 +84,11 @@ One design, adapted where each system has its own conventions
 - Apple system fonts (SF Pro, SF Mono, New York, SF Rounded) are only exact
   on Apple devices; elsewhere close fallbacks are used.
 - Data is stored per browser and isn't shared with the iOS app.
+
+## Contributing
+
+Issues and pull requests are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+[MIT](LICENSE) © Lacuna Labs

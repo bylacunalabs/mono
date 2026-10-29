@@ -1,0 +1,1316 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Mono — Speed reading, one word at a time</title>
+    <meta name="description" content="Mono shows one word at a time, anchored on the letter your eye lands on. Read books, articles and PDFs faster, offline, with everything kept on your device." />
+    <meta property="og:title" content="Mono — Speed reading, one word at a time" />
+    <meta property="og:description" content="One word at a time, anchored on the letter your eye lands on. Free, offline, private." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f2f7" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="app/icons/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png" />
+    <script>
+      // Opened as an app installed before Mono moved to app/: go to the app.
+      if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) location.replace('app/')
+    </script>
+    <style>
+      /* Same palette as the app: red accent, ink on paper for reading
+         surfaces, dark unless the system is light. */
+      :root {
+        --brand: #ff3b30;
+        --brand-rgb: 255, 59, 48;
+        --bg: #f2f2f7;
+        --surface: #ffffff;
+        --text: #000000;
+        --secondary: rgba(60, 60, 67, 0.68);
+        --tertiary: rgba(60, 60, 67, 0.32);
+        --separator: rgba(60, 60, 67, 0.16);
+        --fill: rgba(120, 120, 128, 0.12);
+        --ink-rgb: 0, 0, 0;
+        --paper: #ffffff;
+        --glow: 0.45;
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.05);
+        --sans: system-ui, -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        --display: system-ui, -apple-system, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+        --gutter: max(20px, env(safe-area-inset-left, 0px));
+        color-scheme: light;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --surface: #111113;
+          --text: #ffffff;
+          --secondary: rgba(235, 235, 245, 0.64);
+          --tertiary: rgba(235, 235, 245, 0.3);
+          --separator: rgba(84, 84, 88, 0.5);
+          --fill: rgba(120, 120, 128, 0.2);
+          --ink-rgb: 255, 255, 255;
+          --paper: #000000;
+          --glow: 1;
+          --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+          color-scheme: dark;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 17px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--brand);
+        outline-offset: 3px;
+      }
+
+      .wrap {
+        width: 100%;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 var(--gutter);
+      }
+
+      .wordmark {
+        font-family: var(--mono);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .wordmark b {
+        color: var(--brand);
+        font-weight: inherit;
+      }
+
+      .eyebrow {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--brand);
+        margin: 0 0 14px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: var(--display);
+        letter-spacing: -0.025em;
+        line-height: 1.08;
+        margin: 0;
+      }
+
+      h2 {
+        font-size: clamp(32px, 5vw, 52px);
+        font-weight: 750;
+      }
+
+      h3 {
+        font-size: 20px;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+        line-height: 1.25;
+      }
+
+      .lead {
+        font-size: clamp(18px, 2.1vw, 21px);
+        color: var(--secondary);
+        margin: 20px 0 0;
+        max-width: 34em;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 50px;
+        padding: 0 26px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 17px;
+        text-decoration: none;
+        transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .button:active {
+        transform: scale(0.97);
+      }
+
+      .button.primary {
+        background: var(--brand);
+        color: #fff;
+        box-shadow: 0 8px 28px rgba(var(--brand-rgb), calc(0.35 * var(--glow) + 0.1));
+      }
+
+      .button.primary:hover {
+        box-shadow: 0 10px 36px rgba(var(--brand-rgb), calc(0.5 * var(--glow) + 0.12));
+      }
+
+      .button.secondary {
+        background: var(--fill);
+      }
+
+      .button.secondary:hover {
+        background: rgba(120, 120, 128, 0.28);
+      }
+
+      /* Navigation */
+
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding-top: env(safe-area-inset-top, 0px);
+        background: color-mix(in srgb, var(--bg) 72%, transparent);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        backdrop-filter: saturate(180%) blur(20px);
+        border-bottom: 0.5px solid transparent;
+        transition: border-color 0.2s ease;
+      }
+
+      .nav.scrolled {
+        border-bottom-color: var(--separator);
+      }
+
+      .nav .wrap {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        height: 64px;
+      }
+
+      .nav .wordmark {
+        font-size: 24px;
+        text-decoration: none;
+        margin-right: auto;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 28px;
+        font-size: 15px;
+      }
+
+      .nav-links a {
+        color: var(--secondary);
+        text-decoration: none;
+      }
+
+      .nav-links a:hover {
+        color: var(--text);
+      }
+
+      .nav .button {
+        min-height: 38px;
+        padding: 0 18px;
+        font-size: 15px;
+      }
+
+      @media (max-width: 720px) {
+        .nav-links {
+          display: none;
+        }
+      }
+
+      /* Hero */
+
+      .hero {
+        position: relative;
+        padding: clamp(48px, 9vw, 104px) 0 clamp(64px, 9vw, 112px);
+      }
+
+      .hero::before {
+        content: '';
+        position: absolute;
+        inset: -120px 0 auto;
+        height: 760px;
+        background: radial-gradient(48% 52% at 70% 38%, rgba(var(--brand-rgb), calc(0.16 * var(--glow))), transparent 70%);
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .hero .wrap {
+        display: grid;
+        grid-template-columns: 1fr 1.05fr;
+        gap: clamp(32px, 6vw, 72px);
+        align-items: center;
+      }
+
+      .hero h1 {
+        font-size: clamp(44px, 7.4vw, 84px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+
+      .hero h1 em {
+        font-style: normal;
+        color: var(--brand);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 36px;
+      }
+
+      .assurances {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        margin: 28px 0 0;
+        padding: 0;
+        list-style: none;
+        font-size: 14px;
+        color: var(--secondary);
+      }
+
+      .assurances li::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        margin: 0 8px 2px 0;
+        border-radius: 50%;
+        background: var(--brand);
+      }
+
+      @media (max-width: 880px) {
+        .hero .wrap {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* The demo reader */
+
+      .demo {
+        background: var(--paper);
+        border: 0.5px solid var(--separator);
+        border-radius: 32px;
+        box-shadow: var(--shadow);
+        padding: 28px 0 22px;
+        overflow: hidden;
+      }
+
+      .demo-head {
+        display: flex;
+        justify-content: space-between;
+        padding: 0 26px;
+        font-size: 13px;
+        color: var(--secondary);
+      }
+
+      .demo-head strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .reticle {
+        --size: clamp(34px, 6.2vw, 58px);
+        --pad: 22px;
+        --gap: 0.45ch;
+        --pre: 0;
+        --suf: 0;
+        position: relative;
+        height: calc(var(--size) * 3.3);
+        margin: 18px 0 8px;
+        font: 500 var(--size) / 1.25 var(--mono);
+        font-variant-ligatures: none;
+        color: rgb(var(--ink-rgb));
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .tick,
+      .arm {
+        position: absolute;
+        --outer: rgba(var(--ink-rgb), 0.32);
+        --inner: rgba(var(--ink-rgb), 0.03);
+      }
+
+      .tick {
+        left: 50%;
+        width: 1.5px;
+        margin-left: -0.75px;
+        height: calc(50% - 0.78em);
+      }
+
+      .tick.top {
+        top: 0;
+        background: linear-gradient(to bottom, var(--outer), var(--inner));
+      }
+
+      .tick.bottom {
+        bottom: 0;
+        background: linear-gradient(to top, var(--outer), var(--inner));
+      }
+
+      .arm {
+        top: 50%;
+        height: 1.5px;
+        margin-top: -0.75px;
+      }
+
+      .arm.left {
+        left: var(--pad);
+        width: max(0px, calc(50% - var(--pad) - (var(--pre) + 0.5) * 1ch - var(--gap)));
+        background: linear-gradient(to right, var(--outer), var(--inner));
+      }
+
+      .arm.right {
+        right: var(--pad);
+        width: max(0px, calc(50% - var(--pad) - (var(--suf) + 0.5) * 1ch - var(--gap)));
+        background: linear-gradient(to left, var(--outer), var(--inner));
+      }
+
+      .halo {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 2.8em;
+        height: 2.8em;
+        margin: -1.4em 0 0 -1.4em;
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(var(--brand-rgb), calc(0.3 * var(--glow))), rgba(var(--brand-rgb), 0));
+      }
+
+      .word {
+        position: absolute;
+        top: 50%;
+        left: calc(50% - (var(--pre) + 0.5) * 1ch);
+        transform: translateY(-50%);
+        white-space: pre;
+      }
+
+      .word .side {
+        opacity: 0.8;
+      }
+
+      .word .orp {
+        color: var(--brand);
+        text-shadow: 0 0 10px rgba(var(--brand-rgb), calc(0.8 * var(--glow)));
+      }
+
+      .demo-controls {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 18px;
+        padding: 0 26px;
+      }
+
+      .play {
+        width: 52px;
+        height: 52px;
+        border: 0;
+        border-radius: 50%;
+        background: rgb(var(--ink-rgb));
+        color: var(--paper);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+      }
+
+      .play:active {
+        transform: scale(0.92);
+      }
+
+      .play svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+
+      .play .icon-pause,
+      .playing .play .icon-play {
+        display: none;
+      }
+
+      .playing .play .icon-pause {
+        display: block;
+      }
+
+      .speed-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--secondary);
+        margin-bottom: 6px;
+      }
+
+      .wpm {
+        font: 600 26px var(--mono);
+        color: var(--brand);
+        min-width: 4.2ch;
+        text-align: right;
+      }
+
+      .wpm small {
+        font-size: 14px;
+        margin-left: 4px;
+      }
+
+      input[type='range'] {
+        --value: 18%;
+        width: 100%;
+        height: 28px;
+        margin: 0;
+        background: transparent;
+        -webkit-appearance: none;
+        appearance: none;
+        cursor: pointer;
+      }
+
+      input[type='range']::-webkit-slider-runnable-track {
+        height: 6px;
+        border-radius: 3px;
+        background: linear-gradient(to right, var(--brand) var(--value), var(--fill) var(--value));
+      }
+
+      input[type='range']::-moz-range-track {
+        height: 6px;
+        border-radius: 3px;
+        background: linear-gradient(to right, var(--brand) var(--value), var(--fill) var(--value));
+      }
+
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 24px;
+        height: 24px;
+        margin-top: -9px;
+        border-radius: 50%;
+        background: var(--brand);
+        border: 3px solid var(--paper);
+        box-shadow: 0 0 12px rgba(var(--brand-rgb), 0.5);
+      }
+
+      input[type='range']::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--brand);
+        border: 3px solid var(--paper);
+        box-shadow: 0 0 12px rgba(var(--brand-rgb), 0.5);
+      }
+
+      .estimates {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        margin: 22px 26px 0;
+        padding-top: 18px;
+        border-top: 0.5px solid var(--separator);
+        text-align: center;
+      }
+
+      .estimates div + div {
+        border-left: 0.5px solid var(--separator);
+      }
+
+      .estimates strong {
+        display: block;
+        font: 600 19px var(--mono);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .estimates span {
+        font-size: 12px;
+        color: var(--secondary);
+      }
+
+      /* Sections */
+
+      section {
+        padding: clamp(72px, 10vw, 128px) 0;
+      }
+
+      .section-head {
+        max-width: 720px;
+        margin-bottom: clamp(40px, 6vw, 64px);
+      }
+
+      .section-head.center {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+      }
+
+      .section-head.center .lead {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* Eyes: reading a line versus reading with Mono */
+
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 0.5px solid var(--separator);
+        border-radius: 28px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .panel-figure {
+        flex: 1;
+        display: grid;
+        place-items: center;
+        min-height: 220px;
+        margin-bottom: 24px;
+        border-radius: 18px;
+        background: var(--paper);
+        overflow: hidden;
+      }
+
+      .panel p {
+        color: var(--secondary);
+        margin: 8px 0 0;
+      }
+
+      .lines {
+        width: 100%;
+        height: auto;
+        max-width: 420px;
+        padding: 0 20px;
+      }
+
+      .lines text {
+        font: 500 15px var(--mono);
+        fill: rgba(var(--ink-rgb), 0.55);
+      }
+
+      .lines .hop {
+        fill: none;
+        stroke: var(--brand);
+        stroke-width: 1.5;
+        stroke-dasharray: 3 4;
+        opacity: 0.7;
+      }
+
+      .lines .fix {
+        fill: var(--brand);
+      }
+
+      .lines .fix {
+        animation: fixate 4.8s infinite;
+        opacity: 0.2;
+      }
+
+      @keyframes fixate {
+        0%,
+        12% {
+          opacity: 1;
+        }
+        20%,
+        100% {
+          opacity: 0.2;
+        }
+      }
+
+      .single {
+        position: relative;
+        width: 100%;
+        height: 160px;
+        --size: clamp(26px, 8vw, 40px);
+        cursor: default;
+        margin: 0;
+      }
+
+      @media (max-width: 760px) {
+        .compare {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Features */
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+
+      .feature {
+        background: var(--surface);
+        border: 0.5px solid var(--separator);
+        border-radius: 24px;
+        padding: 28px;
+      }
+
+      .feature .glyph {
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+        background: rgba(var(--brand-rgb), 0.12);
+        color: var(--brand);
+      }
+
+      .feature .glyph svg {
+        width: 22px;
+        height: 22px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .feature p {
+        color: var(--secondary);
+        margin: 10px 0 0;
+        font-size: 16px;
+      }
+
+      .formats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 16px;
+      }
+
+      .formats span {
+        font: 600 12px var(--mono);
+        padding: 4px 9px;
+        border-radius: 8px;
+        background: var(--fill);
+      }
+
+      kbd {
+        font: 600 13px var(--mono);
+        padding: 1px 6px;
+        border-radius: 6px;
+        border: 0.5px solid var(--separator);
+        background: var(--fill);
+      }
+
+      @media (max-width: 960px) {
+        .features {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 620px) {
+        .features {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Screens */
+
+      .screens-band {
+        background: linear-gradient(to bottom, transparent, rgba(var(--brand-rgb), calc(0.06 * var(--glow))) 60%, transparent);
+      }
+
+      .screens {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: clamp(16px, 4vw, 48px);
+      }
+
+      .phone {
+        flex: 0 1 300px;
+        padding: 10px;
+        border-radius: 48px;
+        background: #0b0b0c;
+        box-shadow: 0 0 0 1.5px #2a2a2e, var(--shadow);
+      }
+
+      .phone img {
+        border-radius: 38px;
+        width: 100%;
+        height: auto;
+      }
+
+      .phone.raised {
+        transform: translateY(-40px);
+      }
+
+      .caption {
+        text-align: center;
+        font-size: 15px;
+        color: var(--secondary);
+        margin-top: 18px;
+      }
+
+      @media (max-width: 560px) {
+        .phone.raised {
+          transform: translateY(-20px);
+        }
+
+        .phone {
+          padding: 6px;
+          border-radius: 32px;
+        }
+
+        .phone img {
+          border-radius: 26px;
+        }
+      }
+
+      /* Install */
+
+      .install {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        counter-reset: platform;
+      }
+
+      .install .panel h3 {
+        margin-bottom: 14px;
+      }
+
+      .install ol {
+        margin: 0;
+        padding-left: 20px;
+        color: var(--secondary);
+      }
+
+      .install li + li {
+        margin-top: 6px;
+      }
+
+      .install strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      @media (max-width: 860px) {
+        .install {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Closing */
+
+      .closing {
+        text-align: center;
+      }
+
+      .closing h2 {
+        font-size: clamp(40px, 7vw, 76px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+
+      .closing .actions {
+        justify-content: center;
+      }
+
+      footer {
+        border-top: 0.5px solid var(--separator);
+        padding: 32px 0 calc(32px + env(safe-area-inset-bottom, 0px));
+        font-size: 14px;
+        color: var(--secondary);
+      }
+
+      footer .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      footer .wordmark {
+        color: var(--text);
+        font-size: 18px;
+        margin-right: 10px;
+      }
+
+      /* Sections fade in as they come into view. */
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+      }
+
+      .reveal.shown {
+        opacity: 1;
+        transform: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        .reveal {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+
+        .lines .fix {
+          animation: none;
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="nav" id="nav">
+      <div class="wrap">
+        <a class="wordmark" href="#top" aria-label="Mono">M<b>o</b>no</a>
+        <nav class="nav-links" aria-label="Sections">
+          <a href="#how">How it works</a>
+          <a href="#features">Features</a>
+          <a href="#install">Install</a>
+        </nav>
+        <a class="button primary" href="app/">Open Mono</a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="wrap">
+          <div>
+            <p class="eyebrow">Speed reading, one word at a time</p>
+            <h1>Read faster. Keep your eyes <em>still.</em></h1>
+            <p class="lead">
+              Mono shows one word at a time, anchored on the letter your eye lands on. No lines to chase, no place to
+              lose: just the text, at the pace you choose.
+            </p>
+            <div class="actions">
+              <a class="button primary" href="app/">Start reading — free</a>
+              <a class="button secondary" href="#how">How it works</a>
+            </div>
+            <ul class="assurances">
+              <li>Works offline</li>
+              <li>No account</li>
+              <li>Your texts stay on your device</li>
+              <li>Open source</li>
+            </ul>
+          </div>
+
+          <div class="demo" id="demo" aria-label="Try Mono: a short text read one word at a time">
+            <div class="demo-head">
+              <span><strong>Try it</strong> — tap to pause</span>
+              <span id="progress">0 / 0</span>
+            </div>
+            <div class="reticle" id="reticle" role="img" aria-live="off">
+              <div class="halo"></div>
+              <div class="tick top"></div>
+              <div class="tick bottom"></div>
+              <div class="arm left"></div>
+              <div class="arm right"></div>
+              <div class="word" id="word"><span class="side"></span><span class="orp"></span><span class="side"></span></div>
+            </div>
+            <div class="demo-controls">
+              <button class="play" id="play" type="button" aria-label="Play">
+                <svg class="icon-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.8v14.4a1 1 0 0 0 1.5.86l12-7.2a1 1 0 0 0 0-1.72l-12-7.2A1 1 0 0 0 5 2.8Z" /></svg>
+                <svg class="icon-pause" viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="2.5" width="4.5" height="15" rx="1.2" /><rect x="12" y="2.5" width="4.5" height="15" rx="1.2" /></svg>
+              </button>
+              <div>
+                <label class="speed-label" for="speed"><span>Reading speed</span></label>
+                <input id="speed" type="range" min="100" max="1200" step="25" value="300" />
+              </div>
+              <output class="wpm" for="speed" id="wpm">300<small>WPM</small></output>
+            </div>
+            <div class="estimates" aria-live="polite">
+              <div><strong id="t-article">5 min</strong><span>an article</span></div>
+              <div><strong id="t-story">25 min</strong><span>a short story</span></div>
+              <div><strong id="t-novel">5 h</strong><span>a novel</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="how">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow">How it works</p>
+            <h2>The words come to you.</h2>
+            <p class="lead">
+              Reading a page, your eyes hop from word to word and line to line, and every hop costs time. Mono uses
+              RSVP — Rapid Serial Visual Presentation — to put each word in the same place, so your eyes never have to
+              move.
+            </p>
+          </div>
+          <div class="compare">
+            <div class="panel reveal">
+              <div class="panel-figure">
+                <svg class="lines" viewBox="0 0 380 150" aria-hidden="true">
+                  <text x="10" y="52">Your eyes jump along</text>
+                  <text x="10" y="86">every line, then sweep</text>
+                  <text x="10" y="120">back to the next one.</text>
+                  <path class="hop" d="M30 34 Q 65 16 100 34 Q 135 16 170 34 M170 34 Q 100 50 30 68 M30 68 Q 70 50 110 68 Q 150 50 190 68 M190 68 Q 110 84 30 102" />
+                  <circle class="fix" cx="30" cy="34" r="4" style="animation-delay: 0s" />
+                  <circle class="fix" cx="100" cy="34" r="4" style="animation-delay: 0.6s" />
+                  <circle class="fix" cx="170" cy="34" r="4" style="animation-delay: 1.2s" />
+                  <circle class="fix" cx="30" cy="68" r="4" style="animation-delay: 1.8s" />
+                  <circle class="fix" cx="110" cy="68" r="4" style="animation-delay: 2.4s" />
+                  <circle class="fix" cx="190" cy="68" r="4" style="animation-delay: 3s" />
+                  <circle class="fix" cx="30" cy="102" r="4" style="animation-delay: 3.6s" />
+                </svg>
+              </div>
+              <h3>On a page</h3>
+              <p>Dozens of jumps per line, a sweep back at every line's end, and the odd look back to find your place.</p>
+            </div>
+            <div class="panel reveal">
+              <div class="panel-figure">
+                <div class="reticle single" id="still" aria-hidden="true">
+                  <div class="halo"></div>
+                  <div class="tick top"></div>
+                  <div class="tick bottom"></div>
+                  <div class="arm left"></div>
+                  <div class="arm right"></div>
+                  <div class="word"><span class="side"></span><span class="orp"></span><span class="side"></span></div>
+                </div>
+              </div>
+              <h3>With Mono</h3>
+              <p>
+                One spot. The red letter is the <strong>optimal recognition point</strong>, just left of the word's
+                middle, where your gaze naturally lands — and it is always in the centre of the reticle.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow">Features</p>
+            <h2>Built for reading whole books.</h2>
+            <p class="lead">A rhythm that feels natural, any text you have, and a library that remembers where you were.</p>
+          </div>
+          <div class="features">
+            <article class="feature reveal">
+              <div class="glyph"><svg viewBox="0 0 24 24"><path d="M3 12h3l3-7 4 14 3-7h5" /></svg></div>
+              <h3>A rhythm that reads like you do</h3>
+              <p>
+                Sentences end with a short pause, frequent words pass quicker and long ones linger. Very long words are
+                split into syllables. The speed you set is the real average, pauses included.
+              </p>
+            </article>
+            <article class="feature reveal">
+              <div class="glyph"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></svg></div>
+              <h3>Bring any text</h3>
+              <p>Import books, documents and saved pages, paste text, drop files on the library or share them to Mono.</p>
+              <div class="formats"><span>EPUB</span><span>PDF</span><span>TXT</span><span>HTML</span></div>
+            </article>
+            <article class="feature reveal">
+              <div class="glyph"><svg viewBox="0 0 24 24"><path d="M9 11V6a2 2 0 1 1 4 0v5" /><path d="M13 10a2 2 0 1 1 4 0v2a7 7 0 0 1-7 7h-.5A5.5 5.5 0 0 1 4 13.5V12a2 2 0 1 1 4 0" /></svg></div>
+              <h3>One gesture away</h3>
+              <p>
+                Tap to pause and see the whole text. Swipe to skip by sentence, paragraph or chapter, up or down for
+                speed, pinch for size. Or use <kbd>Space</kbd> and the arrow keys.
+              </p>
+            </article>
+            <article class="feature reveal">
+              <div class="glyph"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5M12 7v5l3 2" /></svg></div>
+              <h3>Never lose the thread</h3>
+              <p>
+                Your place is saved as you read. After a pause Mono picks up a few words back and eases into speed, so
+                you're straight back in.
+              </p>
+            </article>
+            <article class="feature reveal">
+              <div class="glyph"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg></div>
+              <h3>A library with a memory</h3>
+              <p>Covers, progress and time left for every text, search, the words you read today and your daily streak.</p>
+            </article>
+            <article class="feature reveal">
+              <div class="glyph"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg></div>
+              <h3>Private and offline</h3>
+              <p>
+                No account, no server: your texts and statistics are stored on your device and Mono works without a
+                connection. Back up everything to a file whenever you like.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="screens-band">
+        <div class="wrap">
+          <div class="section-head center reveal">
+            <p class="eyebrow">At home on your phone</p>
+            <h2>Feels like an app. Because it is one.</h2>
+            <p class="lead">
+              Add Mono to your Home Screen and it opens full screen, follows your system's look on iPhone and Android,
+              light or dark, and reads in your choice of seven typefaces.
+            </p>
+          </div>
+          <div class="screens reveal">
+            <div class="phone">
+              <img src="app/screenshots/library-narrow.png" width="780" height="1688" loading="lazy" alt="Mono's library: continue reading, words read today, streak and the list of texts" />
+            </div>
+            <div class="phone raised">
+              <img src="app/screenshots/reader-narrow.png" width="780" height="1688" loading="lazy" alt="Mono's reader, paused: the word in the reticle above the whole text, with playback controls and speed" />
+            </div>
+          </div>
+          <p class="caption reveal">The library, and the reader paused on the whole text.</p>
+        </div>
+      </section>
+
+      <section id="install">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow">Install</p>
+            <h2>Free, and nothing to download from a store.</h2>
+            <p class="lead">Mono runs in your browser. Install it to get an icon, full screen and offline reading.</p>
+          </div>
+          <div class="install">
+            <div class="panel reveal">
+              <h3>iPhone and iPad</h3>
+              <ol>
+                <li>Open Mono in <strong>Safari</strong>.</li>
+                <li>Tap <strong>Share</strong>.</li>
+                <li>Choose <strong>Add to Home Screen</strong>.</li>
+              </ol>
+            </div>
+            <div class="panel reveal">
+              <h3>Android</h3>
+              <ol>
+                <li>Open Mono in <strong>Chrome</strong>.</li>
+                <li>Tap <strong>Install</strong> when Mono offers it, or open the menu.</li>
+                <li>Choose <strong>Install app</strong>.</li>
+              </ol>
+            </div>
+            <div class="panel reveal">
+              <h3>Computer</h3>
+              <ol>
+                <li>Open Mono in <strong>Chrome</strong> or <strong>Edge</strong>.</li>
+                <li>Click the <strong>install</strong> icon in the address bar.</li>
+                <li>Open EPUBs and PDFs with Mono from your files.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="closing">
+        <div class="wrap reveal">
+          <h2>Your next book,<br />one word at a time.</h2>
+          <p class="lead" style="margin-left: auto; margin-right: auto">Start with the built-in guide. It takes less than a minute.</p>
+          <div class="actions">
+            <a class="button primary" href="app/">Open Mono</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span><span class="wordmark">M<b>o</b>no</span>by Lacuna Labs</span>
+        <span>Open source under the MIT License · <a href="https://github.com/bylacunalabs/mono">Source on GitHub</a></span>
+      </div>
+    </footer>
+
+    <script>
+      // The demo follows the app: the Optimal Recognition Point (src/core/orp.ts)
+      // and the timing model (src/core/timing.ts), in brief.
+
+      const TEXT =
+        'Mono shows you one word at a time. Your eyes stay still, and the words come to them. ' +
+        'The red letter is the optimal recognition point: where your gaze naturally lands. ' +
+        'With no lines to chase, your attention goes to the meaning. ' +
+        'Sentences end with a short pause, frequent words pass a little quicker, and longer ones linger. ' +
+        'Import a book, an article or a PDF, choose your speed, and simply read.'
+
+      const FREQUENT = new Set(
+        'a an and are as at be but by for from has have he her his i if in is it its me my no not of on or our she so that the their them they this to up was we were with you your'.split(' '),
+      )
+      const PAUSES = { sentence: [1.5, 120], comma: [1.15, 45], strong: [1.3, 70] }
+      const RAMP_UP_WORDS = 8
+
+      const isLetter = c => /[\p{L}\p{N}]/u.test(c)
+
+      function orpIndexForLength(n) {
+        if (n <= 1) return 0
+        if (n <= 3) return 1
+        if (n <= 5) return 2
+        if (n <= 9) return 3
+        if (n <= 13) return 4
+        return Math.round(n * 0.3)
+      }
+
+      function orpParts(word) {
+        const c = Array.from(word)
+        const first = c.findIndex(isLetter)
+        const last = c.findLastIndex(isLetter)
+        const i = Math.min(first < 0 ? orpIndexForLength(c.length) : first + orpIndexForLength(last - first + 1), c.length - 1)
+        return { prefix: c.slice(0, i).join(''), orp: c[i], suffix: c.slice(i + 1).join('') }
+      }
+
+      function weigh(word) {
+        const letters = Array.from(word).filter(isLetter).length
+        let factor = Math.min(1.8, Math.max(0.7, 1 + (letters - 5) * 0.08))
+        if (FREQUENT.has(word.toLowerCase().replace(/[^\p{L}]/gu, ''))) factor *= 0.8
+        const pause = /[.!?]$/.test(word) ? PAUSES.sentence : /[:;—]$/.test(word) ? PAUSES.strong : /,$/.test(word) ? PAUSES.comma : [1, 0]
+        return { word, factor: Math.max(0.55, factor * pause[0]), pause: pause[1] }
+      }
+
+      const words = TEXT.split(/\s+/).map(weigh)
+
+      // base × factor + pause, with base chosen so the average word lasts 60 / WPM.
+      function delays(wpm) {
+        const total = (words.length * 60000) / wpm
+        const pauses = Math.min(
+          words.reduce((sum, w) => sum + w.pause, 0),
+          total * 0.25,
+        )
+        const scale = pauses / Math.max(1, words.reduce((sum, w) => sum + w.pause, 0))
+        const base = (total - pauses) / words.reduce((sum, w) => sum + w.factor, 0)
+        return words.map(w => base * w.factor + w.pause * scale)
+      }
+
+      function show(reticle, word) {
+        const { prefix, orp, suffix } = orpParts(word)
+        const [pre, focus, post] = reticle.querySelectorAll('.word span')
+        pre.textContent = prefix
+        focus.textContent = orp
+        post.textContent = suffix
+        reticle.style.setProperty('--pre', Array.from(prefix).length)
+        reticle.style.setProperty('--suf', Array.from(suffix).length)
+      }
+
+      // Demo reader
+
+      const demo = document.getElementById('demo')
+      const reticle = document.getElementById('reticle')
+      const playButton = document.getElementById('play')
+      const speed = document.getElementById('speed')
+      const progress = document.getElementById('progress')
+      const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
+
+      let wpm = 300
+      let timing = delays(wpm)
+      let index = 0
+      let sinceResume = 0
+      let timer = 0
+      let playing = false
+      let pausedByUser = reduceMotion
+
+      function render() {
+        show(reticle, words[index].word)
+        reticle.setAttribute('aria-label', words[index].word)
+        progress.textContent = `${index + 1} / ${words.length}`
+      }
+
+      function step() {
+        // Ease in from half speed after each resume, as the app does.
+        const ramp = sinceResume < RAMP_UP_WORDS ? 1 + (RAMP_UP_WORDS - sinceResume) / RAMP_UP_WORDS : 1
+        const last = index === words.length - 1
+        timer = setTimeout(() => {
+          index = last ? 0 : index + 1
+          sinceResume = last ? 0 : sinceResume + 1
+          render()
+          step()
+        }, timing[index] * ramp + (last ? 1400 : 0))
+      }
+
+      function setPlaying(value) {
+        if (value === playing) return
+        playing = value
+        demo.classList.toggle('playing', playing)
+        playButton.setAttribute('aria-label', playing ? 'Pause' : 'Play')
+        clearTimeout(timer)
+        if (playing) {
+          sinceResume = 0
+          step()
+        }
+      }
+
+      function toggle() {
+        pausedByUser = playing
+        setPlaying(!playing)
+      }
+
+      playButton.addEventListener('click', toggle)
+      reticle.addEventListener('click', toggle)
+
+      function formatDuration(minutes) {
+        if (minutes < 60) return `${Math.max(1, Math.round(minutes))} min`
+        const hours = minutes / 60
+        return `${hours < 10 ? Math.round(hours * 10) / 10 : Math.round(hours)} h`
+      }
+
+      function setSpeed(value) {
+        wpm = Number(value)
+        timing = delays(wpm)
+        speed.style.setProperty('--value', `${((wpm - 100) / 1100) * 100}%`)
+        document.getElementById('wpm').innerHTML = `${wpm}<small>WPM</small>`
+        // Typical lengths: an article ~1,500 words, a short story ~7,500, a novel ~90,000.
+        document.getElementById('t-article').textContent = formatDuration(1500 / wpm)
+        document.getElementById('t-story').textContent = formatDuration(7500 / wpm)
+        document.getElementById('t-novel').textContent = formatDuration(90000 / wpm)
+      }
+
+      speed.addEventListener('input', () => setSpeed(speed.value))
+      setSpeed(speed.value)
+      render()
+
+      // Plays while in view, unless paused by hand.
+      new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) setPlaying(false)
+        else if (!pausedByUser) setPlaying(true)
+      }, { threshold: 0.4 }).observe(demo)
+
+      // The still reticle in "How it works"
+      show(document.getElementById('still'), 'recognition')
+
+      // Navigation border and section reveals
+      const nav = document.getElementById('nav')
+      addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 8), { passive: true })
+
+      const revealer = new IntersectionObserver(
+        entries => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue
+            entry.target.classList.add('shown')
+            revealer.unobserve(entry.target)
+          }
+        },
+        { rootMargin: '0px 0px -8% 0px' },
+      )
+      document.querySelectorAll('.reveal').forEach(el => revealer.observe(el))
+    </script>
+  </body>
+</html>
