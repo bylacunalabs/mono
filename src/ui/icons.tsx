@@ -1,4 +1,4 @@
-// Inline SVG icons standing in for the SF Symbols used by the iOS app.
+// Inline SVG icons, drawn in the style of Apple's SF Symbols.
 
 import type { JSX } from 'preact'
 

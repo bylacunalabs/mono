@@ -1,6 +1,6 @@
 // Mono's brand assets, all drawn from one geometry: the wordmark's letters
 // as round-capped strokes, the first o in red on the reader's reticle. The
-// app icon is the wordmark cropped around that o, as in the iOS app.
+// app icon is the wordmark cropped around that o.
 //
 //     npm run brand
 //

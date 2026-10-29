@@ -1,5 +1,4 @@
-// Ported from the iOS app's TextProcessingTests, HyphenationTests and
-// EngineTests, so both apps read texts identically.
+// Text processing, hyphenation, timing and the reading engine.
 
 import { describe, expect, it, vi } from 'vitest'
 import { RSVPEngine } from './engine'

@@ -1,5 +1,5 @@
 // Optimal Recognition Point: the letter the eye rests on, slightly left of
-// the middle of the word. Same table as the reference RSVP reader.
+// the middle of the word, by word length.
 
 import { chars, isLetterOrNumber } from './text'
 

@@ -1,13 +1,13 @@
-# Mono (web)
+# Mono
 
 Speed reading, one word at a time. Mono shows each word in the same place,
 anchored on the letter your eye lands on (the Optimal Recognition Point), so
 your eyes stay still while you read books, articles and PDFs.
 
-This is the Mono RSVP speed reader as an installable Progressive Web App — a
-port of the iOS app with the same tokenizer, ORP placement, timing model,
-syllable splitting, library, statistics and reader controls. Everything runs
-in the browser: no account, no server, texts stay on the device and reading
+Mono is a web app — an installable Progressive Web App with a tokenizer, ORP
+placement, a timing model, syllable splitting, a library, statistics and
+gesture controls made for reading whole books. Everything runs in the
+browser: no account, no server, texts stay on the device and reading
 works offline.
 
 ## Develop
@@ -15,7 +15,7 @@ works offline.
 ```sh
 npm install
 npm run dev        # http://localhost:5173 (landing page), /app/ (the app)
-npm test           # unit tests (ported from the iOS test suite)
+npm test           # unit tests
 npm run build      # type-check + production build in dist/
 npm run preview    # serve dist/ (service worker active)
 npm run brand      # redraw the logo, icons, launch screens and social image
@@ -76,7 +76,7 @@ One design, adapted where each system has its own conventions
 - **Android**: Material dialogs, menus, bottom sheets with a handle,
   snackbars and switches; a floating add button; ripples on press. Low-end
   devices get opaque surfaces instead of backdrop blur.
-- **iOS**: alerts and sheets as in the iOS app; interface text follows the
+- **iOS**: alerts and sheets in the system's style; interface text follows the
   system text size (Dynamic Type); haptic ticks through Safari's switch
   control (iOS 18+), as there's no Vibration API.
 - **Both**: reader swipes that start at the screen's edges are left to the
@@ -84,17 +84,18 @@ One design, adapted where each system has its own conventions
   reveal Start Over and Delete; deleting can be undone; opening a text grows
   its cover into the reader (View Transitions).
 
-## Differences from the iOS app
+## Browser limits
 
-- No volume-button speed control (not possible in a browser).
-- No Share Extension on iOS (Safari doesn't support Web Share Target); files
-  can be picked, dropped onto the library, pasted as text or, in installed
-  Chromium apps, opened with or shared to Mono.
-- No article import from links (would need a server to get around CORS).
-- Liquid Glass is approximated with `backdrop-filter`.
+- Safari doesn't support Web Share Target, so on iPhone and iPad Mono isn't
+  in the Share menu; files can be picked, dropped onto the library or pasted
+  as text. Installed Chromium apps can also open files with Mono and receive
+  shares.
+- No article import from links: fetching other sites from the page would
+  need a server to get around CORS.
 - Apple system fonts (SF Pro, SF Mono, New York, SF Rounded) are only exact
   on Apple devices; elsewhere close fallbacks are used.
-- Data is stored per browser and isn't shared with the iOS app.
+- Data is stored per browser: Export Backup and Restore Backup in Settings
+  move it to another browser or device.
 
 ## Contributing
 

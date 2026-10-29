@@ -1,5 +1,5 @@
-// Character helpers matching Swift's Character properties closely enough for
-// Latin-script text. Strings are handled as arrays of code points.
+// Character helpers, good enough for Latin-script text. Strings are handled
+// as arrays of code points.
 
 export const chars = (text: string): string[] => Array.from(text)
 
@@ -12,5 +12,5 @@ export const isWhitespace = (c: string) => /\s/u.test(c)
 /** Splits on runs of whitespace, dropping empty pieces. */
 export const words = (text: string): string[] => text.split(/\s+/u).filter(Boolean)
 
-/** Length in characters (code points), like Swift's `count`. */
+/** Length in characters (code points). */
 export const length = (text: string) => chars(text).length

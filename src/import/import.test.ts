@@ -1,5 +1,4 @@
-// Ported from the iOS app's TextDecoding, HTMLText, PDFText, DocumentExtractor,
-// EPUB and storage tests.
+// Text decoding, HTML, PDF and EPUB extraction, document import and storage.
 
 import { strToU8, zipSync } from 'fflate'
 import { describe, expect, it } from 'vitest'

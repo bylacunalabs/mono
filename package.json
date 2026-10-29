@@ -1,5 +1,5 @@
 {
-  "name": "mono-web",
+  "name": "mono",
   "private": true,
   "version": "1.0.0",
   "description": "Speed reading, one word at a time: the Mono RSVP reader as a Progressive Web App",

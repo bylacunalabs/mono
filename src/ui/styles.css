@@ -1,4 +1,4 @@
-/* Mono — styles modelled on the iOS app (Liquid Glass approximated with
+/* Mono — styles following iOS's own look (Liquid Glass approximated with
    backdrop blur). Light and dark themes follow the system unless one is
    chosen in Settings (data-theme on <html>); red is the accent in both.
    On Android (data-platform="android") dialogs, menus, snackbars, sheets and
