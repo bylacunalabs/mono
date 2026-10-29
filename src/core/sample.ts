@@ -42,7 +42,7 @@ Comincia con un ritmo moderato, intorno alle trecento parole al minuto. Quando t
 
 Capitolo 4 – Importare i tuoi testi
 
-Tocca il pulsante più nella libreria per importare file di testo, PDF, EPUB e pagine web, o per incollare un testo. Puoi anche trascinare i file sulla libreria. La posizione di lettura viene salvata in automatico. Scorri un testo verso sinistra per ricominciarlo o eliminarlo; per qualche secondo puoi annullare l'eliminazione. Aggiungi Mono alla schermata Home per usarlo come un'app, anche offline.
+Tocca il pulsante più nella libreria per importare file di testo, PDF, EPUB e pagine web, o per incollare un testo. Puoi anche trascinare i file sulla libreria. La posizione di lettura viene salvata in automatico. Scorri un testo verso sinistra per ricominciarlo o eliminarlo; per qualche secondo puoi annullare l'eliminazione. Aggiungi Mono alla schermata Home per usarla come un'app, anche offline.
 
 Capitolo 5 – Inizia a leggere
 
