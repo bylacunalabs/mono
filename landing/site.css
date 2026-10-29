@@ -1,0 +1,429 @@
+/* Mono's site: shared by the landing page and the brand guidelines.
+   Same palette as the app — red accent, ink on paper for reading surfaces —
+   dark unless the system is light. Headings are set in the rounded system
+   face, the nearest type to the wordmark's round-capped strokes. */
+
+:root {
+  --brand: #ff3b30;
+  --brand-rgb: 255, 59, 48;
+  --bg: #f2f2f7;
+  --surface: #ffffff;
+  --text: #000000;
+  --secondary: rgba(60, 60, 67, 0.7);
+  --tertiary: rgba(60, 60, 67, 0.32);
+  --separator: rgba(60, 60, 67, 0.16);
+  --fill: rgba(120, 120, 128, 0.12);
+  --ink-rgb: 0, 0, 0;
+  --paper: #ffffff;
+  --glow: 0.45;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.05);
+  --sans: system-ui, -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --rounded: ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --gutter: max(20px, env(safe-area-inset-left, 0px));
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --surface: #111113;
+    --text: #ffffff;
+    --secondary: rgba(235, 235, 245, 0.64);
+    --tertiary: rgba(235, 235, 245, 0.3);
+    --separator: rgba(84, 84, 88, 0.5);
+    --fill: rgba(120, 120, 128, 0.2);
+    --ink-rgb: 255, 255, 255;
+    --paper: #000000;
+    --glow: 1;
+    --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* The wordmark: one file per theme (brand/, from scripts/brand.mjs). */
+.logo {
+  display: block;
+  height: 22px;
+}
+
+.logo img {
+  height: 100%;
+  width: auto;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin: 0 0 16px;
+}
+
+/* The red o, as a bullet. */
+.eyebrow::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 2.5px solid var(--brand);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--rounded);
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  margin: 0;
+}
+
+h2 {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.lead {
+  font-size: clamp(18px, 2.1vw, 21px);
+  color: var(--secondary);
+  margin: 20px 0 0;
+  max-width: 34em;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 0 26px;
+  border-radius: 999px;
+  font-family: var(--rounded);
+  font-weight: 600;
+  font-size: 17px;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+.button.primary {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 8px 28px rgba(var(--brand-rgb), calc(0.35 * var(--glow) + 0.1));
+}
+
+.button.primary:hover {
+  box-shadow: 0 10px 36px rgba(var(--brand-rgb), calc(0.5 * var(--glow) + 0.12));
+}
+
+.button.secondary {
+  background: var(--fill);
+}
+
+.button.secondary:hover {
+  background: rgba(120, 120, 128, 0.28);
+}
+
+.button svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* Navigation */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.nav.scrolled {
+  border-bottom-color: var(--separator);
+}
+
+.nav .wrap {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  height: 64px;
+}
+
+.nav .logo {
+  margin-right: auto;
+}
+
+.nav-links {
+  display: flex;
+  gap: 28px;
+  font-size: 15px;
+}
+
+.nav-links a {
+  color: var(--secondary);
+  text-decoration: none;
+}
+
+.nav-links a:hover,
+.nav-links a[aria-current] {
+  color: var(--text);
+}
+
+.nav .button {
+  min-height: 38px;
+  padding: 0 18px;
+  font-size: 15px;
+}
+
+@media (max-width: 720px) {
+  .nav-links {
+    display: none;
+  }
+}
+
+/* Sections */
+
+section {
+  padding: clamp(72px, 10vw, 128px) 0;
+}
+
+.section-head {
+  max-width: 720px;
+  margin-bottom: clamp(40px, 6vw, 64px);
+}
+
+.section-head.center {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.section-head.center .lead {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.panel {
+  background: var(--surface);
+  border: 0.5px solid var(--separator);
+  border-radius: 28px;
+  padding: 28px;
+}
+
+.panel p {
+  color: var(--secondary);
+  margin: 8px 0 0;
+}
+
+/* Reticle: ticks above and below the focus letter, arms on the centre line,
+   all fading towards the word, as in the reader. Set --pre and --suf to the
+   characters before and after the focus letter. */
+
+.reticle {
+  --size: 48px;
+  --pad: 22px;
+  --gap: 0.45ch;
+  --pre: 0;
+  --suf: 0;
+  position: relative;
+  height: calc(var(--size) * 3.3);
+  font: 500 var(--size) / 1.25 var(--mono);
+  font-variant-ligatures: none;
+  color: rgb(var(--ink-rgb));
+}
+
+.reticle .tick,
+.reticle .arm {
+  position: absolute;
+  --outer: rgba(var(--ink-rgb), 0.34);
+  --inner: rgba(var(--ink-rgb), 0.03);
+}
+
+.reticle .tick {
+  left: 50%;
+  width: 1.5px;
+  margin-left: -0.75px;
+  height: calc(50% - 0.78em);
+}
+
+.reticle .tick.top {
+  top: 0;
+  background: linear-gradient(to bottom, var(--outer), var(--inner));
+}
+
+.reticle .tick.bottom {
+  bottom: 0;
+  background: linear-gradient(to top, var(--outer), var(--inner));
+}
+
+.reticle .arm {
+  top: 50%;
+  height: 1.5px;
+  margin-top: -0.75px;
+}
+
+.reticle .arm.left {
+  left: var(--pad);
+  width: max(0px, calc(50% - var(--pad) - (var(--pre) + 0.5) * 1ch - var(--gap)));
+  background: linear-gradient(to right, var(--outer), var(--inner));
+}
+
+.reticle .arm.right {
+  right: var(--pad);
+  width: max(0px, calc(50% - var(--pad) - (var(--suf) + 0.5) * 1ch - var(--gap)));
+  background: linear-gradient(to left, var(--outer), var(--inner));
+}
+
+.reticle .halo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2.8em;
+  height: 2.8em;
+  margin: -1.4em 0 0 -1.4em;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--brand-rgb), calc(0.3 * var(--glow))), rgba(var(--brand-rgb), 0));
+}
+
+.reticle .word {
+  position: absolute;
+  top: 50%;
+  left: calc(50% - (var(--pre) + 0.5) * 1ch);
+  transform: translateY(-50%);
+  white-space: pre;
+}
+
+.reticle .side {
+  opacity: 0.8;
+}
+
+.reticle .orp {
+  color: var(--brand);
+  text-shadow: 0 0 10px rgba(var(--brand-rgb), calc(0.8 * var(--glow)));
+}
+
+/* Footer */
+
+footer {
+  border-top: 0.5px solid var(--separator);
+  padding: 40px 0 calc(40px + env(safe-area-inset-bottom, 0px));
+  font-size: 14px;
+  color: var(--secondary);
+}
+
+footer .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 32px;
+}
+
+footer .by {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+footer .logo {
+  height: 18px;
+}
+
+footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+
+footer nav a {
+  text-decoration: none;
+}
+
+footer nav a:hover {
+  color: var(--text);
+}
+
+/* Sections fade in as they come into view (see site.js). */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.js .reveal.shown {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .js .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="256" cy="256" r="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#19191b"/><stop offset="1" stop-color="#050505"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="256" cy="256" r="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff3b30" stop-opacity="0.5"/><stop offset="1" stop-color="#ff3b30" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="letters" x1="0" y1="0" x2="512" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#262628"/><stop offset="0.3" stop-color="#666669"/>
+      <stop offset="0.68" stop-color="#6c6c70"/><stop offset="0.88" stop-color="#3a3a3d"/><stop offset="1" stop-color="#1e1e20"/>
+    </linearGradient>
+    <linearGradient id="r-down" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8e8e93" stop-opacity="0.9"/><stop offset="1" stop-color="#8e8e93" stop-opacity="0.12"/></linearGradient><linearGradient id="r-up" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#8e8e93" stop-opacity="0.9"/><stop offset="1" stop-color="#8e8e93" stop-opacity="0.12"/></linearGradient><linearGradient id="r-right" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8e8e93" stop-opacity="0.9"/><stop offset="1" stop-color="#8e8e93" stop-opacity="0.12"/></linearGradient><linearGradient id="r-left" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#8e8e93" stop-opacity="0.9"/><stop offset="1" stop-color="#8e8e93" stop-opacity="0.12"/></linearGradient>
+  </defs>
+  <g transform="translate(256 256) scale(1) translate(-256 -256)">
+    <rect x="-200" y="-200" width="912" height="912" fill="url(#bg)"/>
+    <circle cx="256" cy="256" r="150" fill="url(#glow)"/>
+    <rect x="253.5" y="105" width="5" height="46" rx="2.5" fill="url(#r-down)"/><rect x="253.5" y="360" width="5" height="46" rx="2.5" fill="url(#r-up)"/><rect x="-20" y="253.5" width="53" height="5" rx="2.5" fill="url(#r-right)"/>
+    <g><path d="M55 318.5V136.5L106 250L157 136.5V318.5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="23" stroke="url(#letters)"/>
+  <circle cx="255.5" cy="255.5" r="53.5" fill="none" stroke="#ff3b30" stroke-width="30"/>
+  <path d="M354 318.5V231A47.75 47.75 0 0 1 449.5 231V318.5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="23" stroke="url(#letters)"/>
+  <circle cx="548" cy="255.5" r="57" fill="none" stroke="url(#letters)" stroke-width="23"/></g>
+  </g>
+</svg>

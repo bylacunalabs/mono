@@ -18,10 +18,12 @@ npm run dev        # http://localhost:5173 (landing page), /app/ (the app)
 npm test           # unit tests (ported from the iOS test suite)
 npm run build      # type-check + production build in dist/
 npm run preview    # serve dist/ (service worker active)
+npm run brand      # redraw the logo, icons, launch screens and social image
 ```
 
 The site is the landing page at the root (`landing/`, plain HTML with an
-inline demo of the reader) and the app in `app/`; `dist/` holds both. The
+inline demo of the reader), the brand guidelines in `brand/` and the app in
+`app/`; `dist/` holds all three. The
 landing page's `sw.js` retires the service worker of installs made before
 the app moved to `app/`.
 
@@ -30,6 +32,15 @@ To serve from a sub-path (e.g. GitHub Pages at `/mono-web/`, app at `/mono-web/a
 ```sh
 BASE=/mono-web/ npm run build
 ```
+
+## Brand
+
+`scripts/brand.mjs` draws every brand asset from one geometry: the wordmark
+(round-capped strokes, the first o in red), the app icon (the wordmark
+cropped around that o, on the reader's reticle), the favicon, the PWA icons,
+the iOS launch screens, the social image and the app's own
+`src/ui/wordmark.svg`. It needs `rsvg-convert` (`brew install librsvg`). The
+rules for using them are at `/brand/`.
 
 ## Layout
 

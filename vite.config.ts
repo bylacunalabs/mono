@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
-import { cpSync, readFileSync } from 'node:fs'
+import { cpSync, existsSync, readFileSync, statSync } from 'node:fs'
+import { extname, join, normalize } from 'node:path'
 import { defineConfig, type Connect, type Plugin } from 'vite'
 import preact from '@preact/preset-vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -40,16 +41,35 @@ function appleSplashScreens(): Plugin {
   }
 }
 
-// The landing page (landing/, plain files) at the site's root: served by the
-// dev and preview servers, copied next to the app on build. Its sw.js retires
-// the service worker of the app as it was before it moved to app/.
+// The landing page and brand guidelines (landing/, plain files) at the site's
+// root: served by the dev and preview servers, copied next to the app on
+// build. Its sw.js retires the service worker of the app as it was before it
+// moved to app/.
+const CONTENT_TYPES: Record<string, string> = {
+  '.html': 'text/html',
+  '.css': 'text/css',
+  '.js': 'text/javascript',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+}
+
 function landingPage(): Plugin {
   const serve: Connect.NextHandleFunction = (req, res, next) => {
-    const path = req.url?.split('?')[0]
-    const file = path === site || path === `${site}index.html` ? 'index.html' : path === `${site}sw.js` ? 'sw.js' : undefined
-    if (!file) return next()
-    res.setHeader('Content-Type', file === 'sw.js' ? 'text/javascript' : 'text/html')
-    res.end(readFileSync(`landing/${file}`))
+    const path = decodeURIComponent(req.url?.split('?')[0] ?? '')
+    if (!path.startsWith(site) || path.startsWith(base)) return next()
+    let file = join('landing', normalize(path.slice(site.length - 1)))
+    if (!file.startsWith('landing')) return next()
+    if (existsSync(file) && statSync(file).isDirectory()) {
+      // Relative links in a folder's page need the trailing slash.
+      if (!path.endsWith('/')) {
+        res.writeHead(301, { Location: `${path}/` })
+        return res.end()
+      }
+      file = join(file, 'index.html')
+    }
+    if (!existsSync(file)) return next()
+    res.setHeader('Content-Type', CONTENT_TYPES[extname(file)] ?? 'application/octet-stream')
+    res.end(readFileSync(file))
   }
   return {
     name: 'landing-page',

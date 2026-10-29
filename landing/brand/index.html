@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Mono Brand</title>
+    <meta name="description" content="Mono's logo, app icon, colours, type and voice, with files to download." />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f2f7" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="../app/icons/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../site.css" />
+    <script>
+      document.documentElement.classList.add('js')
+    </script>
+    <style>
+      .intro {
+        padding: clamp(56px, 9vw, 104px) 0 clamp(32px, 5vw, 56px);
+      }
+
+      .intro h1 {
+        font-size: clamp(44px, 7vw, 80px);
+        font-weight: 800;
+        letter-spacing: -0.035em;
+      }
+
+      section {
+        padding: clamp(48px, 7vw, 88px) 0;
+        border-top: 0.5px solid var(--separator);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      @media (max-width: 760px) {
+        .grid,
+        .grid.three {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .tile {
+        border-radius: 24px;
+        border: 0.5px solid var(--separator);
+        overflow: hidden;
+        background: var(--surface);
+      }
+
+      .tile .art {
+        display: grid;
+        place-items: center;
+        min-height: 240px;
+        padding: 40px;
+      }
+
+      .tile .art.night {
+        background: #000;
+      }
+
+      .tile .art.day {
+        background: #f2f2f7;
+      }
+
+      .tile .art.red {
+        background: #ff3b30;
+      }
+
+      .tile .art img.wordmark {
+        width: min(280px, 80%);
+        height: auto;
+      }
+
+      .tile .meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px 16px;
+        padding: 16px 20px;
+        font-size: 15px;
+      }
+
+      .tile .meta strong {
+        font-weight: 600;
+      }
+
+      .downloads {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .downloads a {
+        font: 600 12px var(--mono);
+        padding: 5px 10px;
+        border-radius: 8px;
+        background: var(--fill);
+        text-decoration: none;
+      }
+
+      .downloads a:hover {
+        background: rgba(120, 120, 128, 0.28);
+      }
+
+      .icon-row {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: clamp(16px, 4vw, 40px);
+      }
+
+      .icon-row figure {
+        margin: 0;
+        text-align: center;
+        font-size: 12px;
+        color: var(--secondary);
+      }
+
+      .icon-row img {
+        margin: 0 auto 10px;
+        border-radius: 22.5%;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+
+      .icon-row img.favicon {
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      /* The red o explained: anatomy of the mark. */
+
+      .anatomy {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: clamp(32px, 6vw, 64px);
+        align-items: center;
+      }
+
+      .anatomy .figure {
+        position: relative;
+        border-radius: 24px;
+        background: var(--paper);
+        border: 0.5px solid var(--separator);
+        padding: 48px 24px;
+      }
+
+      /* The wordmark held on the reticle, its red o on the centre lines. The
+         o's centre is 37% into the wordmark (scripts/brand.mjs). */
+      .held {
+        --w: min(240px, 60vw);
+        --o: calc(var(--w) * 0.37);
+        position: relative;
+        height: calc(var(--w) * 0.9);
+      }
+
+      .held picture img {
+        position: absolute;
+        top: 50%;
+        left: calc(50% - var(--o));
+        width: var(--w);
+        height: auto;
+        transform: translateY(-50%);
+      }
+
+      .held .tick,
+      .held .arm {
+        position: absolute;
+        --outer: rgba(var(--ink-rgb), 0.34);
+        --inner: rgba(var(--ink-rgb), 0.03);
+      }
+
+      .held .tick {
+        left: 50%;
+        width: 1.5px;
+        margin-left: -0.75px;
+        height: calc(50% - var(--w) * 0.2);
+      }
+
+      .held .tick.top {
+        top: 0;
+        background: linear-gradient(to bottom, var(--outer), var(--inner));
+      }
+
+      .held .tick.bottom {
+        bottom: 0;
+        background: linear-gradient(to top, var(--outer), var(--inner));
+      }
+
+      .held .arm {
+        top: 50%;
+        height: 1.5px;
+        margin-top: -0.75px;
+      }
+
+      .held .arm.left {
+        left: 0;
+        width: calc(50% - var(--o) - 14px);
+        background: linear-gradient(to right, var(--outer), var(--inner));
+      }
+
+      .held .arm.right {
+        right: 0;
+        width: calc(50% - (var(--w) - var(--o)) - 14px);
+        background: linear-gradient(to left, var(--outer), var(--inner));
+      }
+
+      .held .halo {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: calc(var(--w) * 0.6);
+        height: calc(var(--w) * 0.6);
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(var(--brand-rgb), calc(0.3 * var(--glow))), rgba(var(--brand-rgb), 0));
+      }
+
+      .anatomy ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: point;
+      }
+
+      .anatomy li {
+        counter-increment: point;
+        position: relative;
+        padding-left: 44px;
+        color: var(--secondary);
+      }
+
+      .anatomy li + li {
+        margin-top: 20px;
+      }
+
+      .anatomy li::before {
+        content: counter(point);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid var(--brand);
+        color: var(--brand);
+        font: 700 13px/24px var(--rounded);
+        text-align: center;
+      }
+
+      .anatomy li strong {
+        display: block;
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      @media (max-width: 760px) {
+        .anatomy {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Colours */
+
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 12px;
+      }
+
+      .swatch {
+        border-radius: 20px;
+        border: 0.5px solid var(--separator);
+        overflow: hidden;
+        background: var(--surface);
+      }
+
+      .swatch .chip {
+        height: 120px;
+      }
+
+      .swatch .info {
+        padding: 12px 14px 14px;
+        font-size: 13px;
+        color: var(--secondary);
+      }
+
+      .swatch .info strong {
+        display: block;
+        color: var(--text);
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .swatch code {
+        font: 12px var(--mono);
+      }
+
+      .swatch.primary {
+        grid-column: span 2;
+      }
+
+      .swatch.primary .chip {
+        height: 248px;
+      }
+
+      @media (max-width: 960px) {
+        .swatches {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      @media (max-width: 520px) {
+        .swatches {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      /* Type */
+
+      .specimen {
+        padding: 28px;
+      }
+
+      .specimen .sample {
+        font-size: clamp(32px, 4.4vw, 48px);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        margin: 6px 0 16px;
+      }
+
+      .specimen .label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--brand);
+      }
+
+      .specimen p {
+        color: var(--secondary);
+        margin: 0;
+        font-size: 15px;
+      }
+
+      /* Voice and rules */
+
+      .rules {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .rules ul {
+        margin: 12px 0 0;
+        padding-left: 20px;
+        color: var(--secondary);
+      }
+
+      .rules li + li {
+        margin-top: 8px;
+      }
+
+      .rules .do h3::before,
+      .rules .dont h3::before {
+        display: inline-block;
+        width: 1.3em;
+      }
+
+      .rules .do h3::before {
+        content: '✓';
+        color: #30d158;
+      }
+
+      .rules .dont h3::before {
+        content: '✕';
+        color: var(--brand);
+      }
+
+      .voice {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .voice q {
+        display: block;
+        margin-top: 12px;
+        font-family: var(--rounded);
+        font-size: 18px;
+        color: var(--text);
+        quotes: '“' '”';
+      }
+
+      @media (max-width: 760px) {
+        .rules,
+        .voice {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="nav">
+      <div class="wrap">
+        <a class="logo" href="../" aria-label="Mono, home">
+          <picture>
+            <source srcset="mono-wordmark-white.svg" media="(prefers-color-scheme: dark)" />
+            <img src="mono-wordmark-black.svg" alt="Mono" width="62" height="22" />
+          </picture>
+        </a>
+        <nav class="nav-links" aria-label="Sections">
+          <a href="#logo">Logo</a>
+          <a href="#icon">Icon</a>
+          <a href="#colour">Colour</a>
+          <a href="#type">Type</a>
+          <a href="#voice">Voice</a>
+        </nav>
+        <a class="button primary" href="../app/">Open Mono</a>
+      </div>
+    </header>
+
+    <main>
+      <div class="intro wrap">
+        <p class="eyebrow">Brand guidelines</p>
+        <h1>One word. One point.<br />One red o.</h1>
+        <p class="lead">
+          Everything about Mono comes from the reader: a single word, held still on a reticle, its focus letter in red.
+          The logo, the icon and every page are built from that one picture.
+        </p>
+      </div>
+
+      <section>
+        <div class="wrap anatomy">
+          <div class="figure reveal" aria-hidden="true">
+            <div class="held">
+              <div class="halo"></div>
+              <div class="tick top"></div>
+              <div class="tick bottom"></div>
+              <div class="arm left"></div>
+              <div class="arm right"></div>
+              <picture>
+                <source srcset="mono-wordmark-white.svg" media="(prefers-color-scheme: dark)" />
+                <img src="mono-wordmark-black.svg" alt="" width="240" height="86" />
+              </picture>
+            </div>
+          </div>
+          <div class="reveal">
+            <p class="eyebrow">The idea</p>
+            <h2>The focus point</h2>
+            <ol style="margin-top: 28px">
+              <li><strong>The red o</strong>In the reader, the letter your eye lands on is red. In the name, the o plays that part: always red, always the first o.</li>
+              <li><strong>The reticle</strong>Ticks above and below the focus letter, arms on the centre line. Every mark fades as it nears the word.</li>
+              <li><strong>Still, not busy</strong>One word, lots of black around it. Space is part of the mark.</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section id="logo">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow">Logo</p>
+            <h2>The wordmark</h2>
+            <p class="lead">
+              Drawn, not typed: four letters of round-capped strokes, the first o heavier and red. Use white on dark
+              backgrounds and black on light ones; the o stays red on both.
+            </p>
+          </div>
+          <div class="grid">
+            <div class="tile reveal">
+              <div class="art night"><img class="wordmark" src="mono-wordmark-white.svg" alt="The Mono wordmark in white on black" /></div>
+              <div class="meta">
+                <strong>On dark</strong>
+                <span class="downloads"><a href="mono-wordmark-white.svg" download>SVG</a></span>
+              </div>
+            </div>
+            <div class="tile reveal">
+              <div class="art day"><img class="wordmark" src="mono-wordmark-black.svg" alt="The Mono wordmark in black on light grey" /></div>
+              <div class="meta">
+                <strong>On light</strong>
+                <span class="downloads"><a href="mono-wordmark-black.svg" download>SVG</a></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="icon">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow">Icon</p>
+            <h2>The wordmark, up close</h2>
+            <p class="lead">
+              The app icon crops the wordmark around its red o and puts it on the reticle, as if the reader had just
+              stopped on it. At favicon sizes only the o and its ticks remain.
+            </p>
+          </div>
+          <div class="tile reveal">
+            <div class="art night">
+              <div class="icon-row">
+                <figure><img src="mono-icon.svg" width="180" height="180" alt="The Mono app icon" />App icon</figure>
+                <figure><img src="mono-icon.svg" width="96" height="96" alt="" />96 px</figure>
+                <figure><img src="mono-icon.svg" width="48" height="48" alt="" />48 px</figure>
+                <figure><img class="favicon" src="mono-favicon.svg" width="32" height="32" alt="The Mono favicon" />Favicon</figure>
+              </div>
+            </div>
+            <div class="meta">
+              <strong>App icon and favicon</strong>
+              <span class="downloads">
+                <a href="mono-icon.svg" download>Icon SVG</a>
+                <a href="mono-icon-1024.png" download>Icon PNG 1024</a>
+                <a href="mono-favicon.svg" download>Favicon SVG</a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="colour">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow">Colour</p>
+            <h2>Black, white and one red</h2>
+            <p class="lead">
+              Red marks the point of focus — the o, the focus letter, the one action that matters on a screen — and
+              nothing else. Everything around it is black, white and the system's greys.
+            </p>
+          </div>
+          <div class="swatches reveal">
+            <div class="swatch primary">
+              <div class="chip" style="background: #ff3b30"></div>
+              <div class="info"><strong>Focus Red</strong><code>#FF3B30</code> · rgb(255 59 48)</div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background: #000000"></div>
+              <div class="info"><strong>Night</strong><code>#000000</code></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background: #1c1c1e"></div>
+              <div class="info"><strong>Surface</strong><code>#1C1C1E</code></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background: #8e8e93"></div>
+              <div class="info"><strong>Reticle</strong><code>#8E8E93</code></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background: #f2f2f7"></div>
+              <div class="info"><strong>Day</strong><code>#F2F2F7</code></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="type">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow">Type</p>
+            <h2>The system's own faces</h2>
+            <p class="lead">
+              Mono uses the typefaces already on your device, so it loads nothing and looks at home everywhere. Off
+              Apple devices the nearest system face stands in.
+            </p>
+          </div>
+          <div class="grid three">
+            <div class="panel specimen reveal">
+              <span class="label">Headings</span>
+              <div class="sample" style="font-family: var(--rounded); font-weight: 750">Keep your eyes still.</div>
+              <p>SF Pro Rounded, bold. Its round ends echo the wordmark's strokes.</p>
+            </div>
+            <div class="panel specimen reveal">
+              <span class="label">Interface</span>
+              <div class="sample" style="font-family: var(--sans); font-weight: 600">Continue reading</div>
+              <p>SF Pro, as in the system's own apps: labels, buttons, body text.</p>
+            </div>
+            <div class="panel specimen reveal">
+              <span class="label">Reading</span>
+              <div class="sample" style="font-family: var(--mono); font-weight: 500">wo<span style="color: var(--brand)">r</span>d</div>
+              <p>SF Mono for the word in the reticle and for numbers like 300 WPM. Readers can pick six other faces.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="voice">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow">Voice</p>
+            <h2>Calm, plain, brief</h2>
+            <p class="lead">
+              Mono talks the way it reads: one thing at a time. Short sentences, everyday words, no hype and no numbers
+              we can't stand behind.
+            </p>
+          </div>
+          <div class="rules">
+            <div class="panel do reveal">
+              <h3>Do</h3>
+              <ul>
+                <li>Say what happens: “Your place is saved as you read.”</li>
+                <li>Speak to one reader, as “you”.</li>
+                <li>Let red mark one thing per screen.</li>
+                <li>Leave room around the logo: at least the height of the o on every side.</li>
+              </ul>
+            </div>
+            <div class="panel dont reveal">
+              <h3>Don't</h3>
+              <ul>
+                <li>Promise results: no “read 3× faster”, no made-up statistics.</li>
+                <li>Recolour, outline, stretch or add effects to the wordmark.</li>
+                <li>Move the red to another letter, or make the whole word red.</li>
+                <li>Set “Mono” in a font in place of the drawn wordmark.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="voice">
+            <div class="panel reveal"><h3>Buttons</h3><q>Start reading</q></div>
+            <div class="panel reveal"><h3>Empty states</h3><q>Import a book, an article or a PDF to begin.</q></div>
+            <div class="panel reveal"><h3>Errors</h3><q>This file has no text Mono can read.</q></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span class="by">
+          <picture class="logo">
+            <source srcset="mono-wordmark-white.svg" media="(prefers-color-scheme: dark)" />
+            <img src="mono-wordmark-black.svg" alt="Mono" width="51" height="18" />
+          </picture>
+          by Lacuna Labs · MIT License
+        </span>
+        <nav aria-label="More">
+          <a href="../">Home</a>
+          <a href="../app/">Open Mono</a>
+          <a href="https://github.com/bylacunalabs/mono">GitHub</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script src="../site.js"></script>
+  </body>
+</html>

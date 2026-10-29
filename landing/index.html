@@ -4,272 +4,68 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Mono — Speed reading, one word at a time</title>
-    <meta name="description" content="Mono shows one word at a time, anchored on the letter your eye lands on. Read books, articles and PDFs faster, offline, with everything kept on your device." />
+    <meta name="description" content="Mono shows one word at a time, anchored on the letter your eye lands on. Read books, articles and PDFs faster. Free, offline, private and open source." />
     <meta property="og:title" content="Mono — Speed reading, one word at a time" />
-    <meta property="og:description" content="One word at a time, anchored on the letter your eye lands on. Free, offline, private." />
+    <meta property="og:description" content="One word at a time, anchored on the letter your eye lands on. Free, offline, private and open source." />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f2f7" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
     <meta name="color-scheme" content="dark light" />
     <link rel="icon" href="app/icons/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="site.css" />
     <script>
       // Opened as an app installed before Mono moved to app/: go to the app.
       if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) location.replace('app/')
+      document.documentElement.classList.add('js')
     </script>
     <style>
-      /* Same palette as the app: red accent, ink on paper for reading
-         surfaces, dark unless the system is light. */
-      :root {
-        --brand: #ff3b30;
-        --brand-rgb: 255, 59, 48;
-        --bg: #f2f2f7;
-        --surface: #ffffff;
-        --text: #000000;
-        --secondary: rgba(60, 60, 67, 0.68);
-        --tertiary: rgba(60, 60, 67, 0.32);
-        --separator: rgba(60, 60, 67, 0.16);
-        --fill: rgba(120, 120, 128, 0.12);
-        --ink-rgb: 0, 0, 0;
-        --paper: #ffffff;
-        --glow: 0.45;
-        --shadow: 0 24px 60px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.05);
-        --sans: system-ui, -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        --display: system-ui, -apple-system, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
-        --gutter: max(20px, env(safe-area-inset-left, 0px));
-        color-scheme: light;
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #000000;
-          --surface: #111113;
-          --text: #ffffff;
-          --secondary: rgba(235, 235, 245, 0.64);
-          --tertiary: rgba(235, 235, 245, 0.3);
-          --separator: rgba(84, 84, 88, 0.5);
-          --fill: rgba(120, 120, 128, 0.2);
-          --ink-rgb: 255, 255, 255;
-          --paper: #000000;
-          --glow: 1;
-          --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
-          color-scheme: dark;
-        }
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html {
-        scroll-behavior: smooth;
-        -webkit-text-size-adjust: 100%;
-      }
-
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
-        font-family: var(--sans);
-        font-size: 17px;
-        line-height: 1.5;
-        -webkit-font-smoothing: antialiased;
-        overflow-x: hidden;
-      }
-
-      a {
-        color: inherit;
-      }
-
-      img {
-        display: block;
-        max-width: 100%;
-      }
-
-      :focus-visible {
-        outline: 2px solid var(--brand);
-        outline-offset: 3px;
-      }
-
-      .wrap {
-        width: 100%;
-        max-width: 1120px;
-        margin: 0 auto;
-        padding: 0 var(--gutter);
-      }
-
-      .wordmark {
-        font-family: var(--mono);
-        font-weight: 700;
-        letter-spacing: -0.02em;
-      }
-
-      .wordmark b {
-        color: var(--brand);
-        font-weight: inherit;
-      }
-
-      .eyebrow {
-        font-size: 13px;
-        font-weight: 600;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--brand);
-        margin: 0 0 14px;
-      }
-
-      h1,
-      h2,
-      h3 {
-        font-family: var(--display);
-        letter-spacing: -0.025em;
-        line-height: 1.08;
-        margin: 0;
-      }
-
-      h2 {
-        font-size: clamp(32px, 5vw, 52px);
-        font-weight: 750;
-      }
-
-      h3 {
-        font-size: 20px;
-        font-weight: 650;
-        letter-spacing: -0.01em;
-        line-height: 1.25;
-      }
-
-      .lead {
-        font-size: clamp(18px, 2.1vw, 21px);
-        color: var(--secondary);
-        margin: 20px 0 0;
-        max-width: 34em;
-      }
-
-      .button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        min-height: 50px;
-        padding: 0 26px;
-        border-radius: 999px;
-        font-weight: 600;
-        font-size: 17px;
-        text-decoration: none;
-        transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
-      }
-
-      .button:active {
-        transform: scale(0.97);
-      }
-
-      .button.primary {
-        background: var(--brand);
-        color: #fff;
-        box-shadow: 0 8px 28px rgba(var(--brand-rgb), calc(0.35 * var(--glow) + 0.1));
-      }
-
-      .button.primary:hover {
-        box-shadow: 0 10px 36px rgba(var(--brand-rgb), calc(0.5 * var(--glow) + 0.12));
-      }
-
-      .button.secondary {
-        background: var(--fill);
-      }
-
-      .button.secondary:hover {
-        background: rgba(120, 120, 128, 0.28);
-      }
-
-      /* Navigation */
-
-      .nav {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        padding-top: env(safe-area-inset-top, 0px);
-        background: color-mix(in srgb, var(--bg) 72%, transparent);
-        -webkit-backdrop-filter: saturate(180%) blur(20px);
-        backdrop-filter: saturate(180%) blur(20px);
-        border-bottom: 0.5px solid transparent;
-        transition: border-color 0.2s ease;
-      }
-
-      .nav.scrolled {
-        border-bottom-color: var(--separator);
-      }
-
-      .nav .wrap {
-        display: flex;
-        align-items: center;
-        gap: 28px;
-        height: 64px;
-      }
-
-      .nav .wordmark {
-        font-size: 24px;
-        text-decoration: none;
-        margin-right: auto;
-      }
-
-      .nav-links {
-        display: flex;
-        gap: 28px;
-        font-size: 15px;
-      }
-
-      .nav-links a {
-        color: var(--secondary);
-        text-decoration: none;
-      }
-
-      .nav-links a:hover {
-        color: var(--text);
-      }
-
-      .nav .button {
-        min-height: 38px;
-        padding: 0 18px;
-        font-size: 15px;
-      }
-
-      @media (max-width: 720px) {
-        .nav-links {
-          display: none;
-        }
-      }
-
-      /* Hero */
+      /* Hero: the headline, then the reader itself as the stage. */
 
       .hero {
         position: relative;
-        padding: clamp(48px, 9vw, 104px) 0 clamp(64px, 9vw, 112px);
+        padding: clamp(56px, 9vw, 112px) 0 clamp(56px, 8vw, 96px);
+        text-align: center;
       }
 
       .hero::before {
         content: '';
         position: absolute;
-        inset: -120px 0 auto;
-        height: 760px;
-        background: radial-gradient(48% 52% at 70% 38%, rgba(var(--brand-rgb), calc(0.16 * var(--glow))), transparent 70%);
+        inset: -64px 0 auto;
+        height: 1100px;
+        background: radial-gradient(42% 46% at 50% 62%, rgba(var(--brand-rgb), calc(0.17 * var(--glow))), transparent 72%);
         pointer-events: none;
         z-index: -1;
       }
 
-      .hero .wrap {
-        display: grid;
-        grid-template-columns: 1fr 1.05fr;
-        gap: clamp(32px, 6vw, 72px);
-        align-items: center;
+      .badges {
+        display: inline-flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        margin: 0 0 28px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .badges li {
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--fill);
+        color: var(--secondary);
       }
 
       .hero h1 {
-        font-size: clamp(44px, 7.4vw, 84px);
+        font-size: clamp(46px, 8.4vw, 104px);
         font-weight: 800;
-        letter-spacing: -0.04em;
-        line-height: 1;
+        letter-spacing: -0.035em;
+        line-height: 0.98;
       }
 
       .hero h1 em {
@@ -277,158 +73,63 @@
         color: var(--brand);
       }
 
+      .hero .lead {
+        margin: 26px auto 0;
+        max-width: 30em;
+      }
+
       .actions {
         display: flex;
         flex-wrap: wrap;
+        justify-content: center;
         gap: 12px;
         margin-top: 36px;
       }
 
-      .assurances {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 20px;
-        margin: 28px 0 0;
-        padding: 0;
-        list-style: none;
-        font-size: 14px;
-        color: var(--secondary);
+      /* The stage: the demo reader, its arms reaching the page's edges. */
+
+      .stage {
+        margin-top: clamp(48px, 7vw, 88px);
       }
 
-      .assurances li::before {
-        content: '';
-        display: inline-block;
-        width: 6px;
-        height: 6px;
-        margin: 0 8px 2px 0;
-        border-radius: 50%;
-        background: var(--brand);
-      }
-
-      @media (max-width: 880px) {
-        .hero .wrap {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      /* The demo reader */
-
-      .demo {
-        background: var(--paper);
-        border: 0.5px solid var(--separator);
-        border-radius: 32px;
-        box-shadow: var(--shadow);
-        padding: 28px 0 22px;
-        overflow: hidden;
-      }
-
-      .demo-head {
-        display: flex;
-        justify-content: space-between;
-        padding: 0 26px;
+      .stage-hint {
         font-size: 13px;
         color: var(--secondary);
+        margin: 0 0 6px;
       }
 
-      .demo-head strong {
-        color: var(--text);
-        font-weight: 600;
-      }
-
-      .reticle {
-        --size: clamp(34px, 6.2vw, 58px);
-        --pad: 22px;
-        --gap: 0.45ch;
-        --pre: 0;
-        --suf: 0;
-        position: relative;
-        height: calc(var(--size) * 3.3);
-        margin: 18px 0 8px;
-        font: 500 var(--size) / 1.25 var(--mono);
-        font-variant-ligatures: none;
-        color: rgb(var(--ink-rgb));
+      .stage .reticle {
+        --size: clamp(40px, 8vw, 92px);
+        --pad: 0px;
         cursor: pointer;
         user-select: none;
         -webkit-user-select: none;
         -webkit-tap-highlight-color: transparent;
       }
 
-      .tick,
-      .arm {
-        position: absolute;
-        --outer: rgba(var(--ink-rgb), 0.32);
-        --inner: rgba(var(--ink-rgb), 0.03);
+      .stage .reticle .arm.left {
+        background: linear-gradient(to right, transparent, var(--outer) 30%, var(--inner));
       }
 
-      .tick {
-        left: 50%;
-        width: 1.5px;
-        margin-left: -0.75px;
-        height: calc(50% - 0.78em);
+      .stage .reticle .arm.right {
+        background: linear-gradient(to left, transparent, var(--outer) 30%, var(--inner));
       }
 
-      .tick.top {
-        top: 0;
-        background: linear-gradient(to bottom, var(--outer), var(--inner));
-      }
-
-      .tick.bottom {
-        bottom: 0;
-        background: linear-gradient(to top, var(--outer), var(--inner));
-      }
-
-      .arm {
-        top: 50%;
-        height: 1.5px;
-        margin-top: -0.75px;
-      }
-
-      .arm.left {
-        left: var(--pad);
-        width: max(0px, calc(50% - var(--pad) - (var(--pre) + 0.5) * 1ch - var(--gap)));
-        background: linear-gradient(to right, var(--outer), var(--inner));
-      }
-
-      .arm.right {
-        right: var(--pad);
-        width: max(0px, calc(50% - var(--pad) - (var(--suf) + 0.5) * 1ch - var(--gap)));
-        background: linear-gradient(to left, var(--outer), var(--inner));
-      }
-
-      .halo {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        width: 2.8em;
-        height: 2.8em;
-        margin: -1.4em 0 0 -1.4em;
-        border-radius: 50%;
-        background: radial-gradient(closest-side, rgba(var(--brand-rgb), calc(0.3 * var(--glow))), rgba(var(--brand-rgb), 0));
-      }
-
-      .word {
-        position: absolute;
-        top: 50%;
-        left: calc(50% - (var(--pre) + 0.5) * 1ch);
-        transform: translateY(-50%);
-        white-space: pre;
-      }
-
-      .word .side {
-        opacity: 0.8;
-      }
-
-      .word .orp {
-        color: var(--brand);
-        text-shadow: 0 0 10px rgba(var(--brand-rgb), calc(0.8 * var(--glow)));
-      }
-
-      .demo-controls {
+      .console {
         display: grid;
         grid-template-columns: auto 1fr auto;
         align-items: center;
         gap: 18px;
-        padding: 0 26px;
+        width: min(560px, 100%);
+        margin: clamp(16px, 3vw, 28px) auto 0;
+        padding: 12px 22px 12px 12px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--surface) 80%, transparent);
+        border: 0.5px solid var(--separator);
+        box-shadow: var(--shadow);
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
+        text-align: left;
       }
 
       .play {
@@ -464,32 +165,31 @@
       }
 
       .speed-label {
-        display: flex;
-        justify-content: space-between;
-        font-size: 12px;
+        display: block;
+        font-size: 11px;
         font-weight: 600;
         letter-spacing: 0.12em;
         text-transform: uppercase;
         color: var(--secondary);
-        margin-bottom: 6px;
       }
 
       .wpm {
-        font: 600 26px var(--mono);
+        font: 600 24px var(--mono);
         color: var(--brand);
         min-width: 4.2ch;
         text-align: right;
+        font-variant-numeric: tabular-nums;
       }
 
       .wpm small {
-        font-size: 14px;
-        margin-left: 4px;
+        font-size: 13px;
+        margin-left: 3px;
       }
 
       input[type='range'] {
         --value: 18%;
         width: 100%;
-        height: 28px;
+        height: 26px;
         margin: 0;
         background: transparent;
         -webkit-appearance: none;
@@ -511,9 +211,9 @@
 
       input[type='range']::-webkit-slider-thumb {
         -webkit-appearance: none;
-        width: 24px;
-        height: 24px;
-        margin-top: -9px;
+        width: 22px;
+        height: 22px;
+        margin-top: -8px;
         border-radius: 50%;
         background: var(--brand);
         border: 3px solid var(--paper);
@@ -521,8 +221,8 @@
       }
 
       input[type='range']::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         background: var(--brand);
         border: 3px solid var(--paper);
@@ -530,52 +230,34 @@
       }
 
       .estimates {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        margin: 22px 26px 0;
-        padding-top: 18px;
-        border-top: 0.5px solid var(--separator);
-        text-align: center;
-      }
-
-      .estimates div + div {
-        border-left: 0.5px solid var(--separator);
-      }
-
-      .estimates strong {
-        display: block;
-        font: 600 19px var(--mono);
-        font-variant-numeric: tabular-nums;
-      }
-
-      .estimates span {
-        font-size: 12px;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px 32px;
+        margin: 22px 0 0;
+        font-size: 14px;
         color: var(--secondary);
       }
 
-      /* Sections */
-
-      section {
-        padding: clamp(72px, 10vw, 128px) 0;
+      .estimates strong {
+        font: 600 15px var(--mono);
+        color: var(--text);
+        margin-right: 6px;
+        font-variant-numeric: tabular-nums;
       }
 
-      .section-head {
-        max-width: 720px;
-        margin-bottom: clamp(40px, 6vw, 64px);
+      @media (max-width: 480px) {
+        .console {
+          gap: 12px;
+          padding-right: 16px;
+        }
+
+        .wpm {
+          font-size: 20px;
+        }
       }
 
-      .section-head.center {
-        margin-left: auto;
-        margin-right: auto;
-        text-align: center;
-      }
-
-      .section-head.center .lead {
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      /* Eyes: reading a line versus reading with Mono */
+      /* How it works: a page against the reticle */
 
       .compare {
         display: grid;
@@ -583,16 +265,12 @@
         gap: 20px;
       }
 
-      .panel {
-        background: var(--surface);
-        border: 0.5px solid var(--separator);
-        border-radius: 28px;
-        padding: 28px;
+      .compare .panel {
         display: flex;
         flex-direction: column;
       }
 
-      .panel-figure {
+      .figure {
         flex: 1;
         display: grid;
         place-items: center;
@@ -601,11 +279,6 @@
         border-radius: 18px;
         background: var(--paper);
         overflow: hidden;
-      }
-
-      .panel p {
-        color: var(--secondary);
-        margin: 8px 0 0;
       }
 
       .lines {
@@ -630,11 +303,8 @@
 
       .lines .fix {
         fill: var(--brand);
-      }
-
-      .lines .fix {
-        animation: fixate 4.8s infinite;
         opacity: 0.2;
+        animation: fixate 4.8s infinite;
       }
 
       @keyframes fixate {
@@ -648,13 +318,9 @@
         }
       }
 
-      .single {
-        position: relative;
-        width: 100%;
-        height: 160px;
+      .figure .reticle {
         --size: clamp(26px, 8vw, 40px);
-        cursor: default;
-        margin: 0;
+        width: 100%;
       }
 
       @media (max-width: 760px) {
@@ -778,10 +444,6 @@
       }
 
       @media (max-width: 560px) {
-        .phone.raised {
-          transform: translateY(-20px);
-        }
-
         .phone {
           padding: 6px;
           border-radius: 32px;
@@ -789,6 +451,68 @@
 
         .phone img {
           border-radius: 26px;
+        }
+
+        .phone.raised {
+          transform: translateY(-20px);
+        }
+      }
+
+      /* Open source */
+
+      .open {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: clamp(32px, 6vw, 72px);
+        align-items: center;
+      }
+
+      .open .actions {
+        justify-content: flex-start;
+      }
+
+      .terminal {
+        border-radius: 22px;
+        background: #0b0b0c;
+        border: 0.5px solid #2a2a2e;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        color: #f2f2f7;
+      }
+
+      .terminal-bar {
+        display: flex;
+        gap: 7px;
+        padding: 14px 16px;
+        border-bottom: 0.5px solid #2a2a2e;
+      }
+
+      .terminal-bar span {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: #3a3a3c;
+      }
+
+      .terminal pre {
+        margin: 0;
+        padding: 20px 22px 24px;
+        font: 14px/1.9 var(--mono);
+        overflow-x: auto;
+      }
+
+      .terminal .prompt {
+        color: var(--brand);
+        user-select: none;
+      }
+
+      .terminal .comment {
+        color: #8e8e93;
+      }
+
+      @media (max-width: 860px) {
+        .open {
+          grid-template-columns: 1fr;
         }
       }
 
@@ -798,10 +522,9 @@
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 20px;
-        counter-reset: platform;
       }
 
-      .install .panel h3 {
+      .install h3 {
         margin-bottom: 14px;
       }
 
@@ -826,65 +549,62 @@
         }
       }
 
-      /* Closing */
+      /* Closing: the wordmark on the reticle. */
 
       .closing {
         text-align: center;
+        overflow: hidden;
+      }
+
+      .closing .mark {
+        position: relative;
+        display: grid;
+        place-items: center;
+        height: clamp(200px, 30vw, 320px);
+        margin-bottom: 24px;
+      }
+
+      .closing .mark::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(closest-side, rgba(var(--brand-rgb), calc(0.22 * var(--glow))), transparent);
+      }
+
+      .closing .mark .logo {
+        position: relative;
+        height: clamp(64px, 10vw, 110px);
+      }
+
+      .closing .tick {
+        position: absolute;
+        left: 50%;
+        width: 1.5px;
+        height: 22%;
+        background: linear-gradient(to bottom, rgba(var(--ink-rgb), 0.34), rgba(var(--ink-rgb), 0.03));
+      }
+
+      .closing .tick.top {
+        top: 0;
+      }
+
+      .closing .tick.bottom {
+        bottom: 0;
+        transform: rotate(180deg);
       }
 
       .closing h2 {
-        font-size: clamp(40px, 7vw, 76px);
+        font-size: clamp(36px, 6vw, 64px);
         font-weight: 800;
-        letter-spacing: -0.04em;
+        letter-spacing: -0.035em;
       }
 
-      .closing .actions {
-        justify-content: center;
-      }
-
-      footer {
-        border-top: 0.5px solid var(--separator);
-        padding: 32px 0 calc(32px + env(safe-area-inset-bottom, 0px));
-        font-size: 14px;
-        color: var(--secondary);
-      }
-
-      footer .wrap {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 12px;
-      }
-
-      footer .wordmark {
-        color: var(--text);
-        font-size: 18px;
-        margin-right: 10px;
-      }
-
-      /* Sections fade in as they come into view. */
-      .reveal {
-        opacity: 0;
-        transform: translateY(24px);
-        transition: opacity 0.8s ease, transform 0.8s ease;
-      }
-
-      .reveal.shown {
-        opacity: 1;
-        transform: none;
+      .closing .lead {
+        margin-left: auto;
+        margin-right: auto;
       }
 
       @media (prefers-reduced-motion: reduce) {
-        html {
-          scroll-behavior: auto;
-        }
-
-        .reveal {
-          opacity: 1;
-          transform: none;
-          transition: none;
-        }
-
         .lines .fix {
           animation: none;
           opacity: 1;
@@ -893,12 +613,18 @@
     </style>
   </head>
   <body>
-    <header class="nav" id="nav">
+    <header class="nav">
       <div class="wrap">
-        <a class="wordmark" href="#top" aria-label="Mono">M<b>o</b>no</a>
+        <a class="logo" href="#top" aria-label="Mono, home">
+          <picture>
+            <source srcset="brand/mono-wordmark-white.svg" media="(prefers-color-scheme: dark)" />
+            <img src="brand/mono-wordmark-black.svg" alt="Mono" width="62" height="22" />
+          </picture>
+        </a>
         <nav class="nav-links" aria-label="Sections">
           <a href="#how">How it works</a>
           <a href="#features">Features</a>
+          <a href="#open-source">Open source</a>
           <a href="#install">Install</a>
         </nav>
         <a class="button primary" href="app/">Open Mono</a>
@@ -908,54 +634,50 @@
     <main id="top">
       <section class="hero">
         <div class="wrap">
-          <div>
-            <p class="eyebrow">Speed reading, one word at a time</p>
-            <h1>Read faster. Keep your eyes <em>still.</em></h1>
-            <p class="lead">
-              Mono shows one word at a time, anchored on the letter your eye lands on. No lines to chase, no place to
-              lose: just the text, at the pace you choose.
-            </p>
-            <div class="actions">
-              <a class="button primary" href="app/">Start reading — free</a>
-              <a class="button secondary" href="#how">How it works</a>
-            </div>
-            <ul class="assurances">
-              <li>Works offline</li>
-              <li>No account</li>
-              <li>Your texts stay on your device</li>
-              <li>Open source</li>
-            </ul>
+          <ul class="badges" aria-label="Mono is">
+            <li>Free</li>
+            <li>Open source</li>
+            <li>Works offline</li>
+            <li>No account</li>
+          </ul>
+          <h1>Read faster.<br />Keep your eyes <em>still.</em></h1>
+          <p class="lead">
+            Mono shows one word at a time, anchored on the letter your eye lands on. No lines to chase, no place to
+            lose: just the text, at the pace you choose.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="app/">Start reading</a>
+            <a class="button secondary" href="#how">How it works</a>
           </div>
+        </div>
 
-          <div class="demo" id="demo" aria-label="Try Mono: a short text read one word at a time">
-            <div class="demo-head">
-              <span><strong>Try it</strong> — tap to pause</span>
-              <span id="progress">0 / 0</span>
-            </div>
-            <div class="reticle" id="reticle" role="img" aria-live="off">
-              <div class="halo"></div>
-              <div class="tick top"></div>
-              <div class="tick bottom"></div>
-              <div class="arm left"></div>
-              <div class="arm right"></div>
-              <div class="word" id="word"><span class="side"></span><span class="orp"></span><span class="side"></span></div>
-            </div>
-            <div class="demo-controls">
+        <div class="stage" id="demo" aria-label="Try Mono: a short text read one word at a time">
+          <p class="stage-hint"><span id="progress">Try it</span> · tap the word to pause</p>
+          <div class="reticle" id="reticle" role="img">
+            <div class="halo"></div>
+            <div class="tick top"></div>
+            <div class="tick bottom"></div>
+            <div class="arm left"></div>
+            <div class="arm right"></div>
+            <div class="word"><span class="side"></span><span class="orp"></span><span class="side"></span></div>
+          </div>
+          <div class="wrap">
+            <div class="console">
               <button class="play" id="play" type="button" aria-label="Play">
                 <svg class="icon-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.8v14.4a1 1 0 0 0 1.5.86l12-7.2a1 1 0 0 0 0-1.72l-12-7.2A1 1 0 0 0 5 2.8Z" /></svg>
                 <svg class="icon-pause" viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="2.5" width="4.5" height="15" rx="1.2" /><rect x="12" y="2.5" width="4.5" height="15" rx="1.2" /></svg>
               </button>
               <div>
-                <label class="speed-label" for="speed"><span>Reading speed</span></label>
+                <label class="speed-label" for="speed">Reading speed</label>
                 <input id="speed" type="range" min="100" max="1200" step="25" value="300" />
               </div>
               <output class="wpm" for="speed" id="wpm">300<small>WPM</small></output>
             </div>
-            <div class="estimates" aria-live="polite">
-              <div><strong id="t-article">5 min</strong><span>an article</span></div>
-              <div><strong id="t-story">25 min</strong><span>a short story</span></div>
-              <div><strong id="t-novel">5 h</strong><span>a novel</span></div>
-            </div>
+            <p class="estimates" aria-live="polite">
+              <span><strong id="t-article">5 min</strong>an article</span>
+              <span><strong id="t-story">25 min</strong>a short story</span>
+              <span><strong id="t-novel">5 h</strong>a novel</span>
+            </p>
           </div>
         </div>
       </section>
@@ -973,7 +695,7 @@
           </div>
           <div class="compare">
             <div class="panel reveal">
-              <div class="panel-figure">
+              <div class="figure">
                 <svg class="lines" viewBox="0 0 380 150" aria-hidden="true">
                   <text x="10" y="52">Your eyes jump along</text>
                   <text x="10" y="86">every line, then sweep</text>
@@ -992,8 +714,8 @@
               <p>Dozens of jumps per line, a sweep back at every line's end, and the odd look back to find your place.</p>
             </div>
             <div class="panel reveal">
-              <div class="panel-figure">
-                <div class="reticle single" id="still" aria-hidden="true">
+              <div class="figure">
+                <div class="reticle" data-word="recognition" aria-hidden="true">
                   <div class="halo"></div>
                   <div class="tick top"></div>
                   <div class="tick bottom"></div>
@@ -1089,11 +811,37 @@
         </div>
       </section>
 
+      <section id="open-source">
+        <div class="wrap open">
+          <div class="reveal">
+            <p class="eyebrow">Open source</p>
+            <h2>Read the code, not just the words.</h2>
+            <p class="lead">
+              Mono is free software under the MIT License. The tokenizer, the recognition point, the timing model and
+              every importer are there to read, run and improve. Issues and pull requests are welcome.
+            </p>
+            <div class="actions">
+              <a class="button secondary" href="https://github.com/bylacunalabs/mono">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z" /></svg>
+                Source on GitHub
+              </a>
+            </div>
+          </div>
+          <div class="terminal reveal" aria-label="Running Mono from its source">
+            <div class="terminal-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+            <pre><span class="prompt">$ </span>git clone https://github.com/bylacunalabs/mono
+<span class="prompt">$ </span>cd mono &amp;&amp; npm install
+<span class="prompt">$ </span>npm run dev
+<span class="comment"># the site on :5173, the app in /app/</span></pre>
+          </div>
+        </div>
+      </section>
+
       <section id="install">
         <div class="wrap">
           <div class="section-head reveal">
             <p class="eyebrow">Install</p>
-            <h2>Free, and nothing to download from a store.</h2>
+            <h2>Nothing to download from a store.</h2>
             <p class="lead">Mono runs in your browser. Install it to get an icon, full screen and offline reading.</p>
           </div>
           <div class="install">
@@ -1127,8 +875,16 @@
 
       <section class="closing">
         <div class="wrap reveal">
+          <div class="mark" aria-hidden="true">
+            <div class="tick top"></div>
+            <div class="tick bottom"></div>
+            <picture class="logo">
+              <source srcset="brand/mono-wordmark-white.svg" media="(prefers-color-scheme: dark)" />
+              <img src="brand/mono-wordmark-black.svg" alt="" width="310" height="110" />
+            </picture>
+          </div>
           <h2>Your next book,<br />one word at a time.</h2>
-          <p class="lead" style="margin-left: auto; margin-right: auto">Start with the built-in guide. It takes less than a minute.</p>
+          <p class="lead">Start with the built-in guide. It takes less than a minute.</p>
           <div class="actions">
             <a class="button primary" href="app/">Open Mono</a>
           </div>
@@ -1138,14 +894,26 @@
 
     <footer>
       <div class="wrap">
-        <span><span class="wordmark">M<b>o</b>no</span>by Lacuna Labs</span>
-        <span>Open source under the MIT License · <a href="https://github.com/bylacunalabs/mono">Source on GitHub</a></span>
+        <span class="by">
+          <picture class="logo">
+            <source srcset="brand/mono-wordmark-white.svg" media="(prefers-color-scheme: dark)" />
+            <img src="brand/mono-wordmark-black.svg" alt="Mono" width="51" height="18" />
+          </picture>
+          by Lacuna Labs · MIT License
+        </span>
+        <nav aria-label="More">
+          <a href="app/">Open Mono</a>
+          <a href="brand/">Brand</a>
+          <a href="https://github.com/bylacunalabs/mono">GitHub</a>
+        </nav>
       </div>
     </footer>
 
+    <script src="site.js"></script>
     <script>
-      // The demo follows the app: the Optimal Recognition Point (src/core/orp.ts)
-      // and the timing model (src/core/timing.ts), in brief.
+      // The demo follows the app's timing model (src/core/timing.ts), in brief:
+      // every word lasts base × factor + pause, with base chosen so the average
+      // word lasts 60 / WPM.
 
       const TEXT =
         'Mono shows you one word at a time. Your eyes stay still, and the words come to them. ' +
@@ -1157,85 +925,49 @@
       const FREQUENT = new Set(
         'a an and are as at be but by for from has have he her his i if in is it its me my no not of on or our she so that the their them they this to up was we were with you your'.split(' '),
       )
-      const PAUSES = { sentence: [1.5, 120], comma: [1.15, 45], strong: [1.3, 70] }
+      const PAUSES = { sentence: [1.5, 120], strong: [1.3, 70], comma: [1.15, 45] }
       const RAMP_UP_WORDS = 8
 
-      const isLetter = c => /[\p{L}\p{N}]/u.test(c)
-
-      function orpIndexForLength(n) {
-        if (n <= 1) return 0
-        if (n <= 3) return 1
-        if (n <= 5) return 2
-        if (n <= 9) return 3
-        if (n <= 13) return 4
-        return Math.round(n * 0.3)
-      }
-
-      function orpParts(word) {
-        const c = Array.from(word)
-        const first = c.findIndex(isLetter)
-        const last = c.findLastIndex(isLetter)
-        const i = Math.min(first < 0 ? orpIndexForLength(c.length) : first + orpIndexForLength(last - first + 1), c.length - 1)
-        return { prefix: c.slice(0, i).join(''), orp: c[i], suffix: c.slice(i + 1).join('') }
-      }
-
       function weigh(word) {
-        const letters = Array.from(word).filter(isLetter).length
+        const letters = Array.from(word).filter(c => /[\p{L}\p{N}]/u.test(c)).length
         let factor = Math.min(1.8, Math.max(0.7, 1 + (letters - 5) * 0.08))
         if (FREQUENT.has(word.toLowerCase().replace(/[^\p{L}]/gu, ''))) factor *= 0.8
-        const pause = /[.!?]$/.test(word) ? PAUSES.sentence : /[:;—]$/.test(word) ? PAUSES.strong : /,$/.test(word) ? PAUSES.comma : [1, 0]
-        return { word, factor: Math.max(0.55, factor * pause[0]), pause: pause[1] }
+        const [share, ms] = /[.!?]$/.test(word) ? PAUSES.sentence : /[:;—]$/.test(word) ? PAUSES.strong : /,$/.test(word) ? PAUSES.comma : [1, 0]
+        return { word, factor: Math.max(0.55, factor * share), pause: ms }
       }
 
       const words = TEXT.split(/\s+/).map(weigh)
+      const sum = key => words.reduce((total, w) => total + w[key], 0)
 
-      // base × factor + pause, with base chosen so the average word lasts 60 / WPM.
       function delays(wpm) {
         const total = (words.length * 60000) / wpm
-        const pauses = Math.min(
-          words.reduce((sum, w) => sum + w.pause, 0),
-          total * 0.25,
-        )
-        const scale = pauses / Math.max(1, words.reduce((sum, w) => sum + w.pause, 0))
-        const base = (total - pauses) / words.reduce((sum, w) => sum + w.factor, 0)
-        return words.map(w => base * w.factor + w.pause * scale)
+        // At most a quarter of the time goes to fixed pauses.
+        const pauses = Math.min(sum('pause'), total * 0.25)
+        const base = (total - pauses) / sum('factor')
+        return words.map(w => base * w.factor + w.pause * (pauses / sum('pause')))
       }
-
-      function show(reticle, word) {
-        const { prefix, orp, suffix } = orpParts(word)
-        const [pre, focus, post] = reticle.querySelectorAll('.word span')
-        pre.textContent = prefix
-        focus.textContent = orp
-        post.textContent = suffix
-        reticle.style.setProperty('--pre', Array.from(prefix).length)
-        reticle.style.setProperty('--suf', Array.from(suffix).length)
-      }
-
-      // Demo reader
 
       const demo = document.getElementById('demo')
       const reticle = document.getElementById('reticle')
       const playButton = document.getElementById('play')
       const speed = document.getElementById('speed')
       const progress = document.getElementById('progress')
-      const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
 
-      let wpm = 300
-      let timing = delays(wpm)
+      let timing = delays(300)
       let index = 0
       let sinceResume = 0
       let timer = 0
       let playing = false
-      let pausedByUser = reduceMotion
+      let pausedByHand = matchMedia('(prefers-reduced-motion: reduce)').matches
 
       function render() {
-        show(reticle, words[index].word)
+        showWord(reticle, words[index].word)
         reticle.setAttribute('aria-label', words[index].word)
         progress.textContent = `${index + 1} / ${words.length}`
       }
 
       function step() {
-        // Ease in from half speed after each resume, as the app does.
+        // Eases in from half speed after each resume, as the app does.
         const ramp = sinceResume < RAMP_UP_WORDS ? 1 + (RAMP_UP_WORDS - sinceResume) / RAMP_UP_WORDS : 1
         const last = index === words.length - 1
         timer = setTimeout(() => {
@@ -1259,58 +991,39 @@
       }
 
       function toggle() {
-        pausedByUser = playing
+        pausedByHand = playing
         setPlaying(!playing)
       }
 
       playButton.addEventListener('click', toggle)
       reticle.addEventListener('click', toggle)
 
-      function formatDuration(minutes) {
+      function duration(minutes) {
         if (minutes < 60) return `${Math.max(1, Math.round(minutes))} min`
         const hours = minutes / 60
         return `${hours < 10 ? Math.round(hours * 10) / 10 : Math.round(hours)} h`
       }
 
-      function setSpeed(value) {
-        wpm = Number(value)
+      function setSpeed() {
+        const wpm = Number(speed.value)
         timing = delays(wpm)
         speed.style.setProperty('--value', `${((wpm - 100) / 1100) * 100}%`)
         document.getElementById('wpm').innerHTML = `${wpm}<small>WPM</small>`
         // Typical lengths: an article ~1,500 words, a short story ~7,500, a novel ~90,000.
-        document.getElementById('t-article').textContent = formatDuration(1500 / wpm)
-        document.getElementById('t-story').textContent = formatDuration(7500 / wpm)
-        document.getElementById('t-novel').textContent = formatDuration(90000 / wpm)
+        document.getElementById('t-article').textContent = duration(1500 / wpm)
+        document.getElementById('t-story').textContent = duration(7500 / wpm)
+        document.getElementById('t-novel').textContent = duration(90000 / wpm)
       }
 
-      speed.addEventListener('input', () => setSpeed(speed.value))
-      setSpeed(speed.value)
+      speed.addEventListener('input', setSpeed)
+      setSpeed()
       render()
 
       // Plays while in view, unless paused by hand.
       new IntersectionObserver(([entry]) => {
         if (!entry.isIntersecting) setPlaying(false)
-        else if (!pausedByUser) setPlaying(true)
-      }, { threshold: 0.4 }).observe(demo)
-
-      // The still reticle in "How it works"
-      show(document.getElementById('still'), 'recognition')
-
-      // Navigation border and section reveals
-      const nav = document.getElementById('nav')
-      addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 8), { passive: true })
-
-      const revealer = new IntersectionObserver(
-        entries => {
-          for (const entry of entries) {
-            if (!entry.isIntersecting) continue
-            entry.target.classList.add('shown')
-            revealer.unobserve(entry.target)
-          }
-        },
-        { rootMargin: '0px 0px -8% 0px' },
-      )
-      document.querySelectorAll('.reveal').forEach(el => revealer.observe(el))
+        else if (!pausedByHand) setPlaying(true)
+      }, { threshold: 0.4 }).observe(reticle)
     </script>
   </body>
 </html>

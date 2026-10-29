@@ -23,6 +23,7 @@ import { cssFont, type ReadingFont } from './fonts'
 import { Icon } from './icons'
 import { haptic, platform } from './platform'
 import { RSVPWord } from './RSVPWord'
+import wordmark from './wordmark.svg?raw'
 
 export function LibraryView(props: {
   /** `from`: the element the reader grows out of. */
@@ -192,15 +193,13 @@ export function LibraryView(props: {
 
 // Header
 
-/** The wordmark — "Mono" with its first o in red, like the app icon — and today's reading. */
+/** The wordmark — "Mono" with its first o in red, drawn like the app icon — and today's reading. */
 function LibraryHeader({ onTapStats }: { onTapStats?: () => void }) {
   const days = library.days
   const streak = currentStreak(days)
   return (
     <div class="library-header">
-      <h1 class="wordmark" aria-label="Mono">
-        M<span class="brand">o</span>no
-      </h1>
+      <h1 class="wordmark" aria-label="Mono" dangerouslySetInnerHTML={{ __html: wordmark }} />
       {totalWords(days) > 0 && (
         <button type="button" class="chips" onClick={onTapStats}>
           <span class="chip glass">
