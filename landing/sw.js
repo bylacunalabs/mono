@@ -3,6 +3,10 @@
 // which would otherwise keep serving the app in place of the landing page.
 // It removes the old worker's caches (not app/'s), unregisters and reloads
 // open pages, which then load the landing page from the network.
+//
+// Remove after 2027-04-30: by then installs from before the move (October
+// 2026) have long checked for updates and been retired. Delete this file and
+// its test in e2e/site.spec.ts; the README mentions it too.
 
 self.addEventListener('install', () => self.skipWaiting())
 

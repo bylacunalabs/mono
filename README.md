@@ -27,7 +27,7 @@ The site is the landing page at the root (`landing/`, plain HTML; its demo
 of the reader, `landing/demo.ts`, runs the app's own `src/core`), the brand
 guidelines in `brand/` and the app in `app/`; `dist/` holds all three. The
 landing page's `sw.js` retires the service worker of installs made before
-the app moved to `app/`.
+the app moved to `app/` (October 2026); remove it after April 2027.
 
 ## Deploy
 
