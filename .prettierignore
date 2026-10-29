@@ -7,3 +7,4 @@ src/ui/wordmark.svg
 scripts/splash-screens.json
 test-results
 playwright-report
+.claude

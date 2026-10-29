@@ -21,7 +21,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "fflate": "^0.8.3",

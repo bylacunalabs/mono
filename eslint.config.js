@@ -4,7 +4,7 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'dev-dist', 'node_modules'] },
+  { ignores: ['dist', 'dev-dist', 'node_modules', '.claude', 'test-results', 'playwright-report'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -24,6 +24,11 @@ export default tseslint.config(
   {
     files: ['scripts/**/*.mjs', 'vite.config.ts', 'eslint.config.js', 'e2e/**/*.ts', 'playwright.config.ts'],
     languageOptions: { globals: globals.node },
+  },
+  {
+    // Runs in Node, with functions evaluated in the page.
+    files: ['scripts/screenshots.mjs'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {
     files: ['landing/**/*.js'],
