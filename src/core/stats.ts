@@ -56,12 +56,9 @@ export function recentDays(days: Days, count = 7, now = new Date()): { date: Dat
   })
 }
 
-/** "≈ 1 h 20 min", or "< 1 min". */
-export function formatReadingTime(seconds: number): string {
-  if (seconds < 60) return '< 1 min'
+/** A reading time rounded to the minute, for display; undefined under a minute. */
+export function readingTime(seconds: number): { hours: number; minutes: number } | undefined {
+  if (seconds < 60) return undefined
   const minutes = Math.round(seconds / 60)
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  if (h === 0) return `≈ ${m} min`
-  return m === 0 ? `≈ ${h} hr` : `≈ ${h} hr, ${m} min`
+  return { hours: Math.floor(minutes / 60), minutes: minutes % 60 }
 }

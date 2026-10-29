@@ -2,6 +2,7 @@
 // main thread, so a long book never freezes the interface.
 
 import { tokenize } from '../core/tokenizer'
+import { ImportError } from './document'
 import { extractFile, importDocument, type ExtractedFile } from './extract'
 
 export type WorkerRequest =
@@ -40,7 +41,8 @@ if (typeof window === 'undefined' && typeof self !== 'undefined') {
       if (result && 'cover' in result && result.cover) transfer.push(result.cover.data.buffer)
       self.postMessage({ id, result }, { transfer })
     } catch (error) {
-      self.postMessage({ id, error: error instanceof Error ? error.message : String(error) })
+      const problem = error instanceof ImportError ? error.problem : undefined
+      self.postMessage({ id, error: error instanceof Error ? error.message : String(error), problem })
     }
   }
 }

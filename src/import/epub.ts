@@ -8,8 +8,6 @@ import { decodeText } from './textDecoding'
 import { allMatches, decodeEntities, firstMatch, htmlParagraphs } from './html'
 import { ImportError, yearFrom, type CoverImage, type ExtractedDocument } from './document'
 
-const INVALID = 'This EPUB file is damaged or uses an unsupported format.'
-
 interface ManifestItem {
   id: string
   href: string
@@ -22,11 +20,11 @@ export function parseEPUB(data: Uint8Array): ExtractedDocument {
   try {
     files = unzipSync(data)
   } catch {
-    throw new ImportError(INVALID)
+    throw new ImportError('invalidEPUB')
   }
   const read = (path: string): string => {
     const bytes = files[path]
-    if (!bytes) throw new ImportError(INVALID)
+    if (!bytes) throw new ImportError('invalidEPUB')
     return decodeText(bytes)
   }
   const tryRead = (path: string) => (files[path] ? decodeText(files[path]) : undefined)
@@ -34,7 +32,7 @@ export function parseEPUB(data: Uint8Array): ExtractedDocument {
   // 1. Locate the package document.
   const container = read('META-INF/container.xml')
   const opfPath = firstMatch(`<rootfile\\b[^>]*full-path\\s*=\\s*["']([^"']+)["']`, container)
-  if (!opfPath) throw new ImportError(INVALID)
+  if (!opfPath) throw new ImportError('invalidEPUB')
   const opf = read(opfPath)
   const baseDirectory = dirname(opfPath)
 
@@ -52,7 +50,7 @@ export function parseEPUB(data: Uint8Array): ExtractedDocument {
     })
   }
   const spine = tags('itemref', opf).flatMap(tag => attribute('idref', tag) ?? [])
-  if (!spine.length) throw new ImportError(INVALID)
+  if (!spine.length) throw new ImportError('invalidEPUB')
 
   const { title, author, year } = packageMetadata(opf)
   const cover = coverImage(opf, manifest, files, baseDirectory)

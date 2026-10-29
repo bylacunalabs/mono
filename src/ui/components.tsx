@@ -2,6 +2,7 @@
 
 import { Fragment, type ComponentChildren } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
+import { locale } from '../state/i18n'
 import { Icon } from './icons'
 import { useEscape } from './hooks'
 import { useBackButton } from './history'
@@ -172,5 +173,5 @@ export function ProgressBar({ progress, track }: { progress: number; track?: str
   )
 }
 
-export const formatNumber = (n: number) => n.toLocaleString('en-US')
+export const formatNumber = (n: number) => n.toLocaleString(locale)
 export const formatPercent = (p: number) => `${Math.round(p * 100)}%`

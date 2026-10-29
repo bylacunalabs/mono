@@ -30,7 +30,7 @@ export async function readBackup(file: File): Promise<Backup> {
   try {
     parsed = JSON.parse(await file.text())
   } catch {
-    throw new BackupError('This file is not a Mono backup.')
+    throw new BackupError('notBackup')
   }
   return validateBackup(parsed)
 }

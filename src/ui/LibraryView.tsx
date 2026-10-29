@@ -13,22 +13,22 @@ import {
   currentChapter,
   estimatedSecondsRemaining,
   isFinished,
+  LIBRARY_SORTS,
   progress,
-  SORT_TITLES,
   sortBooks,
   SOURCE_LABEL,
   type Book,
-  type LibrarySort,
   type SentenceContext,
 } from '../core/book'
 import { orpParts } from '../core/orp'
-import { currentStreak, formatReadingTime, statsOn, totalWords } from '../core/stats'
+import { currentStreak, statsOn, totalWords } from '../core/stats'
 import { ACCEPTED_FILES } from '../import/extract'
 import { covers } from '../state/covers'
+import { t } from '../state/i18n'
 import { library, UNDO_SECONDS } from '../state/library'
 import { settings } from '../state/settings'
 import { useObserve } from '../state/store'
-import { Alert, formatNumber, formatPercent, Menu, ProgressBar, Sheet, type MenuItem } from './components'
+import { Alert, formatPercent, Menu, ProgressBar, Sheet, type MenuItem } from './components'
 import { cssFont, type ReadingFont } from './fonts'
 import { Icon } from './icons'
 import { haptic, platform } from './platform'
@@ -62,16 +62,16 @@ export function LibraryView(props: {
   const pickFiles = () => fileInput.current?.click()
 
   const actions = (book: Book): MenuItem[] => [
-    { label: 'Rename', icon: 'pencil', onSelect: () => setRenaming(book) },
+    { label: t.rename, icon: 'pencil', onSelect: () => setRenaming(book) },
     ...(book.currentIndex > 0
-      ? [{ label: 'Start Over', icon: 'restart' as const, onSelect: () => library.resetProgress(book.id) }]
+      ? [{ label: t.startOver, icon: 'restart' as const, onSelect: () => library.resetProgress(book.id) }]
       : []),
-    { label: 'Delete', icon: 'trash', destructive: true, divider: true, onSelect: () => library.delete(book.id) },
+    { label: t.delete, icon: 'trash', destructive: true, divider: true, onSelect: () => library.delete(book.id) },
   ]
 
   const addMenu: MenuItem[] = [
-    { label: 'Import File…', icon: 'doc', onSelect: pickFiles },
-    { label: 'Paste Text', icon: 'clipboard', onSelect: () => setShowNewText(true) },
+    { label: t.importFileMenu, icon: 'doc', onSelect: pickFiles },
+    { label: t.pasteText, icon: 'clipboard', onSelect: () => setShowNewText(true) },
   ]
 
   return (
@@ -109,13 +109,13 @@ export function LibraryView(props: {
 
       {platform === 'android' ? (
         <div class="fab-wrapper">
-          <Menu label="Add" items={addMenu} class="fab" direction="up">
+          <Menu label={t.add} items={addMenu} class="fab" direction="up">
             <Icon name="plus" size={26} />
           </Menu>
         </div>
       ) : (
         <header class="toolbar">
-          <Menu label="Add" items={addMenu} class="glass-circle">
+          <Menu label={t.add} items={addMenu} class="glass-circle">
             <Icon name="plus" />
           </Menu>
         </header>
@@ -132,7 +132,7 @@ export function LibraryView(props: {
               <Icon name="search" size={18} />
               <input
                 type="search"
-                placeholder="Titles and authors"
+                placeholder={t.searchPlaceholder}
                 value={search}
                 onInput={e => setSearch(e.currentTarget.value)}
                 enterKeyHint="search"
@@ -148,21 +148,21 @@ export function LibraryView(props: {
             )}
 
             <div class="section-header">
-              <h2>Library</h2>
+              <h2>{t.library}</h2>
               <span class="count">{library.books.length}</span>
               <span class="spacer" />
               <Menu
-                label="Sort by"
-                title="Sort by"
+                label={t.sortBy}
+                title={t.sortBy}
                 class="sort-button glass"
-                items={(Object.keys(SORT_TITLES) as LibrarySort[]).map(option => ({
-                  label: SORT_TITLES[option],
+                items={LIBRARY_SORTS.map(option => ({
+                  label: t.sort[option],
                   checked: option === sort,
                   onSelect: () => settings.set('librarySort', option),
                 }))}
               >
                 <Icon name="sort" size={16} />
-                {SORT_TITLES[sort]}
+                {t.sort[sort]}
               </Menu>
             </div>
 
@@ -181,8 +181,8 @@ export function LibraryView(props: {
             {query && !visible.length && (
               <div class="unavailable">
                 <Icon name="search" size={40} />
-                <h3>No Results for “{search.trim()}”</h3>
-                <p>Check the spelling or try a new search.</p>
+                <h3>{t.noResultsFor(search.trim())}</h3>
+                <p>{t.noResultsHint}</p>
               </div>
             )}
           </>
@@ -192,12 +192,15 @@ export function LibraryView(props: {
       <div class="toasts">
         {library.isImporting && (
           <div class="toast glass">
-            <span class="spinner" /> {library.importProgress ? `Importing · ${library.importProgress}` : 'Importing…'}
+            <span class="spinner" />{' '}
+            {library.importProgress
+              ? t.importingPage(library.importProgress.done, library.importProgress.total)
+              : t.importing}
           </div>
         )}
         {library.pendingDeletion && <UndoToast key={library.pendingDeletion.id} book={library.pendingDeletion} />}
       </div>
-      {dragging && <div class="drop-hint">Drop files to import</div>}
+      {dragging && <div class="drop-hint">{t.dropToImport}</div>}
 
       {props.pasting && <NewTextSheet onClose={() => setShowNewText(false)} />}
       {renaming && <RenameAlert book={renaming} onClose={() => setRenaming(undefined)} />}
@@ -218,12 +221,12 @@ function LibraryHeader({ onTapStats }: { onTapStats?: () => void }) {
         <button type="button" class="chips" onClick={onTapStats}>
           <span class="chip glass">
             <Icon name="sun" size={16} class="brand" />
-            {formatNumber(statsOn(days, new Date()).words)} words today
+            {t.wordsToday(statsOn(days, new Date()).words)}
           </span>
           {streak > 0 && (
             <span class="chip glass">
               <Icon name="flame" size={16} class="brand" />
-              {streak} day streak
+              {t.dayStreak(streak)}
             </span>
           )}
         </button>
@@ -247,12 +250,12 @@ function ContinueReadingCard(props: { book: Book; onOpen: (from: HTMLElement | n
         type="button"
         class="card-hit no-ripple"
         onClick={e => onOpen(e.currentTarget.parentElement)}
-        aria-label={`Resume reading ${book.title}`}
+        aria-label={t.resumeReading(book.title)}
       />
       <div class="card-glow" />
       <div class="card-top">
-        <span class="eyebrow">Continue Reading</span>
-        <span class="muted">{formatReadingTime(estimatedSecondsRemaining(book, wpm))} left</span>
+        <span class="eyebrow">{t.continueReading}</span>
+        <span class="muted">{t.timeLeft(estimatedSecondsRemaining(book, wpm))}</span>
       </div>
       {book.currentSentence ? (
         <SentencePreview sentence={book.currentSentence} font={readingFont} />
@@ -272,7 +275,7 @@ function ContinueReadingCard(props: { book: Book; onOpen: (from: HTMLElement | n
         <span class="play-dot">
           <Icon name="play" size={16} />
         </span>
-        <Menu label="More" items={actions} class="row-more dark">
+        <Menu label={t.more} items={actions} class="row-more dark">
           <Icon name="ellipsis" size={18} />
         </Menu>
       </div>
@@ -312,7 +315,7 @@ function BookRow(props: {
 }) {
   const { book, onOpen, actions } = props
   const wpm = settings.value.wpm
-  const timeLeft = formatReadingTime(estimatedSecondsRemaining(book, wpm))
+  const secondsLeft = estimatedSecondsRemaining(book, wpm)
   const finished = isFinished(book)
   const by = byline(book)
   const canStartOver = book.currentIndex > 0
@@ -331,12 +334,12 @@ function BookRow(props: {
             }}
           >
             <Icon name="restart" size={20} />
-            <span>Start Over</span>
+            <span>{t.startOver}</span>
           </button>
         )}
         <button type="button" class="row-action delete" tabIndex={swipe.isOpen ? 0 : -1} onClick={props.onDelete}>
           <Icon name="trash" size={20} />
-          <span>Delete</span>
+          <span>{t.delete}</span>
         </button>
       </div>
       <div class="row-front" ref={swipe.ref}>
@@ -352,12 +355,12 @@ function BookRow(props: {
             <div class="row-details">
               {finished ? (
                 <span class="finished">
-                  <Icon name="checkCircle" size={16} /> Finished
+                  <Icon name="checkCircle" size={16} /> {t.finished}
                 </span>
               ) : book.currentIndex > 0 ? (
-                `${timeLeft} left`
+                t.timeLeft(secondsLeft)
               ) : (
-                `${formatNumber(book.wordCount)} words · ${timeLeft}`
+                `${t.words(book.wordCount)} · ${t.readingTime(secondsLeft)}`
               )}
             </div>
             {book.currentIndex > 0 && !finished && (
@@ -368,7 +371,7 @@ function BookRow(props: {
             )}
           </div>
         </button>
-        <Menu label={`More actions for ${book.title}`} items={actions} class="row-more">
+        <Menu label={t.moreActionsFor(book.title)} items={actions} class="row-more">
           <Icon name="ellipsis" size={18} />
         </Menu>
       </div>
@@ -503,9 +506,9 @@ function useSwipeActions(actionsWidth: number, onFullSwipe: () => void) {
 function UndoToast({ book }: { book: Book }) {
   return (
     <div class="toast snackbar glass" role="status" style={{ '--undo-seconds': `${UNDO_SECONDS}s` }}>
-      <span class="snackbar-text">Deleted “{book.title}”</span>
+      <span class="snackbar-text">{t.deleted(book.title)}</span>
       <button type="button" class="text-button bold" onClick={() => library.undoDelete()}>
-        Undo
+        {t.undo}
       </button>
     </div>
   )
@@ -549,13 +552,13 @@ function EmptyState({ onImport, onPaste }: { onImport: () => void; onPaste: () =
       <div class="empty-preview">
         <RSVPWord word="Mono" font={settings.value.readingFont} fontSize={36} />
       </div>
-      <h2>One word at a time</h2>
-      <p>Import a text, PDF or EPUB file, or paste a text, to start speed-reading with the RSVP method.</p>
+      <h2>{t.emptyTitle}</h2>
+      <p>{t.emptyMessage}</p>
       <button type="button" class="button prominent" onClick={onImport}>
-        <Icon name="doc" size={20} /> Import File
+        <Icon name="doc" size={20} /> {t.importFile}
       </button>
       <button type="button" class="button glass" onClick={onPaste}>
-        <Icon name="clipboard" size={20} /> Paste Text
+        <Icon name="clipboard" size={20} /> {t.pasteText}
       </button>
     </div>
   )
@@ -576,20 +579,20 @@ function NewTextSheet({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <Sheet onClose={onClose} label="New Text">
+    <Sheet onClose={onClose} label={t.newText}>
       <div class="sheet-bar">
         <button type="button" class="text-button" onClick={onClose}>
-          Cancel
+          {t.cancel}
         </button>
-        <h2>New Text</h2>
+        <h2>{t.newText}</h2>
         <button type="button" class="text-button bold" disabled={!trimmed} onClick={add}>
-          Add
+          {t.add}
         </button>
       </div>
       <div class="form-group">
         <input
           class="field"
-          placeholder="Title (optional)"
+          placeholder={t.titleOptional}
           value={title}
           onInput={e => setTitle(e.currentTarget.value)}
         />
@@ -597,7 +600,7 @@ function NewTextSheet({ onClose }: { onClose: () => void }) {
       <div class="form-group">
         <textarea
           class="field editor"
-          placeholder="Paste or type a text…"
+          placeholder={t.textPlaceholder}
           value={text}
           autoFocus
           onInput={e => setText(e.currentTarget.value)}
@@ -615,7 +618,7 @@ function NewTextSheet({ onClose }: { onClose: () => void }) {
               }
             }}
           >
-            <Icon name="clipboard" size={18} /> Paste
+            <Icon name="clipboard" size={18} /> {t.paste}
           </button>
         )}
       </div>
@@ -627,17 +630,17 @@ function RenameAlert({ book, onClose }: { book: Book; onClose: () => void }) {
   const [title, setTitle] = useState(book.title)
   return (
     <Alert
-      title="Rename"
+      title={t.rename}
       onClose={onClose}
       actions={[
-        { label: 'Cancel', role: 'cancel', onSelect: () => {} },
-        { label: 'Save', disabled: !title.trim(), onSelect: () => library.rename(book.id, title) },
+        { label: t.cancel, role: 'cancel', onSelect: () => {} },
+        { label: t.save, disabled: !title.trim(), onSelect: () => library.rename(book.id, title) },
       ]}
     >
       <input
         class="field alert-field"
         value={title}
-        aria-label="Title"
+        aria-label={t.title}
         autoFocus
         onFocus={e => e.currentTarget.select()}
         onInput={e => setTitle(e.currentTarget.value)}

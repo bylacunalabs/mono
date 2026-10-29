@@ -1,6 +1,7 @@
 // The reader's gestures, which are otherwise invisible: shown over the
 // reader the first time it opens, and from Settings.
 
+import { t } from '../state/i18n'
 import { settings } from '../state/settings'
 import { Sheet } from './components'
 import { Icon } from './icons'
@@ -9,42 +10,36 @@ type GestureIcon = 'tap' | 'hold' | 'swipeH' | 'swipeV' | 'pinch' | 'text'
 
 export function GestureGuide({ onClose }: { onClose: () => void }) {
   const { holdToRead } = settings.value
+  const g = t.gestures
   const gestures: { icon: GestureIcon; title: string; detail: string }[] = [
     holdToRead
-      ? {
-          icon: 'hold',
-          title: 'Touch and hold',
-          detail: 'Words run while your finger is on the screen; lift it to pause.',
-        }
-      : { icon: 'tap', title: 'Tap', detail: 'Play or pause. While paused, the whole text and the controls appear.' },
-    { icon: 'swipeH', title: 'Swipe left or right', detail: 'Next or previous sentence, paragraph or chapter.' },
-    { icon: 'swipeV', title: 'Swipe up or down', detail: 'Faster or slower, 25 words per minute at a time.' },
-    { icon: 'pinch', title: 'Pinch', detail: 'Make the words larger or smaller.' },
-    { icon: 'text', title: 'Tap a word in the text', detail: 'Continue reading from there.' },
+      ? { icon: 'hold', title: g.hold, detail: g.holdDetail }
+      : { icon: 'tap', title: g.tap, detail: g.tapDetail },
+    { icon: 'swipeH', title: g.swipeH, detail: g.swipeHDetail },
+    { icon: 'swipeV', title: g.swipeV, detail: g.swipeVDetail },
+    { icon: 'pinch', title: g.pinch, detail: g.pinchDetail },
+    { icon: 'text', title: g.word, detail: g.wordDetail },
   ]
   return (
-    <Sheet onClose={onClose} label="Reading gestures">
+    <Sheet onClose={onClose} label={t.readingGestures}>
       <div class="guide">
-        <h2>Reading Gestures</h2>
+        <h2>{t.readingGestures}</h2>
         <ul class="guide-list">
-          {gestures.map(g => (
+          {gestures.map(gesture => (
             <li>
               <span class="guide-icon">
-                <Icon name={g.icon} size={24} />
+                <Icon name={gesture.icon} size={24} />
               </span>
               <div>
-                <div class="guide-title">{g.title}</div>
-                <div class="guide-detail">{g.detail}</div>
+                <div class="guide-title">{gesture.title}</div>
+                <div class="guide-detail">{gesture.detail}</div>
               </div>
             </li>
           ))}
         </ul>
-        <p class="footnote">
-          After a pause, reading picks up a few words back so you don’t lose the thread. You can change this and switch
-          to touch-and-hold reading in Settings.
-        </p>
+        <p class="footnote">{t.gesturesFootnote}</p>
         <button type="button" class="button prominent" onClick={onClose}>
-          Got It
+          {t.gotIt}
         </button>
       </div>
     </Sheet>

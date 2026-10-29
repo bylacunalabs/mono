@@ -8,7 +8,6 @@ import { decodeText } from './textDecoding'
 import { htmlArticle } from './html'
 import { parseEPUB } from './epub'
 import {
-  EMPTY_ERROR,
   ImportError,
   plainText,
   prepareText,
@@ -75,7 +74,7 @@ export async function extractFile(file: File): Promise<ExtractedFile> {
 }
 
 export function checked(file: ExtractedFile): ExtractedFile {
-  if (!file.document.paragraphs.length) throw new ImportError(EMPTY_ERROR)
+  if (!file.document.paragraphs.length) throw new ImportError('empty')
   return file
 }
 

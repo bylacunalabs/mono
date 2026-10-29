@@ -72,19 +72,15 @@ export const estimatedSecondsRemaining = (b: Book, wpm: number) =>
   ((Math.max(0, b.wordCount - b.currentIndex) * 60) / Math.max(wpm, 1)) * 1.2
 
 /** The first few words, for untitled pasted text. */
-export function titleFromText(text: string): string {
+export function titleFromText(text: string, untitled = 'Untitled'): string {
   const words = text.split(/\s+/).filter(Boolean).slice(0, 6)
   const title = words.join(' ')
-  return title ? (words.length === 6 ? title + '…' : title) : 'Untitled'
+  return title ? (words.length === 6 ? title + '…' : title) : untitled
 }
 
 export type LibrarySort = 'recent' | 'added' | 'title'
 
-export const SORT_TITLES: Record<LibrarySort, string> = {
-  recent: 'Recently Read',
-  added: 'Recently Added',
-  title: 'Title',
-}
+export const LIBRARY_SORTS: LibrarySort[] = ['recent', 'added', 'title']
 
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 

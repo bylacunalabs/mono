@@ -4,21 +4,29 @@
 // change so they show the same library. Deleting can be undone for a few
 // seconds: the text leaves the list at once and the disk only afterwards.
 
-import { booksToRestore, mergeStats } from '../core/backup'
+import { BackupError, booksToRestore, mergeStats } from '../core/backup'
 import { titleFromText, type Book, type SentenceContext, type Source } from '../core/book'
-import { SAMPLE_BODY, SAMPLE_TITLE } from '../core/sample'
+import { SAMPLE_BODY, SAMPLE_BODY_IT, SAMPLE_TITLE, SAMPLE_TITLE_IT } from '../core/sample'
 import * as stats from '../core/stats'
-import { plainText } from '../import/document'
+import { ImportError, plainText } from '../import/document'
 import { importDocument, type ImportedDocument } from '../import/extract'
 import { importFile } from '../import/importer'
 import { createBackup, readBackup, restoreBooks } from '../storage/backup'
 import * as db from '../storage/db'
 import { covers, coverThumbnail } from './covers'
+import { language, t } from './i18n'
 import { settings } from './settings'
 import { Store } from './store'
 
 /** How long a deletion can be undone. */
 export const UNDO_SECONDS = 6
+
+/** The built-in guide in each language, seeded in the language of the first launch. */
+const SAMPLES = {
+  en: { title: SAMPLE_TITLE, body: SAMPLE_BODY },
+  it: { title: SAMPLE_TITLE_IT, body: SAMPLE_BODY_IT },
+}
+const SAMPLE_TITLES = new Set(Object.values(SAMPLES).map(sample => sample.title))
 
 export interface LibraryError {
   title: string
@@ -30,8 +38,8 @@ class Library extends Store {
   days: stats.Days = {}
   loaded = false
   pendingImports = 0
-  /** E.g. "Page 12 of 300" while a long PDF is read. */
-  importProgress: string | undefined
+  /** Pages read so far while a long PDF is read. */
+  importProgress: { done: number; total: number } | undefined
   error: LibraryError | undefined
   /** Deleted, but still within its undo window. */
   pendingDeletion: Book | undefined
@@ -64,7 +72,7 @@ class Library extends Store {
       this.books = books.filter(b => b.id !== this.pendingDeletion?.id).sort((a, b) => b.dateAdded - a.dateAdded)
       this.days = days
     } catch (error) {
-      this.error = { title: 'Library unavailable', message: `Your library couldn't be opened: ${describe(error)}` }
+      this.error = { title: t.libraryUnavailable, message: t.libraryNotOpened(describe(error)) }
     }
     this.emit()
   }
@@ -84,7 +92,7 @@ class Library extends Store {
     for (const file of files) {
       await this.add(() =>
         importFile(file, (done, total) => {
-          this.importProgress = total > 5 ? `Page ${done} of ${total}` : undefined
+          this.importProgress = total > 5 ? { done, total } : undefined
           this.emit()
         }),
       )
@@ -96,7 +104,7 @@ class Library extends Store {
     await this.add(async () =>
       importDocument({
         document: plainText(trimmed, title),
-        fallbackTitle: titleFromText(trimmed),
+        fallbackTitle: titleFromText(trimmed, t.untitled),
         source: 'text' as Source,
       }),
     )
@@ -118,10 +126,7 @@ class Library extends Store {
       const text = item.text?.trim()
       if (text) await this.addText(item.url && !text.includes(item.url) ? `${text}\n\n${item.url}` : text, item.title)
       else if (item.url) {
-        this.fail(
-          'Nothing to read',
-          "Mono can't download web pages yet. Share the article's text, or save the page and import the file.",
-        )
+        this.fail(t.nothingToRead, t.noWebPages)
       }
     }
   }
@@ -131,10 +136,11 @@ class Library extends Store {
     if (settings.value.didSeedSample) return
     if (this.books.length) return settings.set('didSeedSample', true)
     // Flag it only once added, so a failed first attempt is retried.
+    const { title, body } = SAMPLES[language]
     const added = await this.add(async () =>
       importDocument({
-        document: plainText(SAMPLE_BODY, SAMPLE_TITLE),
-        fallbackTitle: SAMPLE_TITLE,
+        document: plainText(body, title),
+        fallbackTitle: title,
         source: 'text' as Source,
       }),
     )
@@ -166,7 +172,7 @@ class Library extends Store {
       this.broadcast()
       return true
     } catch (error) {
-      this.fail('Import failed', describe(error))
+      this.fail(t.importFailed, describe(error))
       return false
     } finally {
       this.pendingImports--
@@ -256,7 +262,8 @@ class Library extends Store {
       await this.commitDeletion()
       const backup = await readBackup(file)
       // On a fresh install, bring the preferences along too.
-      if (!this.books.some(b => b.title !== SAMPLE_TITLE)) settings.assign({ ...backup.settings, didSeedSample: true })
+      if (this.books.every(b => SAMPLE_TITLES.has(b.title)))
+        settings.assign({ ...backup.settings, didSeedSample: true })
       const restored = booksToRestore(this.books, backup.books)
       await restoreBooks(
         backup,
@@ -268,7 +275,7 @@ class Library extends Store {
       this.broadcast()
       return restored.length
     } catch (error) {
-      this.fail('Restore failed', describe(error))
+      this.fail(t.restoreFailed, describe(error))
       return undefined
     }
   }
@@ -295,7 +302,7 @@ class Library extends Store {
   }
 
   private saveFailed(error: unknown) {
-    this.fail('Not saved', `Your library couldn't be saved: ${describe(error)}`)
+    this.fail(t.notSaved, t.libraryNotSaved(describe(error)))
   }
 }
 
@@ -313,6 +320,11 @@ function newID(): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 
-const describe = (error: unknown) => (error instanceof Error ? error.message : String(error))
+/** The error's message, in the interface's language where Mono itself raised it. */
+function describe(error: unknown): string {
+  if (error instanceof ImportError) return t.importProblems[error.problem]
+  if (error instanceof BackupError) return t.backupProblems[error.problem]
+  return error instanceof Error ? error.message : String(error)
+}
 
 export const library = new Library()

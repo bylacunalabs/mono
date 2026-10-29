@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'preact/hooks'
 import { continueReading, type Book } from '../core/book'
+import { i18n, t } from '../state/i18n'
 import { library } from '../state/library'
 import { pwa } from '../state/pwa'
 import { settings, type Appearance } from '../state/settings'
@@ -20,10 +21,10 @@ import { bookElement, morph } from './transitions'
 
 type Tab = 'library' | 'stats' | 'settings'
 
-const TABS: { id: Tab; title: string; icon: 'books' | 'chart' | 'gear' }[] = [
-  { id: 'library', title: 'Library', icon: 'books' },
-  { id: 'stats', title: 'Statistics', icon: 'chart' },
-  { id: 'settings', title: 'Settings', icon: 'gear' },
+const TABS: { id: Tab; icon: 'books' | 'chart' | 'gear' }[] = [
+  { id: 'library', icon: 'books' },
+  { id: 'stats', icon: 'chart' },
+  { id: 'settings', icon: 'gear' },
 ]
 
 /** Browser chrome colour for each theme (matches --bg). */
@@ -38,6 +39,8 @@ export function App() {
   useObserve(library)
   useObserve(settings)
   useObserve(pwa)
+  // Every view reads its text from `t`: a new language re-renders them all from here.
+  useObserve(i18n)
   const [tab, setTab] = useState<Tab>('library')
   const [readingID, setReadingID] = useState<string>()
   const [pasting, setPasting] = useState(false)
@@ -117,23 +120,23 @@ export function App() {
         {pwa.needsUpdate && (
           <div class="update-banner glass" role="status">
             <Icon name="sparkles" size={18} class="brand" />
-            <span>A new version of Mono is ready.</span>
+            <span>{t.updateReady}</span>
             <button type="button" class="text-button bold" onClick={() => pwa.update()}>
-              Update
+              {t.update}
             </button>
           </div>
         )}
 
-        <nav class="tab-bar glass" aria-label="Sections">
-          {TABS.map(t => (
+        <nav class="tab-bar glass" aria-label={t.sections}>
+          {TABS.map(item => (
             <button
               type="button"
-              class={t.id === tab ? 'tab selected' : 'tab'}
-              aria-current={t.id === tab ? 'page' : undefined}
-              onClick={() => setTab(t.id)}
+              class={item.id === tab ? 'tab selected' : 'tab'}
+              aria-current={item.id === tab ? 'page' : undefined}
+              onClick={() => setTab(item.id)}
             >
-              <Icon name={t.icon} size={24} />
-              <span>{t.title}</span>
+              <Icon name={item.icon} size={24} />
+              <span>{t.tabs[item.id]}</span>
             </button>
           ))}
         </nav>
@@ -151,7 +154,7 @@ export function App() {
             title={library.error.title}
             message={library.error.message}
             onClose={() => library.dismissError()}
-            actions={[{ label: 'OK', role: 'cancel', onSelect: () => {} }]}
+            actions={[{ label: t.ok, role: 'cancel', onSelect: () => {} }]}
           />
         </div>
       )}

@@ -4,7 +4,7 @@
 // when the file was made, not when the work was published, so no year).
 
 import { pdfParagraphs } from './pdfText'
-import { ImportError, UNREADABLE_ERROR, type ExtractedDocument } from './document'
+import { ImportError, type ExtractedDocument } from './document'
 
 /** `onProgress` is called after each page with (pages done, total pages). */
 export async function parsePDF(
@@ -20,7 +20,7 @@ export async function parsePDF(
   try {
     document = await task.promise
   } catch {
-    throw new ImportError(UNREADABLE_ERROR)
+    throw new ImportError('unreadable')
   }
 
   const pages: string[] = []

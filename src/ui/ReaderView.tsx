@@ -38,10 +38,10 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import type { Book, Chapter } from '../core/book'
 import { RSVPEngine } from '../core/engine'
 import { pieces } from '../core/hyphenation'
-import { formatReadingTime } from '../core/stats'
 import { MAX_WPM, MIN_WPM, WPM_STEP } from '../core/timing'
 import { sentenceAround, tokenize } from '../core/tokenizer'
 import { tokenizeText } from '../import/importer'
+import { t } from '../state/i18n'
 import { library } from '../state/library'
 import { settings, textScaleKey, type NavigationUnit } from '../state/settings'
 import { useObserve } from '../state/store'
@@ -76,7 +76,6 @@ const EDGE_TOP = 40
 const EDGE_BOTTOM = 32
 /** On its side, split in two: the share of the width left to the word. */
 const WORD_SHARE = 0.5
-const UNIT_TITLES: Record<NavigationUnit, string> = { sentence: 'Sentence', paragraph: 'Paragraph', chapter: 'Chapter' }
 
 export function ReaderView({ book, onClose }: { book: Book; onClose: () => void }) {
   useObserve(settings)
@@ -493,7 +492,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
         step={1}
         value={engine.currentIndex}
         disabled={total < 2}
-        aria-label="Position"
+        aria-label={t.position}
         onPointerDown={() => setScrubbing(true)}
         onPointerUp={() => setScrubbing(false)}
         onPointerCancel={() => setScrubbing(false)}
@@ -508,31 +507,31 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
       {formatNumber(engine.currentIndex + 1)} / {formatNumber(total)}
     </span>
   )
-  const timeLeft = <span>{formatReadingTime(engine.secondsRemaining)}</span>
+  const timeLeft = <span>{t.readingTime(engine.secondsRemaining)}</span>
 
   const skipByMenu = (
     <Menu
-      label="Skip by"
-      title="Skip by"
+      label={t.skipBy}
+      title={t.skipBy}
       class="small-labeled"
       align="left"
       direction="up"
       items={(['sentence', 'paragraph', 'chapter'] as NavigationUnit[]).map(option => ({
-        label: UNIT_TITLES[option],
+        label: t.units[option],
         checked: option === unit,
         disabled: option === 'chapter' && !chapterStarts.length,
         onSelect: () => settings.set('navigationUnit', option),
       }))}
     >
       <Icon name="arrows" size={22} />
-      <span>{UNIT_TITLES[unit]}</span>
+      <span>{t.units[unit]}</span>
     </Menu>
   )
   const skipButton = (forward: boolean) => (
     <button
       type="button"
       class="skip"
-      aria-label={`${forward ? 'Next' : 'Previous'} ${unit}`}
+      aria-label={(forward ? t.nextUnit : t.previousUnit)[unit]}
       onClick={() => jump(forward)}
     >
       <Icon name={forward ? 'forward' : 'backward'} size={26} />
@@ -541,7 +540,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
   const chaptersMenu =
     chapters.length > 0 ? (
       <Menu
-        label="Chapters"
+        label={t.chapters}
         class="glass-circle"
         items={chapters.map(chapter => ({
           label: chapter.title,
@@ -555,7 +554,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
       <span class="glass-circle-placeholder" />
     )
   const closeButton = (
-    <button type="button" class="glass-circle" aria-label="Close" onClick={onClose}>
+    <button type="button" class="glass-circle" aria-label={t.close} onClick={onClose}>
       <Icon name="close" size={20} />
     </button>
   )
@@ -570,12 +569,12 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
     <button
       type="button"
       class={alwaysShowText ? 'small-labeled active' : 'small-labeled'}
-      aria-label={landscape ? 'Keep text beside the word' : 'Keep text visible'}
+      aria-label={landscape ? t.keepTextBeside : t.keepTextVisible}
       aria-pressed={alwaysShowText}
       onClick={() => settings.set('alwaysShowText', !alwaysShowText)}
     >
       <Icon name="text" size={22} />
-      <span>Text</span>
+      <span>{t.text}</span>
     </button>
   )
 
@@ -591,7 +590,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
         ) : (
           <div class="reader-empty">
             <Icon name="book" size={48} />
-            <span>Empty text</span>
+            <span>{t.emptyText}</span>
           </div>
         )}
       </div>
@@ -627,29 +626,29 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
               <div class="transport">
                 {skipByMenu}
                 {skipButton(false)}
-                <button type="button" class="play" aria-label="Play" onClick={() => engine.play()}>
+                <button type="button" class="play" aria-label={t.play} onClick={() => engine.play()}>
                   <Icon name="play" size={28} />
                 </button>
                 {skipButton(true)}
                 {textToggle}
               </div>
               <div class="speed-row">
-                <span class="speed-title">Speed</span>
-                <div class="speed-stepper" role="group" aria-label="Reading speed">
+                <span class="speed-title">{t.speed}</span>
+                <div class="speed-stepper" role="group" aria-label={t.readingSpeed}>
                   <button
                     type="button"
-                    aria-label="Slower"
+                    aria-label={t.slower}
                     disabled={engine.wpm <= MIN_WPM}
                     onClick={() => changeSpeed(-1)}
                   >
                     −
                   </button>
                   <span class="speed-value">
-                    {engine.wpm} <small>WPM</small>
+                    {engine.wpm} <small>{t.wpm}</small>
                   </span>
                   <button
                     type="button"
-                    aria-label="Faster"
+                    aria-label={t.faster}
                     disabled={engine.wpm >= MAX_WPM}
                     onClick={() => changeSpeed(1)}
                   >
@@ -697,7 +696,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
             <div class="transport">
               {skipByMenu}
               {skipButton(false)}
-              <button type="button" class="play" aria-label="Play" onClick={() => engine.play()}>
+              <button type="button" class="play" aria-label={t.play} onClick={() => engine.play()}>
                 <Icon name="play" size={34} />
               </button>
               {skipButton(true)}
@@ -706,8 +705,10 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
 
             <div class="speed">
               <div class="speed-labels">
-                <span class="speed-title">Reading speed</span>
-                <span class="speed-value">{engine.wpm} WPM</span>
+                <span class="speed-title">{t.readingSpeed}</span>
+                <span class="speed-value">
+                  {engine.wpm} {t.wpm}
+                </span>
               </div>
               <input
                 type="range"
@@ -716,7 +717,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
                 max={MAX_WPM}
                 step={WPM_STEP}
                 value={engine.wpm}
-                aria-label="Reading speed"
+                aria-label={t.readingSpeed}
                 onInput={e => engine.setWPM(Number(e.currentTarget.value))}
               />
             </div>
@@ -741,7 +742,7 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
         <div class="wpm-badge glass">
           <Icon name="speed" size={18} />
           <strong>{engine.wpm}</strong>
-          <span>WPM</span>
+          <span>{t.wpm}</span>
         </div>
       )}
     </div>
@@ -756,7 +757,7 @@ function ScrubPreview({ engine, chapters }: { engine: RSVPEngine; chapters: Chap
   return (
     <div class="scrub-preview glass" aria-hidden="true">
       <div class="scrub-heading">
-        <span class="scrub-chapter">{chapter?.title ?? 'Position'}</span>
+        <span class="scrub-chapter">{chapter?.title ?? t.position}</span>
         <span class="mono-digits">{Math.round(engine.progress * 100)}%</span>
       </div>
       {sentence && (
@@ -781,7 +782,7 @@ function RotateHint() {
   return (
     <div class="rotate-hint glass" role="status">
       <Icon name="rotate" size={22} class="brand" />
-      <span>Turn sideways for bigger words</span>
+      <span>{t.rotateHint}</span>
     </div>
   )
 }

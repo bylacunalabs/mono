@@ -27,10 +27,21 @@ export function yearFrom(date: string | undefined): string | undefined {
   return date?.match(/(?:^|\D)(1[0-9]{3}|20[0-9]{2})(?!\d)/)?.[1]
 }
 
-export class ImportError extends Error {}
+/** What went wrong, so the interface can say it in its own language. */
+export type ImportProblem = 'empty' | 'unreadable' | 'invalidEPUB' | 'worker'
 
-export const EMPTY_ERROR = 'No readable text was found.'
-export const UNREADABLE_ERROR = 'The file could not be read.'
+const IMPORT_MESSAGES: Record<ImportProblem, string> = {
+  empty: 'No readable text was found.',
+  unreadable: 'The file could not be read.',
+  invalidEPUB: 'This EPUB file is damaged or uses an unsupported format.',
+  worker: 'The import worker failed.',
+}
+
+export class ImportError extends Error {
+  constructor(readonly problem: ImportProblem) {
+    super(IMPORT_MESSAGES[problem])
+  }
+}
 
 export function plainText(text: string, title?: string): ExtractedDocument {
   const paragraphs = splitParagraphs(text)
@@ -60,7 +71,7 @@ export interface PreparedText {
  * always match what the reader tokenizes later.
  */
 export function prepareText(document: ExtractedDocument): PreparedText {
-  if (!document.paragraphs.length) throw new ImportError(EMPTY_ERROR)
+  if (!document.paragraphs.length) throw new ImportError('empty')
   const paragraphStarts: number[] = []
   let wordCount = 0
   for (const paragraph of document.paragraphs) {

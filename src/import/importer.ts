@@ -2,7 +2,7 @@
 // pdf.js (which runs its own worker) and only prepared in the import worker.
 
 import { token, type Token } from '../core/tokenizer'
-import { ImportError } from './document'
+import { ImportError, type ImportProblem } from './document'
 import { checked, fileExtension, fileTitle, type ImportedDocument } from './extract'
 import type { PackedTokens, WorkerRequest } from './worker'
 
@@ -13,16 +13,18 @@ const pending = new Map<number, { resolve: (value: never) => void; reject: (erro
 function run<T>(request: WorkerRequest): Promise<T> {
   if (!worker) {
     worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
-    worker.onmessage = (event: MessageEvent<{ id: number; result?: unknown; error?: string }>) => {
-      const { id, result, error } = event.data
+    worker.onmessage = (
+      event: MessageEvent<{ id: number; result?: unknown; error?: string; problem?: ImportProblem }>,
+    ) => {
+      const { id, result, error, problem } = event.data
       const job = pending.get(id)
       pending.delete(id)
-      if (error !== undefined) job?.reject(new ImportError(error))
+      if (error !== undefined) job?.reject(problem ? new ImportError(problem) : new Error(error))
       else job?.resolve(result as never)
     }
-    worker.onerror = event => {
+    worker.onerror = () => {
       // A worker that can't even start fails every job, not just one.
-      for (const job of pending.values()) job.reject(new Error(event.message || 'The import worker failed.'))
+      for (const job of pending.values()) job.reject(new ImportError('worker'))
       pending.clear()
       worker = undefined
     }

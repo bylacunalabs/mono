@@ -4,6 +4,7 @@
 import { DEFAULT_WPM, clampWPM } from '../core/timing'
 import type { LibrarySort } from '../core/book'
 import type { ReadingFont } from '../ui/fonts'
+import type { LanguageChoice } from './i18n'
 import { Store } from './store'
 
 export type ORPHighlight = 'red' | 'subtle' | 'none'
@@ -29,6 +30,8 @@ export interface Settings {
   boldWord: boolean
   librarySort: LibrarySort
   appearance: Appearance
+  /** The interface's language; 'system' follows the device (see i18n.ts). */
+  language: LanguageChoice
   didSeedSample: boolean
   didShowGestures: boolean
   /** The first-launch "install or continue in the browser" question was answered. */
@@ -51,6 +54,7 @@ const DEFAULTS: Settings = {
   boldWord: true,
   librarySort: 'recent',
   appearance: 'system',
+  language: 'system',
   didSeedSample: false,
   didShowGestures: false,
   didAskInstall: false,

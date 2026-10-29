@@ -1,6 +1,7 @@
 // Reading statistics: today, streak, totals, average speed and the last week.
 
 import { averageWPM, currentStreak, recentDays, statsOn, totalWords } from '../core/stats'
+import { locale, t } from '../state/i18n'
 import { library } from '../state/library'
 import { useObserve } from '../state/store'
 import { formatNumber } from './components'
@@ -13,21 +14,25 @@ export function StatsView() {
   const max = Math.max(1, ...week.map(d => d.stats.words))
   const ticks = niceTicks(max)
   const top = ticks[ticks.length - 1]
+  const today = statsOn(days, new Date()).words
+  const streak = currentStreak(days)
+  const total = totalWords(days)
+  const average = averageWPM(days)
 
   return (
     <div class="screen">
       <div class="content">
-        <h1 class="large-title">Statistics</h1>
+        <h1 class="large-title">{t.statistics}</h1>
         <div class="tiles">
-          <Tile title="Today" icon="sun" value={formatNumber(statsOn(days, new Date()).words)} unit="words" />
-          <Tile title="Streak" icon="flame" value={formatNumber(currentStreak(days))} unit="days" />
-          <Tile title="Total" icon="book" value={formatNumber(totalWords(days))} unit="words" />
-          <Tile title="Average speed" icon="speed" value={formatNumber(averageWPM(days))} unit="WPM" />
+          <Tile title={t.today} icon="sun" value={formatNumber(today)} unit={t.wordsUnit(today)} />
+          <Tile title={t.streak} icon="flame" value={formatNumber(streak)} unit={t.daysUnit(streak)} />
+          <Tile title={t.total} icon="book" value={formatNumber(total)} unit={t.wordsUnit(total)} />
+          <Tile title={t.averageSpeed} icon="speed" value={formatNumber(average)} unit={t.wpm} />
         </div>
 
         <section class="card glass chart-card">
-          <h3>Last 7 days</h3>
-          <div class="chart" role="img" aria-label="Words read in the last 7 days">
+          <h3>{t.lastSevenDays}</h3>
+          <div class="chart" role="img" aria-label={t.lastSevenDaysLabel}>
             <div class="chart-grid">
               {ticks.map(tick => (
                 <div class="chart-line" style={{ bottom: `${(tick / top) * 100}%` }}>
@@ -37,18 +42,18 @@ export function StatsView() {
             </div>
             <div class="chart-bars">
               {week.map(({ date, stats }) => (
-                <div class="chart-column" title={`${formatNumber(stats.words)} words`}>
+                <div class="chart-column" title={t.words(stats.words)}>
                   <div class="chart-bar-area">
                     <div class="chart-bar" style={{ height: `${(stats.words / top) * 100}%` }} />
                   </div>
-                  <span class="chart-label">{date.toLocaleDateString('en-US', { weekday: 'narrow' })}</span>
+                  <span class="chart-label">{date.toLocaleDateString(locale, { weekday: 'narrow' })}</span>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {totalWords(days) === 0 && <p class="footnote center">Your reading sessions will show up here.</p>}
+        {total === 0 && <p class="footnote center">{t.statsEmpty}</p>}
       </div>
     </div>
   )

@@ -22,16 +22,28 @@ export interface Backup {
   settings: Record<string, unknown>
 }
 
-export class BackupError extends Error {}
+/** What's wrong with the file, so the interface can say it in its own language. */
+export type BackupProblem = 'notBackup' | 'newer'
+
+const BACKUP_MESSAGES: Record<BackupProblem, string> = {
+  notBackup: 'This file is not a Mono backup.',
+  newer: 'This backup was made by a newer version of Mono. Update the app and try again.',
+}
+
+export class BackupError extends Error {
+  constructor(readonly problem: BackupProblem) {
+    super(BACKUP_MESSAGES[problem])
+  }
+}
 
 /** Checks the shape of a parsed backup file. */
 export function validateBackup(value: unknown): Backup {
   const backup = value as Partial<Backup> | null
   if (!backup || backup.format !== BACKUP_FORMAT || !Array.isArray(backup.books)) {
-    throw new BackupError('This file is not a Mono backup.')
+    throw new BackupError('notBackup')
   }
   if (typeof backup.version !== 'number' || backup.version > BACKUP_VERSION) {
-    throw new BackupError('This backup was made by a newer version of Mono. Update the app and try again.')
+    throw new BackupError('newer')
   }
   const books = backup.books.filter(
     (b): b is Book =>
