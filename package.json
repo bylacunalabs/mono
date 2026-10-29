@@ -2,6 +2,12 @@
   "name": "mono-web",
   "private": true,
   "version": "1.0.0",
+  "description": "Speed reading, one word at a time: the Mono RSVP reader as a Progressive Web App",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bylacunalabs/mono.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
