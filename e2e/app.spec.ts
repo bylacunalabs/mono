@@ -1,4 +1,4 @@
-import { epub, expect, openLibrary, test } from './fixtures'
+import { epub, expect, openLibrary, pdf, test } from './fixtures'
 
 test('the library starts with the guide, which opens in the reader', async ({ page }) => {
   await openLibrary(page)
@@ -30,6 +30,17 @@ test('an EPUB is imported with its title and author and can be read', async ({ p
   await expect(page.getByText('The Test Book').first()).toBeVisible()
   await page.getByText('The Test Book').first().click()
   await expect(page.locator('.rsvp')).toHaveAttribute('aria-label', /\S/)
+})
+
+test('a PDF is imported and read', async ({ page }) => {
+  await openLibrary(page)
+  await page.locator('input[type="file"]').first().setInputFiles({
+    name: 'Spot.pdf',
+    mimeType: 'application/pdf',
+    buffer: pdf(),
+  })
+  await page.getByText('Spot').first().click()
+  await expect(page.locator('.rsvp')).toHaveAttribute('aria-label', 'Every')
 })
 
 for (const font of ['mono', 'sans', 'serif', 'georgia']) {

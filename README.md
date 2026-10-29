@@ -29,6 +29,13 @@ guidelines in `brand/` and the app in `app/`; `dist/` holds all three. The
 landing page's `sw.js` retires the service worker of installs made before
 the app moved to `app/`.
 
+## Deploy
+
+Every push to `main` publishes the site to GitHub Pages
+(`.github/workflows/deploy.yml`; turn Pages on with Source: GitHub Actions).
+`SITE_URL`, the site's public address, makes the link-preview image's URL
+absolute.
+
 To serve from a sub-path (e.g. GitHub Pages at `/mono/`, app at `/mono/app/`):
 
 ```sh

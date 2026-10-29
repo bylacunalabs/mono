@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-import { cpSync, existsSync, readFileSync, statSync } from 'node:fs'
+import { cpSync, existsSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { extname, join, normalize } from 'node:path'
 import { defineConfig, type Connect, type Plugin } from 'vite'
 import preact from '@preact/preset-vite'
@@ -10,6 +10,9 @@ import splashScreens from './scripts/splash-screens.json' with { type: 'json' }
 // live under a sub-path, e.g. BASE=/mono/ for GitHub Pages.
 const site = process.env.BASE ?? '/'
 const base = `${site}app/`
+// The site's public address, e.g. https://bylacunalabs.github.io/mono/: link
+// previews need the social image's full URL.
+const siteURL = process.env.SITE_URL
 
 // iOS doesn't build a launch screen from the manifest: without these images
 // an installed Mono opens on a white screen. One per screen size (CSS px and
@@ -81,7 +84,18 @@ function landingPage(): Plugin {
       server.middlewares.use(serve)
     },
     configurePreviewServer: server => void server.middlewares.use(serve),
-    closeBundle: () => cpSync('landing', 'dist', { recursive: true, filter: source => !source.endsWith('.ts') }),
+    closeBundle: () => {
+      cpSync('landing', 'dist', { recursive: true, filter: source => !source.endsWith('.ts') })
+      if (siteURL) {
+        const page = readFileSync('dist/index.html', 'utf8')
+          .replace('content="og-image.png"', `content="${new URL('og-image.png', siteURL)}"`)
+          .replace(
+            '<meta property="og:type"',
+            `<meta property="og:url" content="${siteURL}" />\n    <meta property="og:type"`,
+          )
+        writeFileSync('dist/index.html', page)
+      }
+    },
   }
 }
 
