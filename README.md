@@ -74,6 +74,10 @@ the iOS launch screens, the social image and the app's own
 - **Backup**: Settings → Library exports everything to a JSON file and
   merges one back in.
 - **Theme**: Automatic, Light or Dark in Settings; the reader follows it.
+- **Language**: English or Italian, following the device unless chosen in
+  Settings. The messages are in `src/state/locales/` (English is the source;
+  the others must have the same keys); the guide added at first launch is in
+  `src/core/sample.ts`.
 - **Launch screen** on iOS: `public/splash/` holds one image per iPhone and
   iPad screen size and theme (linked by a plugin in `vite.config.ts`).
 

@@ -1,4 +1,4 @@
-import { epub, expect, openLibrary, pdf, test } from './fixtures'
+import { epub, expect, openLibrary, pdf, SETTLED, test } from './fixtures'
 
 test('the library starts with the guide, which opens in the reader', async ({ page }) => {
   await openLibrary(page)
@@ -68,4 +68,33 @@ test('the app registers its service worker for app/ only', async ({ page }) => {
   await openLibrary(page)
   const scope = await page.evaluate(async () => (await navigator.serviceWorker.ready).scope)
   expect(new URL(scope).pathname).toBe('/app/')
+})
+
+test.describe('in Italian', () => {
+  test.use({ settings: { ...SETTLED, language: 'it' } })
+
+  test('the library and the guide are in Italian, and Settings switches the language', async ({ page }) => {
+    await openLibrary(page)
+    await expect(page.locator('html')).toHaveAttribute('lang', 'it')
+    await expect(page.getByRole('heading', { name: 'Libreria' })).toBeVisible()
+    await expect(page.getByText('Ti diamo il benvenuto in Mono').first()).toBeVisible()
+
+    await page.getByRole('button', { name: 'Impostazioni' }).click()
+    await expect(page.getByRole('heading', { name: 'Impostazioni' })).toBeVisible()
+    await page.getByRole('button', { name: 'English' }).click()
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+    await page.getByRole('button', { name: 'Library' }).click()
+    await expect(page.getByRole('heading', { name: 'Library' })).toBeVisible()
+  })
+})
+
+test.describe('on an Italian device', () => {
+  test.use({ locale: 'it-IT' })
+
+  test('the interface and the guide follow the device', async ({ page }) => {
+    await openLibrary(page)
+    await expect(page.getByRole('heading', { name: 'Libreria' })).toBeVisible()
+    await expect(page.getByText('Ti diamo il benvenuto in Mono').first()).toBeVisible()
+  })
 })
