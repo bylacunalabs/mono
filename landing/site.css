@@ -240,8 +240,22 @@ h3 {
   font-size: 15px;
 }
 
+.nav-github {
+  gap: 8px;
+  padding: 0 14px;
+}
+
+.nav-github svg {
+  width: 18px;
+  height: 18px;
+}
+
 @media (max-width: 720px) {
   .nav-links {
+    display: none;
+  }
+
+  .nav-github-label {
     display: none;
   }
 }

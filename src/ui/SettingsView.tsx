@@ -339,6 +339,16 @@ function InstallSection() {
             <Icon name="install" size={20} class="brand" />
           </button>
         )}
+        <a
+          class="row choice"
+          href="https://github.com/bylacunalabs/mono"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={t.github}
+        >
+          <span>{t.github}</span>
+          <Icon name="github" size={20} />
+        </a>
       </section>
       <p class="footnote">
         {pwa.isInstalled

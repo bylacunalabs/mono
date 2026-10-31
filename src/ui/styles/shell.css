@@ -79,3 +79,12 @@
   color: var(--brand);
   background: var(--fill);
 }
+
+.tab-github {
+  color: var(--secondary);
+}
+
+.tab-github:active {
+  color: var(--brand);
+  background: var(--fill);
+}

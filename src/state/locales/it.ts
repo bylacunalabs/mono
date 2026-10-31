@@ -157,6 +157,7 @@ export const it: Messages = {
   installApp: 'Installa app',
   continueInBrowser: 'Continua nel browser',
   installLater: 'Puoi installare Mono quando vuoi da Impostazioni.',
+  github: 'GitHub',
 
   // Gestures
   gestures: {
