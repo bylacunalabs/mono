@@ -146,15 +146,6 @@ export function App() {
               <span>{t.tabs[item.id]}</span>
             </button>
           ))}
-          <a
-            class="tab tab-github"
-            href="https://github.com/bylacunalabs/mono"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={t.github}
-          >
-            <Icon name="github" size={24} />
-          </a>
         </nav>
       </main>
 

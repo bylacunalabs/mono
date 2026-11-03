@@ -154,7 +154,6 @@ export const en = {
   installApp: 'Install App',
   continueInBrowser: 'Continue in Browser',
   installLater: 'You can install Mono any time from Settings.',
-  github: 'GitHub',
 
   // Gestures
   gestures: {
