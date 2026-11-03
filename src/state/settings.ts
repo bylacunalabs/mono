@@ -1,6 +1,7 @@
 // User preferences, kept in localStorage (per browser, shared by its tabs)
 // and observable.
 
+import { EVENTS, trackEvent } from '../analytics'
 import { DEFAULT_WPM, clampWPM } from '../core/timing'
 import type { LibrarySort } from '../core/book'
 import type { ReadingFont } from '../ui/fonts'
@@ -92,6 +93,7 @@ class SettingsStore extends Store {
     if (this.value[key] === value) return
     this.value = { ...this.value, [key]: value }
     this.save()
+    if (!String(key).startsWith('did')) trackEvent(EVENTS.settingsChanged, { key, value })
   }
 
   /** Takes the known settings from e.g. a backup, ignoring anything else. */

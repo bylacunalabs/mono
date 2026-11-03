@@ -4,6 +4,7 @@
 // change so they show the same library. Deleting can be undone for a few
 // seconds: the text leaves the list at once and the disk only afterwards.
 
+import { EVENTS, trackEvent } from '../analytics'
 import { BackupError, booksToRestore, mergeStats } from '../core/backup'
 import { titleFromText, type Book, type SentenceContext, type Source } from '../core/book'
 import { SAMPLE_BODY, SAMPLE_BODY_IT, SAMPLE_TITLE, SAMPLE_TITLE_IT } from '../core/sample'
@@ -32,6 +33,9 @@ export interface LibraryError {
   title: string
   message: string
 }
+
+/** How a text reached the library, for the import events. */
+type ImportVia = 'file' | 'paste' | 'share'
 
 class Library extends Store {
   books: Book[] = []
@@ -88,25 +92,29 @@ class Library extends Store {
 
   // Adding
 
-  async importFiles(files: File[]) {
+  async importFiles(files: File[], via: ImportVia = 'file') {
     for (const file of files) {
-      await this.add(() =>
-        importFile(file, (done, total) => {
-          this.importProgress = total > 5 ? { done, total } : undefined
-          this.emit()
-        }),
+      await this.add(
+        () =>
+          importFile(file, (done, total) => {
+            this.importProgress = total > 5 ? { done, total } : undefined
+            this.emit()
+          }),
+        via,
       )
     }
   }
 
-  async addText(text: string, title?: string) {
+  async addText(text: string, title?: string, via: ImportVia = 'paste') {
     const trimmed = text.trim()
-    await this.add(async () =>
-      importDocument({
-        document: plainText(trimmed, title),
-        fallbackTitle: titleFromText(trimmed, t.untitled),
-        source: 'text' as Source,
-      }),
+    await this.add(
+      async () =>
+        importDocument({
+          document: plainText(trimmed, title),
+          fallbackTitle: titleFromText(trimmed, t.untitled),
+          source: 'text' as Source,
+        }),
+      via,
     )
   }
 
@@ -120,11 +128,12 @@ class Library extends Store {
     }
     for (const item of items) {
       if (item.files.length) {
-        await this.importFiles(item.files)
+        await this.importFiles(item.files, 'share')
         continue
       }
       const text = item.text?.trim()
-      if (text) await this.addText(item.url && !text.includes(item.url) ? `${text}\n\n${item.url}` : text, item.title)
+      if (text)
+        await this.addText(item.url && !text.includes(item.url) ? `${text}\n\n${item.url}` : text, item.title, 'share')
       else if (item.url) {
         this.fail(t.nothingToRead, t.noWebPages)
       }
@@ -148,9 +157,11 @@ class Library extends Store {
   }
 
   /** Imports one document; false if it failed (the error is shown). */
-  private async add(work: () => Promise<ImportedDocument>): Promise<boolean> {
+  private async add(work: () => Promise<ImportedDocument>, via?: ImportVia): Promise<boolean> {
     this.pendingImports++
     this.emit()
+    if (via) trackEvent(EVENTS.importStarted, { via })
+    const started = performance.now()
     try {
       const { prepared, fallbackTitle, source, author, year, cover } = await work()
       const thumbnail = cover ? await coverThumbnail(cover) : undefined
@@ -170,9 +181,11 @@ class Library extends Store {
       await db.addBook(book, prepared.text, thumbnail)
       this.books = [book, ...this.books]
       this.broadcast()
+      if (via) trackEvent(EVENTS.importCompleted, { via, source, ms: Math.round(performance.now() - started) })
       return true
     } catch (error) {
       this.fail(t.importFailed, describe(error))
+      if (via) trackEvent(EVENTS.importFailed, { via, reason: error instanceof ImportError ? error.problem : 'other' })
       return false
     } finally {
       this.pendingImports--
@@ -209,6 +222,7 @@ class Library extends Store {
     void this.commitDeletion()
     const book = this.books.find(b => b.id === id)
     if (!book) return
+    trackEvent(EVENTS.bookDeleted, { source: book.source })
     this.books = this.books.filter(b => b.id !== id)
     this.pendingDeletion = book
     this.deletionTimer = setTimeout(() => void this.commitDeletion(), UNDO_SECONDS * 1000)

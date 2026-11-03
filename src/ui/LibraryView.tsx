@@ -7,6 +7,7 @@
 // from the snackbar that follows. On Android, adding is a floating button.
 
 import { useEffect, useRef, useState } from 'preact/hooks'
+import { EVENTS, trackEvent } from '../analytics'
 import {
   byline,
   continueReading,
@@ -134,7 +135,11 @@ export function LibraryView(props: {
                 type="search"
                 placeholder={t.searchPlaceholder}
                 value={search}
-                onInput={e => setSearch(e.currentTarget.value)}
+                onInput={e => {
+                  const value = e.currentTarget.value
+                  if (!query && value.trim()) trackEvent(EVENTS.librarySearchUsed)
+                  setSearch(value)
+                }}
                 enterKeyHint="search"
               />
             </label>

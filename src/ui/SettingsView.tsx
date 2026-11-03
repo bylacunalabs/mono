@@ -3,6 +3,7 @@
 // installing the app.
 
 import { useRef, useState } from 'preact/hooks'
+import { EVENTS, trackEvent } from '../analytics'
 import { MAX_WPM, MIN_WPM, WPM_STEP } from '../core/timing'
 import { LANGUAGE_NAMES, LANGUAGES, t, type LanguageChoice } from '../state/i18n'
 import { library } from '../state/library'
@@ -267,6 +268,7 @@ function BackupSection() {
       const blob = await library.backup()
       const date = new Date().toISOString().slice(0, 10)
       download(blob, t.backupFileName(date))
+      trackEvent(EVENTS.backupExported, { books: library.books.length })
     } finally {
       setBusy(false)
     }
@@ -276,7 +278,10 @@ function BackupSection() {
     setBusy(true)
     const count = await library.restore(file)
     setBusy(false)
-    if (count !== undefined) setRestored(count)
+    if (count !== undefined) {
+      setRestored(count)
+      trackEvent(EVENTS.backupRestored, { books: count })
+    }
   }
 
   return (

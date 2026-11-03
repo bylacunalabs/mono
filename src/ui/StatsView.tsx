@@ -1,5 +1,7 @@
 // Reading statistics: today, streak, totals, average speed and the last week.
 
+import { useEffect } from 'preact/hooks'
+import { EVENTS, trackEvent } from '../analytics'
 import { averageWPM, currentStreak, recentDays, statsOn, totalWords } from '../core/stats'
 import { locale, t } from '../state/i18n'
 import { library } from '../state/library'
@@ -8,6 +10,9 @@ import { formatNumber } from './components'
 import { Icon } from './icons'
 
 export function StatsView() {
+  useEffect(() => {
+    trackEvent(EVENTS.statsOpened)
+  }, [])
   useObserve(library)
   const days = library.days
   const week = recentDays(days)

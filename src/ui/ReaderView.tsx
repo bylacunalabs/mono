@@ -35,6 +35,7 @@
 // hidden and when the reader closes.
 
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
+import { EVENTS, trackEvent } from '../analytics'
 import type { Book, Chapter } from '../core/book'
 import { RSVPEngine } from '../core/engine'
 import { pieces } from '../core/hyphenation'
@@ -228,7 +229,10 @@ export function ReaderView({ book, onClose }: { book: Book; onClose: () => void 
     let wasPlaying = false
     let lastIndex = engine.currentIndex
     return engine.subscribe(() => {
-      if (wasPlaying && !engine.isPlaying) checkpoint()
+      if (wasPlaying && !engine.isPlaying) {
+        checkpoint()
+        if (engine.isFinished) trackEvent(EVENTS.readingCompleted, { source: book.source })
+      }
       if (engine.isPlaying && engine.currentIndex !== lastIndex && engine.currentIndex % 100 === 0) saveProgress()
       wasPlaying = engine.isPlaying
       lastIndex = engine.currentIndex

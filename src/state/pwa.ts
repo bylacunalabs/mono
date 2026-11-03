@@ -2,6 +2,7 @@
 // while reading), the install prompt, and messages from the service worker.
 
 import { registerSW } from 'virtual:pwa-register'
+import { EVENTS, trackEvent } from '../analytics'
 import { platform } from '../ui/platform'
 import { Store } from './store'
 
@@ -51,6 +52,7 @@ class PWA extends Store {
       this.isInstalled = true
       this.installPrompt = undefined
       this.emit()
+      trackEvent(EVENTS.pwaInstalled)
     })
   }
 
@@ -73,6 +75,7 @@ class PWA extends Store {
    * by the hourly check or by the browser need the listener below.
    */
   update() {
+    if (this.applyUpdate) trackEvent(EVENTS.pwaUpdateApplied)
     let reloading = false
     navigator.serviceWorker?.addEventListener('controllerchange', () => {
       if (reloading) return

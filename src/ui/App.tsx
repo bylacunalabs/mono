@@ -4,6 +4,7 @@
 // banner, the first-launch install question and errors.
 
 import { useEffect, useState } from 'preact/hooks'
+import { EVENTS, trackEvent } from '../analytics'
 import { continueReading, type Book } from '../core/book'
 import { i18n, t } from '../state/i18n'
 import { library } from '../state/library'
@@ -101,6 +102,12 @@ export function App() {
     const id = readingID
     morph(() => setReadingID(undefined), { to: () => (id ? bookElement(id) : null) })
   }
+
+  useEffect(() => {
+    if (!readingID) return
+    const book = library.books.find(b => b.id === readingID)
+    if (book) trackEvent(EVENTS.bookOpened, { source: book.source, resumed: book.currentIndex > 0 })
+  }, [readingID])
 
   return (
     <>
