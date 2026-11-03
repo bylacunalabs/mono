@@ -4,9 +4,21 @@
   "version": "1.0.0",
   "description": "Speed reading, one word at a time: the Mono RSVP reader as a Progressive Web App",
   "license": "MIT",
+  "author": "Lacuna Labs",
+  "homepage": "https://mono.lacunalabs.it",
+  "keywords": [
+    "rsvp",
+    "speed-reading",
+    "reader",
+    "pwa",
+    "preact"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bylacunalabs/mono.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bylacunalabs/mono/issues"
   },
   "type": "module",
   "engines": {

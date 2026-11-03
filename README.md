@@ -10,6 +10,8 @@ gesture controls made for reading whole books. Everything runs in the
 browser: no account, no server, texts stay on the device and reading
 works offline.
 
+Live at **https://mono.lacunalabs.it**.
+
 ## Develop
 
 ```sh
@@ -31,11 +33,10 @@ the app moved to `app/` (October 2026); remove it after April 2027.
 
 Analytics is optional PostHog tracking (`src/analytics.ts`, on the landing
 page and in the app) through the `https://p.lacunalabs.it` proxy, with the
-Lacuna Labs key in `VITE_POSTHOG_KEY` (`homefindr-lite/frontend/.env`; see
-`.env.example`, put it in `.env.local` for local builds). Without a key
-every call is a no-op and the build leaves PostHog out entirely. Events
-carry `project_name: mono`, so they stay distinct from the other projects
-on the same PostHog instance. Nothing personal or from the texts is ever
+key in `VITE_POSTHOG_KEY` (see `.env.example`; put it in `.env.local` for
+local builds). Without a key every call is a no-op and the build leaves
+PostHog out entirely. Events carry `project_name: mono`, so several projects
+can share one PostHog instance. Nothing personal or from the texts is ever
 sent.
 
 ## Deploy
