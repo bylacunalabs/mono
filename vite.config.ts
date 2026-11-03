@@ -20,6 +20,8 @@ const siteURL = process.env.SITE_URL
 // list; public/splash/WxH-light|dark.png in device pixels.
 const SPLASH_SCREENS = splashScreens as [number, number, number][]
 
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
+
 function appleSplashScreens(): Plugin {
   return {
     name: 'apple-splash-screens',
@@ -101,6 +103,7 @@ function landingPage(): Plugin {
 
 export default defineConfig({
   base,
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   build: {
     outDir: 'dist/app',
     emptyOutDir: true,
