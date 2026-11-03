@@ -56,6 +56,7 @@ const CONTENT_TYPES: Record<string, string> = {
 }
 
 const DEMO = `${base}demo.js`
+const ANALYTICS = `${base}analytics.js`
 
 function landingPage(): Plugin {
   const serve: Connect.NextHandleFunction = (req, res, next) => {
@@ -78,9 +79,12 @@ function landingPage(): Plugin {
   return {
     name: 'landing-page',
     configureServer: server => {
-      // In development the demo is its TypeScript source, compiled on request.
+      // In development the demo and the landing analytics are their
+      // TypeScript sources, compiled on request.
       server.middlewares.use((req, _res, next) => {
-        if (req.url?.split('?')[0] === DEMO) req.url = `${base}landing/demo.ts`
+        const path = req.url?.split('?')[0]
+        if (path === DEMO) req.url = `${base}landing/demo.ts`
+        else if (path === ANALYTICS) req.url = `${base}landing/analytics.ts`
         next()
       })
       server.middlewares.use(serve)
@@ -108,9 +112,12 @@ export default defineConfig({
     outDir: 'dist/app',
     emptyOutDir: true,
     rollupOptions: {
-      input: { main: 'index.html', demo: 'landing/demo.ts' },
-      // The landing page links demo.js by name.
-      output: { entryFileNames: chunk => (chunk.name === 'demo' ? 'demo.js' : 'assets/[name]-[hash].js') },
+      input: { main: 'index.html', demo: 'landing/demo.ts', analytics: 'landing/analytics.ts' },
+      // The landing page links demo.js and analytics.js by name.
+      output: {
+        entryFileNames: chunk =>
+          chunk.name === 'demo' ? 'demo.js' : chunk.name === 'analytics' ? 'analytics.js' : 'assets/[name]-[hash].js',
+      },
     },
   },
   plugins: [
