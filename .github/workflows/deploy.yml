@@ -34,6 +34,7 @@ jobs:
         env:
           BASE: ${{ steps.pages.outputs.base_path }}/
           SITE_URL: ${{ steps.pages.outputs.base_url }}/
+          VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

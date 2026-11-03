@@ -29,12 +29,21 @@ guidelines in `brand/` and the app in `app/`; `dist/` holds all three. The
 landing page's `sw.js` retires the service worker of installs made before
 the app moved to `app/` (October 2026); remove it after April 2027.
 
+Analytics is optional PostHog tracking (`src/analytics.ts`, on the landing
+page and in the app) through the `https://p.lacunalabs.it` proxy, with the
+Lacuna Labs key in `VITE_POSTHOG_KEY` (`homefindr-lite/frontend/.env`; see
+`.env.example`, put it in `.env.local` for local builds). Without a key
+every call is a no-op and the build leaves PostHog out entirely. Events
+carry `project_name: mono`, so they stay distinct from the other projects
+on the same PostHog instance. Nothing personal or from the texts is ever
+sent.
+
 ## Deploy
 
 Every push to `main` publishes the site to GitHub Pages
 (`.github/workflows/deploy.yml`; turn Pages on with Source: GitHub Actions).
 `SITE_URL`, the site's public address, makes the link-preview image's URL
-absolute.
+absolute; the `VITE_POSTHOG_KEY` secret enables analytics.
 
 To serve from a sub-path (e.g. GitHub Pages at `/mono/`, app at `/mono/app/`):
 
