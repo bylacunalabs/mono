@@ -40,12 +40,15 @@ sent.
 
 ## Deploy
 
-Every push to `main` publishes the site to GitHub Pages
-(`.github/workflows/deploy.yml`; turn Pages on with Source: GitHub Actions).
-`SITE_URL`, the site's public address, makes the link-preview image's URL
-absolute; the `VITE_POSTHOG_KEY` secret enables analytics.
+Every push to `main` builds and publishes the site to Cloudflare Pages
+(project `mono`, https://mono.lacunalabs.it), which runs `npm run build` and
+serves `dist`. The project's environment variables hold `VITE_POSTHOG_KEY`
+(the analytics key; without it the build leaves PostHog out entirely) and
+`NODE_VERSION`. Setting `SITE_URL` there makes the link-preview image's URL
+absolute. CI (`.github/workflows/ci.yml`) checks every push: formatting,
+lint, unit tests, build and the end-to-end tests.
 
-To serve from a sub-path (e.g. GitHub Pages at `/mono/`, app at `/mono/app/`):
+To serve from a sub-path elsewhere (app at `/mono/app/`):
 
 ```sh
 BASE=/mono/ npm run build
