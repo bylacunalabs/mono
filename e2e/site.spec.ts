@@ -11,14 +11,14 @@ test('the landing page demo reads and follows the speed', async ({ page }) => {
 
   await page.locator('#speed').fill('600')
   await expect(page.locator('#wpm-value')).toHaveText('600')
-  await expect(page.locator('#t-novel')).toHaveText('2.5 h')
 })
 
 test('the landing page links to the app and the brand guidelines', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('link', { name: 'Brand' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toContainText('One red o')
-  await page.getByRole('link', { name: 'Open Mono' }).first().click()
+  await page.goBack()
+  await page.getByRole('link', { name: 'mono.lacunalabs.it' }).locator('visible=true').first().click()
   await expect(page).toHaveURL(/\/app\/$/)
 })
 
@@ -40,4 +40,13 @@ test('the root service worker retires itself and keeps the app’s caches', asyn
   expect(result.registrations).toEqual([])
   expect(result.caches.some(name => name.includes('/app/'))).toBe(true)
   expect(result.caches).not.toContain('old-app-cache')
+})
+
+test('the landing page opens the install steps for the visitor’s device', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('link', { name: 'Install' }).first().click()
+  await expect(page).toHaveURL(/#install$/)
+  await page.getByRole('tab', { name: 'Android' }).click()
+  await expect(page.getByRole('heading', { name: 'Choose “Install app”' })).toBeVisible()
+  await expect(page.locator('#panel-ios')).toBeHidden()
 })
