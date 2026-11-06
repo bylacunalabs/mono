@@ -6,974 +6,336 @@
     <title>Mono — Speed reading, one word at a time</title>
     <meta
       name="description"
-      content="Mono shows one word at a time, anchored on the letter your eye lands on. Read books, articles and PDFs faster. Free, offline, private and open source."
+      content="Mono shows one word at a time, anchored on the letter your eye lands on. Read books, articles and PDFs faster. Completely free, open source, offline and private."
     />
     <meta property="og:title" content="Mono — Speed reading, one word at a time" />
     <meta
       property="og:description"
-      content="One word at a time, anchored on the letter your eye lands on. Free, offline, private and open source."
+      content="One word at a time, anchored on the letter your eye lands on. Completely free, open source, offline and private."
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f2f7" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f4f6" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0a0b" />
     <meta name="color-scheme" content="dark light" />
     <link rel="icon" href="app/icons/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png" />
     <link rel="canonical" href="https://mono.lacunalabs.it/" />
-    <link rel="stylesheet" href="site.css" />
+    <link rel="stylesheet" href="landing.css" />
     <script>
       // Opened as an app installed before Mono moved to app/: go to the app.
       if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) location.replace('app/')
-      document.documentElement.classList.add('js')
     </script>
-    <style>
-      /* Hero: the headline, then the reader itself as the stage. */
-
-      .hero {
-        position: relative;
-        padding: clamp(56px, 9vw, 112px) 0 clamp(56px, 8vw, 96px);
-        text-align: center;
-      }
-
-      .hero::before {
-        content: '';
-        position: absolute;
-        inset: -64px 0 auto;
-        height: 1100px;
-        background: radial-gradient(
-          42% 46% at 50% 62%,
-          rgba(var(--brand-rgb), calc(0.17 * var(--glow))),
-          transparent 72%
-        );
-        pointer-events: none;
-        z-index: -1;
-      }
-
-      .badges {
-        display: inline-flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 6px;
-        margin: 0 0 28px;
-        padding: 0;
-        list-style: none;
-      }
-
-      .badges li {
-        font-size: 13px;
-        font-weight: 600;
-        padding: 6px 12px;
-        border-radius: 999px;
-        background: var(--fill);
-        color: var(--secondary);
-      }
-
-      .hero h1 {
-        font-size: clamp(46px, 8.4vw, 104px);
-        font-weight: 800;
-        letter-spacing: -0.035em;
-        line-height: 0.98;
-      }
-
-      .hero h1 em {
-        font-style: normal;
-        color: var(--brand);
-      }
-
-      .hero .lead {
-        margin: 26px auto 0;
-        max-width: 30em;
-      }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 12px;
-        margin-top: 36px;
-      }
-
-      /* The stage: the demo reader, its arms reaching the page's edges. */
-
-      .stage {
-        margin-top: clamp(48px, 7vw, 88px);
-      }
-
-      .stage-hint {
-        font-size: 13px;
-        color: var(--secondary);
-        margin: 0 0 6px;
-      }
-
-      .stage .reticle {
-        --size: clamp(40px, 8vw, 92px);
-        --pad: 0px;
-        cursor: pointer;
-        user-select: none;
-        -webkit-user-select: none;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      .stage .reticle .arm.left {
-        background: linear-gradient(to right, transparent, var(--outer) 30%, var(--inner));
-      }
-
-      .stage .reticle .arm.right {
-        background: linear-gradient(to left, transparent, var(--outer) 30%, var(--inner));
-      }
-
-      .console {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        gap: 18px;
-        width: min(560px, 100%);
-        margin: clamp(16px, 3vw, 28px) auto 0;
-        padding: 12px 22px 12px 12px;
-        border-radius: 999px;
-        background: color-mix(in srgb, var(--surface) 80%, transparent);
-        border: 0.5px solid var(--separator);
-        box-shadow: var(--shadow);
-        -webkit-backdrop-filter: blur(20px);
-        backdrop-filter: blur(20px);
-        text-align: left;
-      }
-
-      .play {
-        width: 52px;
-        height: 52px;
-        border: 0;
-        border-radius: 50%;
-        background: rgb(var(--ink-rgb));
-        color: var(--paper);
-        display: grid;
-        place-items: center;
-        cursor: pointer;
-        transition: transform 0.15s ease;
-      }
-
-      .play:active {
-        transform: scale(0.92);
-      }
-
-      .play svg {
-        width: 20px;
-        height: 20px;
-        fill: currentColor;
-      }
-
-      .play .icon-pause,
-      .playing .play .icon-play {
-        display: none;
-      }
-
-      .playing .play .icon-pause {
-        display: block;
-      }
-
-      .speed-label {
-        display: block;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--secondary);
-      }
-
-      .wpm {
-        font: 600 24px var(--mono);
-        color: var(--brand);
-        min-width: 4.2ch;
-        text-align: right;
-        font-variant-numeric: tabular-nums;
-      }
-
-      .wpm small {
-        font-size: 13px;
-        margin-left: 3px;
-      }
-
-      input[type='range'] {
-        --value: 18%;
-        width: 100%;
-        height: 26px;
-        margin: 0;
-        background: transparent;
-        -webkit-appearance: none;
-        appearance: none;
-        cursor: pointer;
-      }
-
-      input[type='range']::-webkit-slider-runnable-track {
-        height: 6px;
-        border-radius: 3px;
-        background: linear-gradient(to right, var(--brand) var(--value), var(--fill) var(--value));
-      }
-
-      input[type='range']::-moz-range-track {
-        height: 6px;
-        border-radius: 3px;
-        background: linear-gradient(to right, var(--brand) var(--value), var(--fill) var(--value));
-      }
-
-      input[type='range']::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        width: 22px;
-        height: 22px;
-        margin-top: -8px;
-        border-radius: 50%;
-        background: var(--brand);
-        border: 3px solid var(--paper);
-        box-shadow: 0 0 12px rgba(var(--brand-rgb), 0.5);
-      }
-
-      input[type='range']::-moz-range-thumb {
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: var(--brand);
-        border: 3px solid var(--paper);
-        box-shadow: 0 0 12px rgba(var(--brand-rgb), 0.5);
-      }
-
-      .estimates {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 10px 32px;
-        margin: 22px 0 0;
-        font-size: 14px;
-        color: var(--secondary);
-      }
-
-      .estimates strong {
-        font: 600 15px var(--mono);
-        color: var(--text);
-        margin-right: 6px;
-        font-variant-numeric: tabular-nums;
-      }
-
-      @media (max-width: 480px) {
-        .console {
-          gap: 12px;
-          padding-right: 16px;
-        }
-
-        .wpm {
-          font-size: 20px;
-        }
-      }
-
-      /* How it works: a page against the reticle */
-
-      .compare {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-      }
-
-      .compare .panel {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .figure {
-        flex: 1;
-        display: grid;
-        place-items: center;
-        min-height: 220px;
-        margin-bottom: 24px;
-        border-radius: 18px;
-        background: var(--paper);
-        overflow: hidden;
-      }
-
-      .lines {
-        width: 100%;
-        height: auto;
-        max-width: 420px;
-        padding: 0 20px;
-      }
-
-      .lines text {
-        font: 500 15px var(--mono);
-        fill: rgba(var(--ink-rgb), 0.55);
-      }
-
-      .lines .hop {
-        fill: none;
-        stroke: var(--brand);
-        stroke-width: 1.5;
-        stroke-dasharray: 3 4;
-        opacity: 0.7;
-      }
-
-      .lines .fix {
-        fill: var(--brand);
-        opacity: 0.2;
-        animation: fixate 4.8s infinite;
-      }
-
-      @keyframes fixate {
-        0%,
-        12% {
-          opacity: 1;
-        }
-        20%,
-        100% {
-          opacity: 0.2;
-        }
-      }
-
-      .figure .reticle {
-        --size: clamp(26px, 8vw, 40px);
-        width: 100%;
-      }
-
-      @media (max-width: 760px) {
-        .compare {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      /* Features */
-
-      .features {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-      }
-
-      .feature {
-        background: var(--surface);
-        border: 0.5px solid var(--separator);
-        border-radius: 24px;
-        padding: 28px;
-      }
-
-      .feature .glyph {
-        display: grid;
-        place-items: center;
-        width: 44px;
-        height: 44px;
-        margin-bottom: 20px;
-        border-radius: 12px;
-        background: rgba(var(--brand-rgb), 0.12);
-        color: var(--brand);
-      }
-
-      .feature .glyph svg {
-        width: 22px;
-        height: 22px;
-        fill: none;
-        stroke: currentColor;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-
-      .feature p {
-        color: var(--secondary);
-        margin: 10px 0 0;
-        font-size: 16px;
-      }
-
-      .formats {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 16px;
-      }
-
-      .formats span {
-        font: 600 12px var(--mono);
-        padding: 4px 9px;
-        border-radius: 8px;
-        background: var(--fill);
-      }
-
-      kbd {
-        font: 600 13px var(--mono);
-        padding: 1px 6px;
-        border-radius: 6px;
-        border: 0.5px solid var(--separator);
-        background: var(--fill);
-      }
-
-      @media (max-width: 960px) {
-        .features {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-
-      @media (max-width: 620px) {
-        .features {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      /* Screens */
-
-      .screens-band {
-        background: linear-gradient(
-          to bottom,
-          transparent,
-          rgba(var(--brand-rgb), calc(0.06 * var(--glow))) 60%,
-          transparent
-        );
-      }
-
-      .screens {
-        display: flex;
-        justify-content: center;
-        align-items: flex-end;
-        gap: clamp(16px, 4vw, 48px);
-      }
-
-      .phone {
-        flex: 0 1 300px;
-        padding: 10px;
-        border-radius: 48px;
-        background: #0b0b0c;
-        box-shadow:
-          0 0 0 1.5px #2a2a2e,
-          var(--shadow);
-      }
-
-      .phone img {
-        border-radius: 38px;
-        width: 100%;
-        height: auto;
-      }
-
-      .phone.raised {
-        transform: translateY(-40px);
-      }
-
-      .caption {
-        text-align: center;
-        font-size: 15px;
-        color: var(--secondary);
-        margin-top: 18px;
-      }
-
-      @media (max-width: 560px) {
-        .phone {
-          padding: 6px;
-          border-radius: 32px;
-        }
-
-        .phone img {
-          border-radius: 26px;
-        }
-
-        .phone.raised {
-          transform: translateY(-20px);
-        }
-      }
-
-      /* Open source */
-
-      .open {
-        display: grid;
-        grid-template-columns: 1.1fr 1fr;
-        gap: clamp(32px, 6vw, 72px);
-        align-items: center;
-      }
-
-      .open .actions {
-        justify-content: flex-start;
-      }
-
-      .terminal {
-        border-radius: 22px;
-        background: #0b0b0c;
-        border: 0.5px solid #2a2a2e;
-        box-shadow: var(--shadow);
-        overflow: hidden;
-        color: #f2f2f7;
-      }
-
-      .terminal-bar {
-        display: flex;
-        gap: 7px;
-        padding: 14px 16px;
-        border-bottom: 0.5px solid #2a2a2e;
-      }
-
-      .terminal-bar span {
-        width: 11px;
-        height: 11px;
-        border-radius: 50%;
-        background: #3a3a3c;
-      }
-
-      .terminal pre {
-        margin: 0;
-        padding: 20px 22px 24px;
-        font: 14px/1.9 var(--mono);
-        overflow-x: auto;
-      }
-
-      .terminal .prompt {
-        color: var(--brand);
-        user-select: none;
-      }
-
-      .terminal .comment {
-        color: #8e8e93;
-      }
-
-      @media (max-width: 860px) {
-        .open {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      /* Install */
-
-      .install {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-      }
-
-      .install h3 {
-        margin-bottom: 14px;
-      }
-
-      .install ol {
-        margin: 0;
-        padding-left: 20px;
-        color: var(--secondary);
-      }
-
-      .install li + li {
-        margin-top: 6px;
-      }
-
-      .install strong {
-        color: var(--text);
-        font-weight: 600;
-      }
-
-      @media (max-width: 860px) {
-        .install {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      /* Closing: the wordmark on the reticle. */
-
-      .closing {
-        text-align: center;
-        overflow: hidden;
-      }
-
-      .closing .mark {
-        position: relative;
-        display: grid;
-        place-items: center;
-        height: clamp(200px, 30vw, 320px);
-        margin-bottom: 24px;
-      }
-
-      .closing .mark::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(closest-side, rgba(var(--brand-rgb), calc(0.22 * var(--glow))), transparent);
-      }
-
-      .closing .mark .logo {
-        position: relative;
-        height: clamp(64px, 10vw, 110px);
-      }
-
-      .closing .tick {
-        position: absolute;
-        left: 50%;
-        width: 1.5px;
-        height: 22%;
-        background: linear-gradient(to bottom, rgba(var(--ink-rgb), 0.34), rgba(var(--ink-rgb), 0.03));
-      }
-
-      .closing .tick.top {
-        top: 0;
-      }
-
-      .closing .tick.bottom {
-        bottom: 0;
-        transform: rotate(180deg);
-      }
-
-      .closing h2 {
-        font-size: clamp(36px, 6vw, 64px);
-        font-weight: 800;
-        letter-spacing: -0.035em;
-      }
-
-      .closing .lead {
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .lines .fix {
-          animation: none;
-          opacity: 1;
-        }
-      }
-    </style>
   </head>
   <body>
     <header class="nav">
       <div class="wrap">
-        <a class="logo" href="#top" aria-label="Mono, home">
-          <picture>
-            <source srcset="brand/mono-wordmark-white.svg" media="(prefers-color-scheme: dark)" />
-            <img src="brand/mono-wordmark-black.svg" alt="Mono" width="62" height="22" />
-          </picture>
-        </a>
+        <a class="wordmark" href="#top" aria-label="Mono, home"
+          ><img class="appicon" src="brand/mono-icon.svg" alt="" width="32" height="32" /><picture class="wm"
+            ><source srcset="brand/mono-wordmark-white.svg" media="(prefers-color-scheme: dark)" />
+            <img class="wm" src="brand/mono-wordmark-black.svg" alt="" height="18" /></picture
+        ></a>
         <nav class="nav-links" aria-label="Sections">
           <a href="#how">How it works</a>
-          <a href="#features">Features</a>
-          <a href="#open-source">Open source</a>
-          <a href="#install">Install</a>
+          <a href="#research">Research</a>
+          <a href="#code">Code</a>
         </nav>
-        <a
-          class="button secondary nav-github"
-          href="https://github.com/bylacunalabs/mono"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Mono on GitHub"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"
-            />
-          </svg>
-          <span class="nav-github-label">GitHub</span>
-        </a>
-        <a class="button primary" href="app/">Open Mono</a>
+        <a class="button primary" href="#install">Install</a>
       </div>
     </header>
 
     <main id="top">
       <section class="hero">
         <div class="wrap">
-          <ul class="badges" aria-label="Mono is">
-            <li>Free</li>
-            <li>Open source</li>
-            <li>Works offline</li>
-            <li>No account</li>
-          </ul>
           <h1>Read faster.<br />Keep your eyes <em>still.</em></h1>
           <p class="lead">
-            Mono shows one word at a time, anchored on the letter your eye lands on. No lines to chase, no place to
-            lose: just the text, at the pace you choose.
+            Mono shows one word at a time, so your eyes never have to move. Free, open source, and it works offline.
           </p>
           <div class="actions">
-            <a class="button primary" href="app/">Start reading</a>
-            <a class="button secondary" href="#how">How it works</a>
+            <a class="button primary" href="#install">Install</a>
+            <a
+              class="button ghost"
+              href="https://github.com/bylacunalabs/mono"
+              target="_blank"
+              rel="noopener noreferrer"
+              >View the code</a
+            >
           </div>
-        </div>
 
-        <div class="stage" id="demo" aria-label="Try Mono: a short text read one word at a time">
-          <p class="stage-hint"><span id="progress">Try it</span> · tap the word to pause</p>
-          <div class="reticle" id="reticle" role="img">
-            <div class="halo"></div>
-            <div class="tick top"></div>
-            <div class="tick bottom"></div>
-            <div class="arm left"></div>
-            <div class="arm right"></div>
-            <div class="word"><span class="side"></span><span class="orp"></span><span class="side"></span></div>
-          </div>
-          <div class="wrap">
+          <div class="stage" id="demo" aria-label="Try Mono: a short text read one word at a time">
+            <div class="reticle" id="reticle" role="img" aria-label="reading" style="--pre: 2; --suf: 3">
+              <div class="tick top"></div>
+              <div class="tick bottom"></div>
+              <div class="arm left"></div>
+              <div class="arm right"></div>
+              <div class="word"><span>re</span><span class="orp">a</span><span>ding</span></div>
+            </div>
             <div class="console">
               <button class="play" id="play" type="button" aria-label="Play">
-                <svg class="icon-play" viewBox="0 0 20 20" aria-hidden="true">
+                <svg class="i-play" viewBox="0 0 20 20" aria-hidden="true">
                   <path d="M5 2.8v14.4a1 1 0 0 0 1.5.86l12-7.2a1 1 0 0 0 0-1.72l-12-7.2A1 1 0 0 0 5 2.8Z" />
                 </svg>
-                <svg class="icon-pause" viewBox="0 0 20 20" aria-hidden="true">
+                <svg class="i-pause" viewBox="0 0 20 20" aria-hidden="true">
                   <rect x="3.5" y="2.5" width="4.5" height="15" rx="1.2" />
                   <rect x="12" y="2.5" width="4.5" height="15" rx="1.2" />
                 </svg>
               </button>
-              <div>
-                <label class="speed-label" for="speed">Reading speed</label>
-                <input id="speed" type="range" min="100" max="1200" step="25" value="300" />
+              <div class="speed">
+                <input id="speed" type="range" min="100" max="1200" step="25" value="300" aria-label="Reading speed" />
+                <output class="wpm" for="speed"><span id="wpm-value">300</span><small>WPM</small></output>
               </div>
-              <output class="wpm" for="speed"><span id="wpm-value">300</span><small>WPM</small></output>
             </div>
-            <p class="estimates" aria-live="polite">
-              <span><strong id="t-article">5 min</strong>an article</span>
-              <span><strong id="t-story">25 min</strong>a short story</span>
-              <span><strong id="t-novel">5 h</strong>a novel</span>
-            </p>
+            <p class="hint"><span id="progress">Try it</span> · tap the word to pause, drag to change the speed</p>
           </div>
         </div>
       </section>
 
-      <section id="how">
+      <section id="free" style="padding-top: 0">
         <div class="wrap">
-          <div class="section-head reveal">
-            <p class="eyebrow">How it works</p>
-            <h2>The words come to you.</h2>
-            <p class="lead">
-              Reading a page, your eyes hop from word to word and line to line, and every hop costs time. Mono uses RSVP
-              — Rapid Serial Visual Presentation — to put each word in the same place, so your eyes never have to move.
-            </p>
-          </div>
-          <div class="compare">
-            <div class="panel reveal">
-              <div class="figure">
-                <svg class="lines" viewBox="0 0 380 150" aria-hidden="true">
-                  <text x="10" y="52">Your eyes jump along</text>
-                  <text x="10" y="86">every line, then sweep</text>
-                  <text x="10" y="120">back to the next one.</text>
-                  <path
-                    class="hop"
-                    d="M30 34 Q 65 16 100 34 Q 135 16 170 34 M170 34 Q 100 50 30 68 M30 68 Q 70 50 110 68 Q 150 50 190 68 M190 68 Q 110 84 30 102"
-                  />
-                  <circle class="fix" cx="30" cy="34" r="4" style="animation-delay: 0s" />
-                  <circle class="fix" cx="100" cy="34" r="4" style="animation-delay: 0.6s" />
-                  <circle class="fix" cx="170" cy="34" r="4" style="animation-delay: 1.2s" />
-                  <circle class="fix" cx="30" cy="68" r="4" style="animation-delay: 1.8s" />
-                  <circle class="fix" cx="110" cy="68" r="4" style="animation-delay: 2.4s" />
-                  <circle class="fix" cx="190" cy="68" r="4" style="animation-delay: 3s" />
-                  <circle class="fix" cx="30" cy="102" r="4" style="animation-delay: 3.6s" />
-                </svg>
-              </div>
-              <h3>On a page</h3>
-              <p>
-                Dozens of jumps per line, a sweep back at every line's end, and the odd look back to find your place.
-              </p>
-            </div>
-            <div class="panel reveal">
-              <div class="figure">
-                <div class="reticle" data-word="recognition" aria-hidden="true">
-                  <div class="halo"></div>
-                  <div class="tick top"></div>
-                  <div class="tick bottom"></div>
-                  <div class="arm left"></div>
-                  <div class="arm right"></div>
-                  <div class="word"><span class="side"></span><span class="orp"></span><span class="side"></span></div>
-                </div>
-              </div>
-              <h3>With Mono</h3>
-              <p>
-                One spot. The red letter is the <strong>optimal recognition point</strong>, just left of the word's
-                middle, where your gaze naturally lands — and it is always in the centre of the reticle.
-              </p>
-            </div>
+          <div class="zero" aria-label="Zero euros">€0</div>
+          <h2>Completely free.</h2>
+          <p class="lead">No paywall, no trial, no subscription. You never need an account or a card.</p>
+          <div class="free-grid">
+            <p>No ads<span>Ever</span></p>
+            <p>No account<span>Open and read</span></p>
+            <p>Private<span>Texts stay on your device</span></p>
+            <p>Open source<span>The code is public</span></p>
           </div>
         </div>
       </section>
 
-      <section id="features">
-        <div class="wrap">
-          <div class="section-head reveal">
-            <p class="eyebrow">Features</p>
-            <h2>Built for reading whole books.</h2>
+      <section id="how" style="padding-top: 0">
+        <div class="wrap how">
+          <div>
+            <p class="label">How it works</p>
+            <h2>Every word lands in the same place.</h2>
             <p class="lead">
-              A rhythm that feels natural, any text you have, and a library that remembers where you were.
+              Your eyes lose time hopping across a page. Mono puts each word on one spot, with the red letter, where
+              your gaze naturally lands, always in the centre.
             </p>
+            <div class="also">
+              <span>EPUB</span><span>PDF</span><span>TXT</span><span>HTML</span><span>Remembers your place</span
+              ><span>Light and dark</span>
+            </div>
           </div>
-          <div class="features">
-            <article class="feature reveal">
-              <div class="glyph">
-                <svg viewBox="0 0 24 24"><path d="M3 12h3l3-7 4 14 3-7h5" /></svg>
-              </div>
-              <h3>A rhythm that reads like you do</h3>
-              <p>
-                Sentences end with a short pause, frequent words pass quicker and long ones linger. Very long words are
-                split into syllables. The speed you set is the real average, pauses included.
-              </p>
-            </article>
-            <article class="feature reveal">
-              <div class="glyph">
-                <svg viewBox="0 0 24 24">
-                  <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-                  <path d="M14 3v5h5M9 13h6M9 17h4" />
-                </svg>
-              </div>
-              <h3>Bring any text</h3>
-              <p>
-                Import books, documents and saved pages, paste text, drop files on the library or share them to Mono.
-              </p>
-              <div class="formats"><span>EPUB</span><span>PDF</span><span>TXT</span><span>HTML</span></div>
-            </article>
-            <article class="feature reveal">
-              <div class="glyph">
-                <svg viewBox="0 0 24 24">
-                  <path d="M9 11V6a2 2 0 1 1 4 0v5" />
-                  <path d="M13 10a2 2 0 1 1 4 0v2a7 7 0 0 1-7 7h-.5A5.5 5.5 0 0 1 4 13.5V12a2 2 0 1 1 4 0" />
-                </svg>
-              </div>
-              <h3>One gesture away</h3>
-              <p>
-                Tap to pause and see the whole text. Swipe to skip by sentence, paragraph or chapter, up or down for
-                speed, pinch for size. Or use <kbd>Space</kbd> and the arrow keys.
-              </p>
-            </article>
-            <article class="feature reveal">
-              <div class="glyph">
-                <svg viewBox="0 0 24 24">
-                  <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
-                  <path d="M3 3v5h5M12 7v5l3 2" />
-                </svg>
-              </div>
-              <h3>Never lose the thread</h3>
-              <p>
-                Your place is saved as you read. After a pause Mono picks up a few words back and eases into speed, so
-                you're straight back in.
-              </p>
-            </article>
-            <article class="feature reveal">
-              <div class="glyph">
-                <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
-              </div>
-              <h3>A library with a memory</h3>
-              <p>
-                Covers, progress and time left for every text, search, the words you read today and your daily streak.
-              </p>
-            </article>
-            <article class="feature reveal">
-              <div class="glyph">
-                <svg viewBox="0 0 24 24">
-                  <rect x="5" y="11" width="14" height="10" rx="2" />
-                  <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-                </svg>
-              </div>
-              <h3>Private and offline</h3>
-              <p>
-                No account, no server: your texts and statistics are stored on your device and Mono works without a
-                connection. Back up everything to a file whenever you like.
-              </p>
-            </article>
+          <div
+            class="aligned"
+            role="img"
+            aria-label="Four words of different lengths, each with its red letter on the same vertical line"
+          >
+            <div class="w"><i></i><b>a</b><u></u></div>
+            <div class="w"><i>re</i><b>a</b><u>ding</u></div>
+            <div class="w"><i>rec</i><b>o</b><u>gnition</u></div>
+            <div class="w"><i>extr</i><b>a</b><u>ordinarily</u></div>
           </div>
         </div>
       </section>
 
-      <section class="screens-band">
-        <div class="wrap">
-          <div class="section-head center reveal">
-            <p class="eyebrow">At home on your phone</p>
-            <h2>Feels like an app. Because it is one.</h2>
-            <p class="lead">
-              Add Mono to your Home Screen and it opens full screen, follows your system's look on iPhone and Android,
-              light or dark, and reads in your choice of seven typefaces.
-            </p>
+      <section id="install" style="padding-top: 0">
+        <div class="wrap narrow" style="margin: 0 auto; max-width: 1040px">
+          <div class="narrow">
+            <p class="label">Install</p>
+            <h2>On your phone in under a minute.</h2>
+            <p class="lead">No app store. Mono installs from your browser, gets its own icon and works offline.</p>
           </div>
-          <div class="screens reveal">
-            <div class="phone">
-              <img
-                src="app/screenshots/library-narrow.png"
-                width="780"
-                height="1688"
-                loading="lazy"
-                alt="Mono's library: continue reading, words read today, streak and the list of texts"
-              />
-            </div>
-            <div class="phone raised">
-              <img
-                src="app/screenshots/reader-narrow.png"
-                width="780"
-                height="1688"
-                loading="lazy"
-                alt="Mono's reader, paused: the word in the reticle above the whole text, with playback controls and speed"
-              />
-            </div>
+          <div class="tabs" role="tablist" aria-label="Choose your device">
+            <button class="tab" role="tab" id="tab-ios" aria-controls="panel-ios" aria-selected="true" type="button">
+              iPhone &amp; iPad
+            </button>
+            <button
+              class="tab"
+              role="tab"
+              id="tab-android"
+              aria-controls="panel-android"
+              aria-selected="false"
+              type="button"
+            >
+              Android
+            </button>
+            <button
+              class="tab"
+              role="tab"
+              id="tab-desktop"
+              aria-controls="panel-desktop"
+              aria-selected="false"
+              type="button"
+            >
+              Computer
+            </button>
           </div>
-          <p class="caption reveal">The library, and the reader paused on the whole text.</p>
-        </div>
-      </section>
-
-      <section id="open-source">
-        <div class="wrap open">
-          <div class="reveal">
-            <p class="eyebrow">Open source</p>
-            <h2>Read the code, not just the words.</h2>
-            <p class="lead">
-              Mono is free software under the MIT License. The tokenizer, the recognition point, the timing model and
-              every importer are there to read, run and improve. Issues and pull requests are welcome.
-            </p>
-            <div class="actions">
-              <a class="button secondary" href="https://github.com/bylacunalabs/mono">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"
-                  />
-                </svg>
-                Source on GitHub
-              </a>
-            </div>
-          </div>
-          <div class="terminal reveal" aria-label="Running Mono from its source">
-            <div class="terminal-bar" aria-hidden="true"><span></span><span></span><span></span></div>
-            <pre><span class="prompt">$ </span>git clone https://github.com/bylacunalabs/mono
-<span class="prompt">$ </span>cd mono &amp;&amp; npm install
-<span class="prompt">$ </span>npm run dev
-<span class="comment"># the site on :5173, the app in /app/</span></pre>
-          </div>
-        </div>
-      </section>
-
-      <section id="install">
-        <div class="wrap">
-          <div class="section-head reveal">
-            <p class="eyebrow">Install</p>
-            <h2>Nothing to download from a store.</h2>
-            <p class="lead">Mono runs in your browser. Install it to get an icon, full screen and offline reading.</p>
-          </div>
-          <div class="install">
-            <div class="panel reveal">
-              <h3>iPhone and iPad</h3>
-              <ol>
-                <li>Open Mono in <strong>Safari</strong>.</li>
-                <li>Tap <strong>Share</strong>.</li>
-                <li>Choose <strong>Add to Home Screen</strong>.</li>
+          <div class="narrow">
+            <div role="tabpanel" id="panel-ios" aria-labelledby="tab-ios">
+              <ol class="steps">
+                <li>
+                  <h3>Open Mono in Safari</h3>
+                  <p>Go to <a href="app/">mono.lacunalabs.it</a>.</p>
+                </li>
+                <li>
+                  <h3>Tap Share</h3>
+                  <p>
+                    The square with an arrow up
+                    <span class="glyph"
+                      ><svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                          d="M12 15V3M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"
+                        /></svg></span
+                    >, in the bottom bar (top right on iPad).
+                  </p>
+                </li>
+                <li>
+                  <h3>Choose “Add to Home Screen”</h3>
+                  <p>Scroll the list if you don't see it.</p>
+                </li>
+                <li>
+                  <h3>Tap “Add”</h3>
+                  <p>Mono is now on your Home Screen. Open it once online, then it works offline.</p>
+                </li>
               </ol>
             </div>
-            <div class="panel reveal">
-              <h3>Android</h3>
-              <ol>
-                <li>Open Mono in <strong>Chrome</strong>.</li>
-                <li>Tap <strong>Install</strong> when Mono offers it, or open the menu.</li>
-                <li>Choose <strong>Install app</strong>.</li>
+            <div role="tabpanel" id="panel-android" aria-labelledby="tab-android" hidden>
+              <ol class="steps">
+                <li>
+                  <h3>Open Mono in Chrome</h3>
+                  <p>Go to <a href="app/">mono.lacunalabs.it</a>.</p>
+                </li>
+                <li>
+                  <h3>Tap the menu</h3>
+                  <p>
+                    The three dots
+                    <span class="glyph"
+                      ><svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="5" r="1.6" />
+                        <circle cx="12" cy="12" r="1.6" />
+                        <circle cx="12" cy="19" r="1.6" /></svg
+                    ></span>
+                    at the top right. If Mono shows an <strong>Install</strong> banner, tap that instead.
+                  </p>
+                </li>
+                <li>
+                  <h3>Choose “Install app”</h3>
+                  <p>Some versions say “Add to Home screen”.</p>
+                </li>
+                <li>
+                  <h3>Tap “Install”</h3>
+                  <p>Mono is now on your Home screen. Open it once online, then it works offline.</p>
+                </li>
               </ol>
             </div>
-            <div class="panel reveal">
-              <h3>Computer</h3>
-              <ol>
-                <li>Open Mono in <strong>Chrome</strong> or <strong>Edge</strong>.</li>
-                <li>Click the <strong>install</strong> icon in the address bar.</li>
-                <li>Open EPUBs and PDFs with Mono from your files.</li>
+            <div role="tabpanel" id="panel-desktop" aria-labelledby="tab-desktop" hidden>
+              <ol class="steps">
+                <li>
+                  <h3>Open Mono in Chrome or Edge</h3>
+                  <p>Go to <a href="app/">mono.lacunalabs.it</a>.</p>
+                </li>
+                <li>
+                  <h3>Click the install icon</h3>
+                  <p>It's at the right end of the address bar. Then click <strong>Install</strong>.</p>
+                </li>
+                <li>
+                  <h3>On a Mac with Safari</h3>
+                  <p>Use <strong>File → Add to Dock</strong> instead (Safari 17 or later).</p>
+                </li>
               </ol>
+            </div>
+            <p class="install-note">
+              Your books stay on your device. Before clearing site data or removing the app, back them up to a file in
+              Settings.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="research" style="padding-top: 0">
+        <div class="wrap">
+          <div class="narrow">
+            <p class="label">Research</p>
+            <h2>Studied since 1970.</h2>
+            <p class="lead">Showing words one at a time is called RSVP. These are the papers behind Mono.</p>
+            <div class="papers">
+              <div class="paper">
+                <p class="what">RSVP was introduced: words shown one by one at a fixed spot.</p>
+                <p class="cite">
+                  Forster, K. I. (1970).
+                  <a href="https://doi.org/10.3758/BF03210208" target="_blank" rel="noopener noreferrer"
+                    >Visual perception of rapidly presented word sequences of varying complexity</a
+                  >. <i>Perception &amp; Psychophysics</i>, 8(4), 215–221.
+                </p>
+              </div>
+              <div class="paper">
+                <p class="what">Reading without eye movements along a line is possible.</p>
+                <p class="cite">
+                  Rubin, G. S. &amp; Turano, K. (1992). Reading without saccadic eye movements. <i>Vision Research</i>,
+                  32(5), 895–902.
+                </p>
+              </div>
+              <div class="paper">
+                <p class="what">
+                  Words are recognised fastest near their middle, slightly left. That is the red letter.
+                </p>
+                <p class="cite">
+                  O'Regan, J. K. &amp; Jacobs, A. M. (1992).
+                  <a href="https://doi.org/10.1037/0096-1523.18.1.185" target="_blank" rel="noopener noreferrer"
+                    >Optimal viewing position effect in word recognition: A challenge to current theory</a
+                  >. <i>Journal of Experimental Psychology: Human Perception and Performance</i>, 18(1), 185–197.
+                </p>
+              </div>
+            </div>
+            <div class="caveat">
+              <p>
+                <strong>The honest limit.</strong> A major review finds that reading faster costs comprehension, and
+                that not being able to look back hurts it more. So Mono starts at a calm 300 WPM, lets you tap to pause
+                and see the whole text, and restarts a few words back after a pause.
+              </p>
+              <p class="cite" style="margin-top: 10px">
+                Rayner, K., Schotter, E. R., Masson, M. E. J., Potter, M. C. &amp; Treiman, R. (2016).
+                <a href="https://doi.org/10.1177/1529100615623267" target="_blank" rel="noopener noreferrer"
+                  >So much to read, so little time: How do we read, and can speed reading help?</a
+                >
+                <i>Psychological Science in the Public Interest</i>, 17(1), 4–34.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="closing">
-        <div class="wrap reveal">
-          <div class="mark" aria-hidden="true">
-            <div class="tick top"></div>
-            <div class="tick bottom"></div>
-            <picture class="logo">
-              <source srcset="brand/mono-wordmark-white.svg" media="(prefers-color-scheme: dark)" />
-              <img src="brand/mono-wordmark-black.svg" alt="" width="310" height="110" />
-            </picture>
+      <section id="code" style="padding-top: 0">
+        <div class="wrap">
+          <div class="narrow">
+            <p class="label">Open source</p>
+            <h2>The code is public.</h2>
+            <p class="lead">
+              Mono's source is on GitHub under the MIT licence. You can read how it works, run your own copy, or suggest
+              a change.
+            </p>
+            <div class="actions" style="margin-top: 28px">
+              <a
+                class="button ghost"
+                href="https://github.com/bylacunalabs/mono"
+                target="_blank"
+                rel="noopener noreferrer"
+                >github.com/bylacunalabs/mono</a
+              >
+            </div>
           </div>
+        </div>
+      </section>
+
+      <section class="closing" style="padding-top: 0">
+        <div class="wrap">
+          <img class="bigicon" src="brand/mono-icon.svg" alt="Mono app icon" width="120" height="120" />
           <h2>Your next book,<br />one word at a time.</h2>
-          <p class="lead">Start with the built-in guide. It takes less than a minute.</p>
           <div class="actions">
-            <a class="button primary" href="app/">Open Mono</a>
+            <a class="button primary" href="#install">Install</a>
+            <a
+              class="button ghost"
+              href="https://github.com/bylacunalabs/mono"
+              target="_blank"
+              rel="noopener noreferrer"
+              >View the code</a
+            >
           </div>
         </div>
       </section>
@@ -981,22 +343,20 @@
 
     <footer>
       <div class="wrap">
-        <span class="by">
-          <picture class="logo">
-            <source srcset="brand/mono-wordmark-white.svg" media="(prefers-color-scheme: dark)" />
-            <img src="brand/mono-wordmark-black.svg" alt="Mono" width="51" height="18" />
-          </picture>
-          by Lacuna Labs · MIT License
-        </span>
+        <a class="wordmark" href="#top" aria-label="Mono, home"
+          ><img class="appicon" src="brand/mono-icon.svg" alt="" width="32" height="32" /><picture class="wm"
+            ><source srcset="brand/mono-wordmark-white.svg" media="(prefers-color-scheme: dark)" />
+            <img class="wm" src="brand/mono-wordmark-black.svg" alt="" height="18" /></picture
+        ></a>
+        <span>by Lacuna Labs · MIT License</span>
         <nav aria-label="More">
-          <a href="app/">Open Mono</a>
+          <a href="https://github.com/bylacunalabs/mono" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="brand/">Brand</a>
-          <a href="https://github.com/bylacunalabs/mono">GitHub</a>
         </nav>
       </div>
     </footer>
 
-    <script src="site.js"></script>
+    <script src="landing.js"></script>
     <script type="module" src="app/demo.js"></script>
     <script type="module" src="app/analytics.js"></script>
   </body>
